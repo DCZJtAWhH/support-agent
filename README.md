@@ -8,7 +8,7 @@ Python + FastAPI + LangChain，实现多轮对话、SSE 文本增量和售后信
 
 ```powershell
 uv sync --locked
-Copy-Item -LiteralPath .env.example -Destination .env
+# copy .env.example rename .env
 # 编辑 .env，填写 OPENAI_BASE_URL、OPENAI_MODEL、OPENAI_API_KEY。
 uv run --locked uvicorn support_agent.app:create_app --factory --app-dir src --host 127.0.0.1 --port 8000 --workers 1
 ```
