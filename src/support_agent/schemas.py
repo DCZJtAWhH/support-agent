@@ -13,6 +13,7 @@ class ChatRequest(BaseModel):
 
     message: InputText
     conversation_id: UUID | None = None
+    request_id: UUID | None = None
 
 
 class ExtractionRequest(BaseModel):

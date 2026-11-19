@@ -34,6 +34,7 @@ def test_model_configuration_is_loaded_from_utf8_dotenv(monkeypatch, tmp_path):
     from support_agent.app import create_app
 
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
     for key in ("OPENAI_BASE_URL", "OPENAI_MODEL", "OPENAI_API_KEY"):
         monkeypatch.delenv(key, raising=False)
     (tmp_path / ".env").write_text(

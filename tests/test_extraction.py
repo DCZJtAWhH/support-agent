@@ -163,7 +163,8 @@ def test_chat_can_work_when_deepseek_chat_endpoint_rejects_json_schema(harness, 
                 assert extraction.status_code == 200
                 assert extraction.json() == expected
             assert len(calls) == 2
-            assert all("tools" not in call for call in calls)
+            assert "tools" in calls[0]
+            assert "tools" not in calls[1]
 
     asyncio.run(scenario())
 

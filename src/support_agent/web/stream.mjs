@@ -60,7 +60,7 @@ export async function readChatStream(response, onEvent) {
 
   /** 校验事件顺序和字段，流内 error 立即中止，未知事件留给后续协议扩展。 */
   function acceptEvent(event, data) {
-    if (!["meta", "token", "done", "error"].includes(event)) return;
+    if (!["meta", "tool_status", "token", "done", "error"].includes(event)) return;
     if (done || !data || typeof data !== "object") throw new Error("回复格式异常，请重试本轮。");
     if (event === "error") throw new Error(data.message || "本轮回复失败，请重试。");
     if (event === "meta") {
@@ -70,6 +70,11 @@ export async function readChatStream(response, onEvent) {
       conversationId = data.conversation_id;
     } else if (!conversationId) {
       throw new Error("回复缺少会话信息，请重试。");
+    } else if (event === "tool_status") {
+      if (typeof data.name !== "string" || typeof data.tool_call_id !== "string" ||
+          !["running", "succeeded", "failed"].includes(data.state)) {
+        throw new Error("工具状态格式异常，请重试本轮。");
+      }
     } else if (event === "token") {
       if (typeof data.text !== "string") throw new Error("回复格式异常，请重试本轮。");
       reply += data.text;

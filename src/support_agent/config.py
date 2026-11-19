@@ -1,4 +1,4 @@
-"""从环境变量或 .env 加载模型配置，并校验上下文预算。"""
+"""从环境变量或 .env 加载模型及数据库配置，并校验上下文预算。"""
 
 from typing import Literal
 
@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     max_output_tokens: int = Field(default=1024, gt=0)
     context_window_tokens: int = Field(default=8192, gt=0)
     token_safety_margin: int = Field(default=256, ge=0)
+    database_url: SecretStr
+    tool_timeout_seconds: float = Field(default=5, gt=0)
+    tool_max_retries: int = Field(default=1, ge=0, le=3)
 
     @model_validator(mode="after")
     def validate_budget(self):

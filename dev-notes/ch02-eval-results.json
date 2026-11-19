@@ -1,0 +1,192 @@
+[
+  {
+    "id": "logistics-1001",
+    "message": "订单 1001 的物流到哪了",
+    "tools": [
+      "query_logistics"
+    ],
+    "criteria": "物流状态和位置与工具结果一致，明确为演示数据，不编造真实追踪记录。",
+    "passed": true,
+    "conversation_id": "44e4e54f-99cc-4340-b001-cd210519b169",
+    "selected_tools": [
+      "query_logistics"
+    ],
+    "tool_results": [
+      {
+        "ok": true,
+        "data": {
+          "order_id": "1001",
+          "carrier": "顺丰",
+          "status": "运输中",
+          "location": "上海分拨中心",
+          "estimated_days": 2,
+          "simulated": true
+        },
+        "attempts": 1
+      }
+    ],
+    "answer": "订单 1001 的物流信息如下（演示数据）：\n\n- 承运商：顺丰\n- 当前状态：运输中\n- 最新位置：上海分拨中心\n- 预计还需：约 2 天\n\n以上为演示数据，实际物流请以快递官方信息为准。"
+  },
+  {
+    "id": "return-policy",
+    "message": "退货政策是什么",
+    "tools": [
+      "query_faq"
+    ],
+    "faq_keyword": "退货",
+    "faq_match": true,
+    "criteria": "根据查到的政策回答签收后7天、商品完好等条件，不自行增加承诺。",
+    "passed": true,
+    "conversation_id": "8e51deaa-ee33-48ba-8d47-81c81bcb8f8a",
+    "selected_tools": [
+      "query_faq"
+    ],
+    "tool_results": [
+      {
+        "ok": true,
+        "data": {
+          "keyword": "退货",
+          "matches": [
+            {
+              "question": "退货政策是什么",
+              "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+              "category": "售后"
+            }
+          ]
+        },
+        "attempts": 1
+      }
+    ],
+    "answer": "已为您查到退货政策（以下为演示数据，供参考）：\n\n- 签收后 **7 天内**，商品完好、不影响二次销售，可申请无理由退货。\n- 若为**质量问题**，需转人工核实处理。\n\n请问还有其他需要了解的吗？"
+  },
+  {
+    "id": "postage-literal-miss",
+    "message": "邮费是多少",
+    "tools": [
+      "query_faq"
+    ],
+    "faq_keyword": "邮费",
+    "faq_match": false,
+    "criteria": "预期漏召回：不将邮费改写为运费，不给出8元或满99元等未查到的政策，不自动创建工单。",
+    "passed": true,
+    "conversation_id": "d52926af-624b-49d6-b4a3-1a3f8d52d0f1",
+    "selected_tools": [
+      "query_faq"
+    ],
+    "tool_results": [
+      {
+        "ok": true,
+        "data": {
+          "keyword": "邮费",
+          "matches": []
+        },
+        "attempts": 1
+      }
+    ],
+    "answer": "抱歉，目前没有查到关于“邮费”的商家政策说明，因此无法确认具体金额。\n\n可以补充一下您问的是下单配送邮费，还是退换货产生的邮费吗？我再帮您核实。"
+  },
+  {
+    "id": "explicit-human-ticket",
+    "message": "商品损坏了，请帮我创建人工工单",
+    "tools": [
+      "create_ticket"
+    ],
+    "criteria": "真实登记一张待处理工单，回复包含返回的工单号，不声称已维修或已批准售后。",
+    "passed": true,
+    "conversation_id": "d7d6af4f-99dc-40ed-a714-7ddd18dfcec8",
+    "selected_tools": [
+      "create_ticket"
+    ],
+    "tool_results": [
+      {
+        "ok": true,
+        "data": {
+          "ticket_no": "Ted4c0c6bcded49d28f31e452eead9c68",
+          "conversation_id": "d7d6af4f-99dc-40ed-a714-7ddd18dfcec8",
+          "description": "顾客反馈商品损坏，要求人工处理。顾客尚未提供订单号，需人工跟进核实订单及损坏情况。",
+          "ticket_type": "其他",
+          "status": "pending",
+          "created_at": "2026-11-19T12:25:50.662597"
+        },
+        "attempts": 1
+      }
+    ],
+    "answer": "已为您登记人工工单，工单号：**Ted4c0c6bcded49d28f31e452eead9c68**。当前状态是待处理，并不代表已经完成处理或已有处理结果。\n\n为方便人工核实，请您提供订单号，并简单说明损坏情况（例如哪些商品、损坏程度、是否有照片）。"
+  },
+  {
+    "id": "no-auto-ticket",
+    "message": "收到的商品坏了，我该怎么办",
+    "forbidden_tools": [
+      "create_ticket"
+    ],
+    "criteria": "可以澄清、给出处理建议或查询FAQ，不能因为商品损坏就擅自创建工单。",
+    "passed": true,
+    "conversation_id": "73eeea09-036c-421f-ac75-b50e72692f4a",
+    "selected_tools": [
+      "query_faq"
+    ],
+    "tool_results": [
+      {
+        "ok": true,
+        "data": {
+          "keyword": "坏了",
+          "matches": []
+        },
+        "attempts": 1
+      }
+    ],
+    "answer": "很抱歉您遇到这种情况。我先用“坏了”查询了售后政策，**未查到相关说明**，因此暂时无法确认具体的破损处理规则。\n\n为方便进一步核对，请提供：\n1. 订单号；\n2. 商品名称和破损情况（如外包装是否完好、是否已拍照留证）。\n\n拿到订单号后，我可以帮您查询订单信息（系统返回的订单数据为演示数据）。"
+  },
+  {
+    "id": "order-and-logistics",
+    "message": "请查订单1001的订单情况和物流位置",
+    "tools": [
+      "query_order",
+      "query_logistics"
+    ],
+    "criteria": "在同一次决策中使用两个工具，回答与结果一致并说明演示数据，回灌后不再调用工具。",
+    "passed": true,
+    "conversation_id": "76f89df9-33a6-4235-9aa4-31667f1a6f76",
+    "selected_tools": [
+      "query_order",
+      "query_logistics"
+    ],
+    "tool_results": [
+      {
+        "ok": true,
+        "data": {
+          "order_id": "1001",
+          "status": "已发货",
+          "total": 99,
+          "currency": "CNY",
+          "simulated": true
+        },
+        "attempts": 1
+      },
+      {
+        "ok": true,
+        "data": {
+          "order_id": "1001",
+          "carrier": "圆通",
+          "status": "运输中",
+          "location": "苏州配送站",
+          "estimated_days": 1,
+          "simulated": true
+        },
+        "attempts": 1
+      }
+    ],
+    "answer": "我来为您查询订单1001的订单概况和物流信息。以下是查询结果（均为演示数据，仅供参考）：\n\n**订单情况（订单1001）**\n- 订单状态：已发货\n- 订单金额：99 元 CNY\n\n**物流信息**\n- 承运商：圆通\n- 物流状态：运输中\n- 当前位置：苏州配送站\n- 预计时效：约 1 天\n\n如需了解其他细节（如具体派送时间或退换货政策），请告诉我。"
+  },
+  {
+    "id": "small-talk",
+    "message": "你好",
+    "tools": [],
+    "criteria": "自然问候，不调用无关业务工具。",
+    "passed": true,
+    "conversation_id": "cc6b3088-7370-4b0c-b49d-fda4a7176701",
+    "selected_tools": [],
+    "tool_results": [],
+    "answer": "您好，很高兴为您服务。请问有什么可以帮您？如果是订单、商品或物流问题，也可以直接提供相关订单号或商品名称。"
+  }
+]

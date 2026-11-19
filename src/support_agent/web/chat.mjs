@@ -42,14 +42,45 @@ function addMessage(role, text = "") {
   const name = document.createElement("p");
   name.className = "message-name";
   name.textContent = role === "user" ? "您" : "智能客服";
-  const bubble = document.createElement("p");
+  const bubble = document.createElement("div");
   bubble.className = "bubble";
-  bubble.textContent = text;
+  const tools = document.createElement("div");
+  tools.className = "tool-trace";
+  tools.hidden = true;
+  tools.setAttribute("aria-label", "本轮工具轨迹");
+  const reply = document.createElement("span");
+  reply.className = "reply";
+  reply.textContent = text;
+  bubble.append(tools, reply);
   content.append(name, bubble);
   article.append(avatar, content);
   messages.append(article);
   followConversation(true);
-  return { article, content, bubble };
+  return { article, content, bubble, reply, tools };
+}
+
+/** 在客服气泡中按调用标识更新工具徽章，保留本轮已完成或失败的轨迹。 */
+function updateToolBadge(assistant, data) {
+  const labels = { query_order: "查订单", query_product: "查商品", query_logistics: "查物流", query_faq: "查常见问题", create_ticket: "登记人工工单" };
+  const states = { running: "执行中", succeeded: "已完成", failed: "失败" };
+  let badge = Array.from(assistant.tools.children).find(function matchesCall(item) {
+    // 按工具调用标识复用徽章，同名工具的不同申请仍分别显示。
+    return item.dataset.callId === data.tool_call_id;
+  });
+  if (!badge) {
+    badge = document.createElement("span");
+    badge.dataset.callId = data.tool_call_id;
+    assistant.tools.append(badge);
+  }
+  badge.className = `tool-badge ${data.state}`;
+  badge.textContent = `${labels[data.name] || data.name} · ${states[data.state]}${data.reused ? " · 已复用" : ""}`;
+  badge.title = data.name;
+  const code = document.createElement("code");
+  code.textContent = data.name;
+  badge.append(code);
+  assistant.tools.hidden = false;
+  status.textContent = data.state === "running" ? `正在${labels[data.name] || data.name}…` : "正在根据查询结果组织回答…";
+  followConversation();
 }
 
 /** 将上游文本增量拆为字符依次显示；队列排空后才开放下一轮发送。 */
@@ -113,14 +144,15 @@ async function sendMessage(message, previous = null) {
   } else previous.article.remove();
   const assistant = addMessage("assistant");
   assistant.bubble.classList.add("streaming");
-  const writer = createTypewriter(assistant.bubble);
+  const writer = createTypewriter(assistant.reply);
+  const requestId = previous?.requestId || crypto.randomUUID();
   const request = { controller: new AbortController(), writer };
   activeRequest = request;
   updateControls();
   status.textContent = "正在等待客服回复…";
   document.querySelector("#conversation-title").textContent = message;
   try {
-    const body = { message };
+    const body = { message, request_id: requestId };
     if (conversationId) body.conversation_id = conversationId;
     const response = await fetch("/chat", {
       method: "POST",
@@ -139,6 +171,7 @@ async function sendMessage(message, previous = null) {
         status.textContent = "客服正在回复…";
         writer.append(data.text);
       }
+      if (event === "tool_status") updateToolBadge(assistant, data);
     });
     await writer.drain();
     if (activeRequest !== request) return;
@@ -147,12 +180,12 @@ async function sendMessage(message, previous = null) {
     if (activeRequest !== request) return;
     writer.stop();
     assistant.article.classList.add("failed");
-    if (!assistant.bubble.textContent) assistant.bubble.textContent = "本轮未能收到完整回复。";
+    if (!assistant.reply.textContent) assistant.reply.textContent = "本轮未能收到完整回复。";
     const state = document.createElement("p");
     state.className = "message-state";
     state.textContent = "本轮未完成";
     assistant.content.append(state);
-    failedTurn = { message, ...assistant, expired: error.status === 404 };
+    failedTurn = { message, requestId, ...assistant, expired: error.status === 404 };
     document.querySelector("#notice-text").textContent = error instanceof TypeError
       ? "无法连接客服服务，请检查网络后重试。"
       : error.message || "本轮回复失败，请稍后重试。";

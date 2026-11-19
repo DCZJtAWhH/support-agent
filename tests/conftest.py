@@ -121,6 +121,7 @@ def harness():
                 "openai_base_url": "https://upstream.invalid/v1",
                 "openai_api_key": "test-key",
                 "openai_model": "test-model",
+                "database_url": "sqlite+aiosqlite:///:memory:",
                 **overrides,
             },
         )
@@ -133,3 +134,43 @@ def harness():
                     yield client, calls, app
 
     return open_app
+
+
+def tool_response(calls):
+    records = [
+        {
+            "delta": {
+                "tool_calls": [
+                    {
+                        "index": index,
+                        "id": call["id"],
+                        "type": "function",
+                        "function": {
+                            "name": call["name"],
+                            "arguments": json.dumps(call["args"], ensure_ascii=False),
+                        },
+                    }
+                    for index, call in enumerate(calls)
+                ]
+            },
+            "finish_reason": None,
+        },
+        {"delta": {}, "finish_reason": "tool_calls"},
+    ]
+    body = "".join(
+        "data: "
+        + json.dumps(
+            {
+                "id": "chatcmpl-tools",
+                "object": "chat.completion.chunk",
+                "model": "test-model",
+                "choices": [{"index": 0, **record}],
+            },
+            ensure_ascii=False,
+        )
+        + "\n\n"
+        for record in records
+    )
+    return httpx.Response(
+        200, text=body + "data: [DONE]\n\n", headers={"content-type": "text/event-stream"}
+    )

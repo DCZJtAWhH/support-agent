@@ -5,7 +5,7 @@ import pytest
 from conftest import sse_events, stream_response
 
 
-def test_chat_streams_upstream_text_as_sse_without_tools(harness):
+def test_chat_streams_plain_reply_when_model_does_not_select_tools(harness):
     async def scenario():
         async with harness() as (client, calls, _):
             response = await client.post("/chat", json={"message": "你好"})
@@ -20,7 +20,7 @@ def test_chat_streams_upstream_text_as_sse_without_tools(harness):
             assert events[0][1]["conversation_id"] == events[-1][1]["conversation_id"]
             assert calls[0]["model"] == "test-model"
             assert calls[0]["stream"] is True
-            assert "tools" not in calls[0]
+            assert len(calls[0]["tools"]) == 5
             assert calls[0]["messages"][-1] == {"role": "user", "content": "你好"}
 
     asyncio.run(scenario())
@@ -47,7 +47,7 @@ def test_output_limit_uses_the_configured_openai_protocol_parameter(harness, par
 def test_budget_drops_oldest_complete_turn_and_rejects_oversized_current_input(harness):
     async def scenario():
         async with harness(
-            context_window_tokens=1500, max_output_tokens=100, token_safety_margin=100
+            context_window_tokens=3250, max_output_tokens=100, token_safety_margin=100
         ) as (client, calls, _):
             old_message = "旧轮次" + "a" * 700
             recent_message = "新轮次" + "b" * 400
@@ -65,7 +65,7 @@ def test_budget_drops_oldest_complete_turn_and_rejects_oversized_current_input(h
                 {"role": "user", "content": "继续"},
             ]
             rejected = await client.post(
-                "/chat", json={"message": "中" * 2000, "conversation_id": conversation_id}
+                "/chat", json={"message": "中" * 5000, "conversation_id": conversation_id}
             )
             assert rejected.status_code == 413
             assert len(calls) == 3

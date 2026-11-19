@@ -58,6 +58,12 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 3px s
 .message-state { font-size: 12px; color: #8b4b36; margin-top: 7px; }
 .bubble.streaming::after { content: ""; display: inline-block; height: 16px; width: 2px; margin-left: 4px; background: var(--accent); vertical-align: -2px; animation: cursor 1s steps(2) infinite; }
 .bubble:empty::before { content: "正在思考…"; color: var(--muted); font-size: 14px; }
+.assistant .reply:empty::before { content: "正在处理您的问题…"; color: var(--muted); font-size: 14px; }
+.tool-trace { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; white-space: normal; }
+.tool-badge { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 5px; padding: 4px 8px; border: 1px solid #cde0d5; border-radius: 6px; background: #edf5ef; color: #256046; font-size: 11px; line-height: 1.6; }
+.tool-badge code { font-size: 10px; color: #647c70; }
+.tool-badge.running::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #408b6a; animation: cursor 1s steps(2) infinite; }
+.tool-badge.failed { background: #fff3ec; border-color: #e7c8b7; color: #8b4b36; }
 .composer-area { width: min(100% - 64px, 820px); margin: 0 auto; padding: 9px 0 max(19px, env(safe-area-inset-bottom)); }
 .composer-status { min-height: 29px; font-size: 12px; color: var(--muted); padding-left: 3px; }
 .composer { border: 1px solid #cfdad4; border-radius: 13px; padding: 15px 16px 12px; background: white; box-shadow: 0 4px 20px #233f2c05; }
