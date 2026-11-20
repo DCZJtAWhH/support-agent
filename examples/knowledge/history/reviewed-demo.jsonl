@@ -1,0 +1,5 @@
+{"conversation_id":"demo-001","reviewed":true,"demo":true,"messages":[{"role":"user","content":"邮费多少钱？"},{"role":"assistant","content":"普通商品订单满99元免运费，未满99元收取8元运费；偏远地区需人工确认。"}]}
+{"conversation_id":"demo-002","reviewed":true,"demo":true,"messages":[{"role":"user","content":"杯子上的标签胶怎么去掉？"},{"role":"assistant","content":"演示款水杯表面的标签残胶可以用温水浸润后轻轻擦除，请避免使用钢丝球。"}]}
+{"conversation_id":"demo-003","reviewed":true,"demo":true,"messages":[{"role":"user","content":"不管买多少都包邮吗？"},{"role":"assistant","content":"所有普通商品订单不论金额一律免运费。"}]}
+{"conversation_id":"demo-004","reviewed":true,"demo":true,"messages":[{"role":"user","content":"我的订单1001什么时候能送到？"},{"role":"assistant","content":"您这笔订单预计明天下午送到。"}]}
+{"conversation_id":"demo-005","reviewed":false,"demo":true,"messages":[{"role":"user","content":"模型猜的政策可信吗？"},{"role":"assistant","content":"所有商品无条件终身退换。"}]}
