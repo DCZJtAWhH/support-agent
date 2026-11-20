@@ -1,6 +1,7 @@
 """编排一次工具决策、顺序执行和最终流式回复，持久保存可恢复检查点。"""
 
 import json
+import re
 from contextlib import aclosing
 from uuid import uuid4
 
@@ -12,6 +13,7 @@ from langchain_core.utils.function_calling import convert_to_openai_tool
 from support_agent.config import Settings
 from support_agent.context import ContextBudgetExceeded, fit_messages
 from support_agent.errors import ModelResponseError, model_error
+from support_agent.grounding import numbered_sources
 from support_agent.prompts import CUSTOMER_SERVICE
 from support_agent.repositories import ChatRepository
 from support_agent.schemas import ChatRequest
@@ -33,10 +35,26 @@ def restore_message(row: dict):
     return AIMessage(row["content"], tool_calls=row["tool_calls"] or [])
 
 
+def is_social_reply(text: str) -> bool:
+    """仅允许不包含业务事实的固定寒暄直接流式发送，其他无工具答复转入检索。"""
+    normalized = re.sub(r"[\s，。！？、,.!?：:]", "", text)
+    return normalized in {
+        "你好",
+        "您好",
+        "您好请问有什么可以帮您",
+        "请问有什么可以帮您",
+        "已收到问题",
+        "谢谢",
+        "不客气",
+        "再见",
+    }
+
+
 class ChatService:
-    def __init__(self, model, repo: ChatRepository, config: Settings):
+    def __init__(self, model, repo: ChatRepository, config: Settings, *, answerer=None):
         """绑定模型和仓储；同会话占用覆盖整个响应发送过程，按单工作进程运行。"""
         self.model, self.repo, self.config = model, repo, config
+        self.answerer = answerer
         self.busy: set[str] = set()
         self.requests: set[str] = set()
 
@@ -61,6 +79,12 @@ class ChatService:
             rows = audit["messages"] if audit else []
             # 按轮次内消息位置排序，恢复重试检查点的执行顺序。
             turn = sorted((r for r in rows if r["request_id"] == rid), key=lambda r: r["position"])
+            for row in turn:
+                if row["role"] == "tool":
+                    checkpoint = json.loads(row["content"])
+                    data = checkpoint.get("data", {})
+                    if "matches" in data and data.get("category") != body.category:
+                        raise HTTPException(409, "同一请求不能更改检索品类，请创建新请求。")
             completed_ids = {
                 r["request_id"]
                 for r in rows
@@ -68,7 +92,7 @@ class ChatService:
             }
             history = [restore_message(r) for r in rows if r["request_id"] in completed_ids]
             registry = ToolRegistry(
-                build_tools(self.repo, cid, rid, body.message),
+                build_tools(self.repo, cid, rid, body.message, category=body.category),
                 timeout=self.config.tool_timeout_seconds,
                 retries=self.config.tool_max_retries,
             )
@@ -103,16 +127,20 @@ class ChatService:
             try:
                 saved = {row["position"]: row for row in turn}
                 if 4 in saved and saved[4]["state"] == "completed":
+                    replay_matches = []
                     for row in turn:
                         if row["role"] == "tool":
                             call = next(
                                 c for c in saved[1]["tool_calls"] if c["id"] == row["tool_call_id"]
                             )
                             result = json.loads(row["content"])
+                            if call["name"] == "query_faq" and result.get("ok"):
+                                replay_matches.extend(result["data"]["matches"])
                             yield self.tool_status(
                                 call, "succeeded" if result["ok"] else "failed", reused=True
                             )
                     parts.append(saved[4]["content"])
+                    yield sse("sources", sources=numbered_sources(replay_matches))
                     yield sse("token", text=parts[0])
                 else:
                     if 1 in saved:
@@ -127,7 +155,8 @@ class ChatService:
                                 aggregate = chunk if aggregate is None else aggregate + chunk
                                 if chunk.content:
                                     parts.append(chunk.content)
-                                    yield sse("token", text=chunk.content)
+                                    if is_social_reply("".join(parts)):
+                                        yield sse("token", text=chunk.content)
                         if aggregate is None:
                             raise ModelResponseError("模型未返回内容。")
                         reason = aggregate.response_metadata.get("finish_reason")
@@ -136,6 +165,25 @@ class ChatService:
                         decision = AIMessage(
                             content=aggregate.content, tool_calls=aggregate.tool_calls
                         )
+                        if (
+                            not decision.tool_calls
+                            and reason == "stop"
+                            and decision.content.strip()
+                            and not is_social_reply(decision.content)
+                        ):
+                            # 模型跳过查证时由程序补上固定检索，不发送其未经核实的事实。
+                            decision = AIMessage(
+                                content="",
+                                tool_calls=[
+                                    {
+                                        "name": "query_faq",
+                                        "args": {"keyword": body.message[:32]},
+                                        "id": "required_faq_" + rid,
+                                        "type": "tool_call",
+                                    }
+                                ],
+                            )
+                            reason = "tool_calls"
                         if decision.tool_calls:
                             ids = [call["id"] for call in decision.tool_calls]
                             if (
@@ -184,33 +232,75 @@ class ChatService:
                                 attempts=result["attempts"],
                                 reused=index in saved,
                             )
-                        # 工具申请和结果不可拆散，先裁掉旧轮次，再验证整个当前轮次的输入预算。
-                        while (
-                            count_tokens_approximately(messages, chars_per_token=1.0)
-                            > self.config.input_token_budget
-                        ):
-                            start = next(
-                                (
-                                    i
-                                    for i in range(2, len(messages))
-                                    if isinstance(messages[i], HumanMessage)
-                                ),
-                                None,
-                            )
-                            if start is None:
-                                raise ModelResponseError(
-                                    "工具结果超过输入预算，请缩短问题或调大上下文窗口。"
-                                )
-                            del messages[1:start]
                         parts = []
                         reason = None
-                        async with aclosing(self.model.astream(messages)) as chunks:
-                            async for chunk in chunks:
-                                self.validate_chunk(chunk, allow_tools=False)
-                                if chunk.content:
-                                    parts.append(chunk.content)
-                                    yield sse("token", text=chunk.content)
-                                reason = chunk.response_metadata.get("finish_reason") or reason
+                        faq_results = [
+                            json.loads(m.content)
+                            for m in messages
+                            if isinstance(m, ToolMessage)
+                            and any(
+                                c["name"] == "query_faq" and c["id"] == m.tool_call_id
+                                for c in decision.tool_calls
+                            )
+                        ]
+                        if faq_results and self.answerer:
+                            result = await self.answerer.generate(
+                                body.message,
+                                [
+                                    m
+                                    for r in faq_results
+                                    if r.get("ok")
+                                    for m in r["data"]["matches"]
+                                ],
+                                verified_tools=[
+                                    json.loads(m.content)
+                                    for m in messages
+                                    if isinstance(m, ToolMessage)
+                                    and all(
+                                        c["name"] != "query_faq" or c["id"] != m.tool_call_id
+                                        for c in decision.tool_calls
+                                    )
+                                ],
+                            )
+                            if result["reason"]:
+                                await self.repo.record_low_confidence(
+                                    cid,
+                                    rid,
+                                    body.message,
+                                    result["entry_point"],
+                                    result["reason"],
+                                )
+                            yield sse("sources", sources=result["sources"])
+                            parts = [result["answer"]]
+                            yield sse("token", text=parts[0])
+                            reason = "stop"
+                        else:
+                            # 普通回复按实际消息校验预算；知识回复由answerer校验投影后的证据输入。
+                            # 工具申请和结果不可拆散，只能裁掉完整旧轮次。
+                            while (
+                                count_tokens_approximately(messages, chars_per_token=1.0)
+                                > self.config.input_token_budget
+                            ):
+                                start = next(
+                                    (
+                                        i
+                                        for i in range(2, len(messages))
+                                        if isinstance(messages[i], HumanMessage)
+                                    ),
+                                    None,
+                                )
+                                if start is None:
+                                    raise ModelResponseError(
+                                        "工具结果超过输入预算，请缩短问题或调大上下文窗口。"
+                                    )
+                                del messages[1:start]
+                            async with aclosing(self.model.astream(messages)) as chunks:
+                                async for chunk in chunks:
+                                    self.validate_chunk(chunk, allow_tools=False)
+                                    if chunk.content:
+                                        parts.append(chunk.content)
+                                        yield sse("token", text=chunk.content)
+                                    reason = chunk.response_metadata.get("finish_reason") or reason
                         if reason != "stop" or not "".join(parts).strip():
                             raise ModelResponseError("最终回复为空、被截断或未正常结束。")
                     await self.repo.save_message(cid, rid, 4, "assistant", "".join(parts))

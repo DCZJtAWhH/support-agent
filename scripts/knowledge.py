@@ -25,7 +25,8 @@ from support_agent.knowledge_store import (  # noqa: E402
     SimulatedInterruption,
     synchronize,
 )
-from support_agent.vectors import BGEEmbeddings, KnowledgeRetriever, MilvusVectors  # noqa: E402
+from support_agent.retrieval import HybridRetriever, QueryUnderstanding  # noqa: E402
+from support_agent.vectors import BGEEmbeddings, BGEReranker, MilvusVectors  # noqa: E402
 
 
 async def main(args):
@@ -34,7 +35,7 @@ async def main(args):
     database = Database(config.database_url.get_secret_value())
     store = KnowledgeStore(database)
     embeddings = BGEEmbeddings(config.siliconflow_api_key.get_secret_value())
-    vectors = MilvusVectors(config.milvus_uri, config.milvus_collection)
+    vectors = MilvusVectors(config.milvus_uri, config.milvus_hybrid_collection)
     try:
         await database.initialize(seed=True)
         if args.command == "build":
@@ -59,18 +60,28 @@ async def main(args):
                 )
             }
         elif args.command == "query":
-            result = {
-                "keyword": args.question,
-                "matches": await KnowledgeRetriever(
-                    store,
-                    embeddings,
-                    vectors,
-                    top_k=config.knowledge_top_k,
-                    min_score=config.knowledge_min_score,
-                ).search(args.question),
-            }
+            with httpx.Client() as sync_client:
+                async with httpx.AsyncClient() as client:
+                    result = {
+                        "keyword": args.question,
+                        "strategy": args.strategy,
+                        "matches": await HybridRetriever(
+                            store,
+                            embeddings,
+                            vectors,
+                            BGEReranker(config.siliconflow_api_key.get_secret_value()),
+                            understanding=QueryUnderstanding(
+                                KnowledgeLLM(config, client, sync_client)
+                            ),
+                            min_score=config.rerank_min_score,
+                        ).search(args.question, category=args.category, strategy=args.strategy),
+                    }
         elif args.command == "stats":
             result = await store.stats()
+        elif args.command == "low-confidence":
+            from support_agent.repositories import ChatRepository
+
+            result = await ChatRepository(database).low_confidence_questions()
         else:
             with httpx.Client() as sync_client:
                 async with httpx.AsyncClient() as client:
@@ -102,7 +113,17 @@ def parse_args():
     """解析明确的 demo 操作；故意中断开关仅影响向量写后、状态回填前的窗口。"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "command", choices=["build", "sync", "query", "stats", "mine", "staging", "schedule"]
+        "command",
+        choices=[
+            "build",
+            "sync",
+            "query",
+            "stats",
+            "mine",
+            "staging",
+            "schedule",
+            "low-confidence",
+        ],
     )
     parser.add_argument("question", nargs="?", default="邮费是多少")
     parser.add_argument("--docs", default=str(ROOT / "examples/knowledge/docs"))
@@ -112,6 +133,10 @@ def parse_args():
     parser.add_argument("--run-now", action="store_true")
     parser.add_argument("--retry-conflicts", action="store_true", help="mine 时重新核对留存冲突")
     parser.add_argument("--rebuild", action="store_true", help="sync 时将生效知识重新标为待向量化")
+    parser.add_argument("--category", help="先按知识块品类过滤，再执行两路召回")
+    parser.add_argument(
+        "--strategy", choices=["dense", "bm25", "hybrid", "hybrid_rerank"], default="hybrid_rerank"
+    )
     return parser.parse_args()
 
 

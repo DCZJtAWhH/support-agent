@@ -1,0 +1,30 @@
+[
+  {
+    "question": "火星殖民飞船燃料补贴是多少",
+    "answer": "当前知识库没有足够的可靠依据，无法确认这个问题的答案。请联系人工客服核实。",
+    "pool": {
+      "id": 6,
+      "request_id": "550a6ecd-1488-41b4-8232-014b5368fda1",
+      "question": "火星殖民飞船燃料补贴是多少",
+      "conversation_id": "b273a929-4628-43f0-9266-2197397ab543",
+      "entry_point": "retrieval",
+      "reason": "未检索到可信知识",
+      "created_at": "2026-11-20T07:49:09"
+    },
+    "idempotent_replay": true
+  },
+  {
+    "question": "BX-500容量是多少，能保温几个小时",
+    "answer": "当前知识库没有足够的可靠依据，无法确认这个问题的答案。请联系人工客服核实。",
+    "pool": {
+      "id": 7,
+      "request_id": "de10944c-82e4-4d32-b9d9-319b12e24a38",
+      "question": "BX-500容量是多少，能保温几个小时",
+      "conversation_id": "5e3626e0-0e89-4024-bf21-1807a9cd9367",
+      "entry_point": "generation",
+      "reason": "生成自评证据不足：来源仅提供BX-500标称容量为500毫升及清洗方式，未提供保温时长信息，无法完整回答。",
+      "created_at": "2026-11-20T07:49:15"
+    },
+    "idempotent_replay": true
+  }
+]

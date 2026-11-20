@@ -51,7 +51,7 @@ async def evaluate(args):
     database = Database(config.database_url.get_secret_value())
     store = KnowledgeStore(database)
     embeddings = BGEEmbeddings(config.siliconflow_api_key.get_secret_value())
-    vectors = MilvusVectors(config.milvus_uri, config.milvus_collection)
+    vectors = MilvusVectors(config.milvus_uri, config.milvus_hybrid_collection)
     report = {}
     try:
         await database.initialize()

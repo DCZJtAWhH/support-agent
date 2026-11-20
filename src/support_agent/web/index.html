@@ -41,7 +41,7 @@
       </div>
       <div class="composer-area">
         <div class="notice" id="notice" role="alert" hidden><span id="notice-text"></span><button id="retry" type="button">重试本轮</button></div>
-        <div class="composer-status" id="status" role="status" aria-live="polite">说说您遇到的问题吧</div>
+        <div class="composer-meta"><div class="composer-status" id="status" role="status" aria-live="polite">说说您遇到的问题吧</div><div class="composer-actions"><a class="knowledge-open evaluation-entry" href="/evaluations" target="_blank" rel="noopener">RAG 评估 ↗</a><button class="knowledge-open" id="knowledge-open" type="button">↑ 上传知识</button></div></div>
         <form id="chat-form" class="composer" action="/chat" method="post">
           <label class="visually-hidden" for="message">输入您的问题</label>
           <textarea id="message" name="message" rows="2" maxlength="16384" placeholder="输入您的问题，也可以补充订单号…" required></textarea>
@@ -50,6 +50,26 @@
         <p class="disclaimer">订单、商品与物流为演示数据；人工工单会实际登记，具体售后方案以商家确认为准。</p>
       </div>
     </main>
+    <dialog id="knowledge-upload-dialog" class="knowledge-dialog" aria-labelledby="knowledge-upload-title">
+      <div class="source-header"><h2 id="knowledge-upload-title">添加知识</h2><button id="knowledge-upload-close" type="button" aria-label="关闭知识上传">关闭 ×</button></div>
+      <p class="knowledge-intro">上传产品说明、常见问题或售后政策，导入完成后就能在对话中查询。</p>
+      <label class="knowledge-picker" id="knowledge-dropzone" for="knowledge-files">
+        <span aria-hidden="true" class="knowledge-picker-icon">↑</span><strong>选择文件，或拖到这里</strong>
+        <span>Markdown / TXT · UTF-8 编码 · 每个文件最大 1 MiB</span>
+        <input id="knowledge-files" type="file" accept=".md,.markdown,.txt" multiple aria-label="选择知识文件">
+      </label>
+      <p class="knowledge-hint">可一次选择多个文件。同名文件会更新此前上传的知识；单个文件最多分为 200 个知识块。</p>
+      <details class="knowledge-example"><summary>查看文档格式示例</summary><pre># 电水壶
+
+## 型号及容量
+在这里填写真实型号、容量和适用条件。
+
+## 清洗方式
+在这里填写真实的清洗方法和注意事项。</pre><p>用标题区分知识主题；TXT 文件也可以直接写正文。</p></details>
+      <ul id="knowledge-upload-list" class="knowledge-upload-list" aria-label="待导入知识文件"></ul>
+      <p id="knowledge-upload-summary" class="knowledge-summary" role="status" aria-live="polite">选择文件后点击“开始导入”。</p>
+      <div class="knowledge-footer"><button id="knowledge-upload-clear" class="knowledge-secondary" type="button" disabled>清空列表</button><button id="knowledge-upload-return" class="knowledge-secondary" type="button">返回聊天</button><button id="knowledge-upload-start" class="send-button" type="button" disabled>开始导入</button></div>
+    </dialog>
     <noscript>请启用 JavaScript 以使用客服聊天页面。</noscript>
   </body>
 </html>

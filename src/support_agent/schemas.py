@@ -14,6 +14,10 @@ class ChatRequest(BaseModel):
     message: InputText
     conversation_id: UUID | None = None
     request_id: UUID | None = None
+    category: (
+        Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=255)]
+        | None
+    ) = None
 
 
 class ExtractionRequest(BaseModel):

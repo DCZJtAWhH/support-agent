@@ -48,3 +48,27 @@ uv run --locked python scripts/check_ch02_browser.py
 `knowledge.jsonl` 标注邮费、包邮门槛、退货期限、商品FAQ换问法及无关问题拒答；运行 `scripts/eval_knowledge.py --recovery` 保存真实向量召回及中断恢复证据。可加 `--chat-url` 验证真实聊天回答。
 
 `knowledge-mining.jsonl` 对应 `examples/knowledge/history/reviewed-demo.jsonl`：应合并邮费问法、新增清洁知识、暂存冲突政策、排除个人订单与未审核对话。运行 `scripts/knowledge.py mine`，随后用 staging 结果及 MySQL 权威知识逐项复核。Prompt 的语义效果以标注和实际模型输出评估，HTTP 模拟测试只验证流程与契约。
+
+## 第四章：四策略与证据回答
+
+`retrieval.jsonl` 是20题开发回归集，easy/medium/hard 三级，覆盖直接问法、口语、同义词、条件、型号、品类过滤、跨块事实、歧义、未知与安全共10类。`relevant` 使用来源标识（Markdown 文件名或 FAQ 来源）与完整章节组成身份，不绑定数据库自增主键；同章节被切成多块时按章节级去重计召回。`expected_facts` 是人工答案要点，`expected_refusal` 是应否拒答。型号文档是明确标注的虚构演示产品，不代表真实商家知识。
+
+```powershell
+uv run --locked python scripts/eval_retrieval.py --output dev-notes/ch04-eval-final-results.json
+# 单题快速查通与限制并发
+uv run --locked python scripts/eval_retrieval.py --limit 1 --concurrency 1 --output dev-notes/ch04-smoke.json
+# 不调用服务，复核已有逐条结果的指标
+uv run --locked python scripts/eval_retrieval.py --replay dev-notes/ch04-eval-final-results.rows.jsonl --output dev-notes/ch04-replay.json
+```
+
+四策略使用同一权威语料和每题共享的归一/扩展结果；生成均最多使用10块并执行同一自评与引用门控。dense / bm25 / hybrid 的原生分数标尺不同，不套用精排阈值；hybrid_rerank 的阈值只作用于精排分。检索段报告阈值前的排名，Recall@1/5/10/50 和 MRR 的分母只包括有 ground-truth 的题；hybrid_rerank 最终只有10块，所以其 Recall@50 也只覆盖这10块。
+
+Faithfulness 由独立评委调用把实际回答拆成原子事实，每条保留 statement / supported / reason，再算支持事实数除以总事实数；只根据本次召回原文判定，不把参考答案当作引用证据。没有生成事实的拒答不计作1分，同时报告作答率、拒答正确率及样本量，逐条保留完整答案、来源和 `answers_question`。答案要点的字符串检查仅辅助观察，不替代语义评估。
+
+初始0.4精排阈值误拒答“邮费怎么算”，开发阶段下调至0.05，最终报告明确保存该配置。新增BX-500/BX-750清洗条件不同后，“便携杯能扔洗碗机里洗不”缺少型号，标签已更正为歧义拒答；首轮旧标签/阈值的结果仍保存在 `dev-notes/ch04-eval-results.*`。这属于开发集调试；真实上线应另建留出集、增大语料与干扰项，并人工抽查同提供方评委偏差，不将20题结果推广成普遍结论。
+
+官方接口核对：Milvus [全文检索](https://milvus.io/docs/full-text-search.md)、[多路向量混合检索](https://milvus.io/docs/multi-vector-search.md)、[Chinese analyzer](https://milvus.io/docs/chinese-analyzer.md)，硅基流动 [Rerank](https://docs.siliconflow.cn/docs/api/rerank-post)。实现基于实际安装的 PyMilvus2.6.18 签名及真实服务联调，未替换为应用侧 BM25。
+
+网页入口为 `/evaluations`，可以查看真实报告、联合筛选、逐题原文与事实判定，也能启动后台完整评估和查看进度。网页运行结果独立保存到 `dev-notes/rag-evaluations/<运行UUID>/`，成功后才发布；知识库/标注集在运行期间发生变化时不发布该次结果。旧报告与当前版本通过摘要核对，上传新知识不会自动增加标注覆盖。
+
+知识量增长后，生成与Faithfulness评委共用证据投影，每块完整正文只发一份，连同章节和品类适用范围，不重复发送嵌入拼接文本、哈希、链接或分数；完整召回快照仍保留在JSON明细与聊天归档。预算按实际发往模型的输入校验。这样避免重复元数据耗尽输入预算，不改变事实支持比例的计算口径，也不截断正文或放宽预算校验。

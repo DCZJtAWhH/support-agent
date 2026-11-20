@@ -1,0 +1,34 @@
+{
+  "cases": [
+    {
+      "width": 1440,
+      "answer": "BX-500 的标称容量为500毫升。[1]",
+      "source_popup": true,
+      "feedback_locked": true,
+      "local_feedback": {
+        "request_id": "c781d498-1b94-4c6a-884c-d1f21783fb72",
+        "conversation_id": "4550fb0b-888e-4b6a-9cc3-a8f989bfe07e",
+        "value": "up",
+        "created_at": "2026-11-20T07:47:18.635Z"
+      }
+    },
+    {
+      "width": 390,
+      "answer": "BX-500便携水杯的标称容量为500毫升。[1]",
+      "source_popup": true,
+      "feedback_locked": true,
+      "local_feedback": {
+        "request_id": "daf09cdd-934a-4997-af2b-8b9a884bcf2a",
+        "conversation_id": "c2314300-e3d0-4a98-9146-96d49bcb8d71",
+        "value": "up",
+        "created_at": "2026-11-20T07:47:25.470Z"
+      }
+    },
+    {
+      "unknown_refused": true,
+      "no_fabricated_citations": true,
+      "down_feedback": true
+    }
+  ],
+  "page_errors": []
+}

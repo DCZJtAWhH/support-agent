@@ -39,7 +39,7 @@ class TicketInput(ToolInput):
 
 
 def build_tools(
-    repo: ChatRepository, conversation_id: str, request_id: str, user_text: str
+    repo: ChatRepository, conversation_id: str, request_id: str, user_text: str, *, category=None
 ) -> list[BaseTool]:
     """为当前轮次绑定可信会话和请求标识；模型不能自行指定身份或工单去重键。"""
 
@@ -79,10 +79,11 @@ def build_tools(
 
     @tool(args_schema=FAQInput)
     async def query_faq(keyword: str) -> dict:
-        """用用户原文片段进行 dense 语义检索；返回相关知识，未命中返回空列表。"""
+        """用本轮完整问题做混合检索和精排；keyword 仅用于核对用户原话。"""
         if keyword not in user_text:
             raise ToolArgumentsError("关键词必须是用户本轮原文中的连续片段。")
-        return {"keyword": keyword, "matches": await repo.query_faq(keyword)}
+        matches = await repo.query_faq(user_text, category=category)
+        return {"keyword": keyword, "category": category, "matches": matches}
 
     @tool(args_schema=TicketInput)
     async def create_ticket(description: str, ticket_type: str) -> dict:

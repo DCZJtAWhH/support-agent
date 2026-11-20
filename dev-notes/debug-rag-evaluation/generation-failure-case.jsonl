@@ -1,0 +1,1 @@
+{"id": "model-500", "query_type": "model", "difficulty": "easy", "question": "BX-500容量多少", "relevant": ["models.md#型号手册（演示） / BX-500 容量与清洗"], "expected_facts": ["500"], "expected_refusal": false}

@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     siliconflow_api_key: SecretStr = SecretStr("")
     milvus_uri: str = "http://127.0.0.1:19530"
     milvus_collection: str = "knowledge"
+    milvus_hybrid_collection: str = "knowledge_hybrid_v1"
+    rerank_min_score: float = Field(default=0.05, ge=0, le=1)
     knowledge_top_k: int = Field(default=3, ge=1, le=20)
     knowledge_min_score: float = Field(default=0.4, ge=-1, le=1)
 

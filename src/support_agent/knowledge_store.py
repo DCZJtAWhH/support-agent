@@ -120,13 +120,18 @@ class KnowledgeStore:
                 )
             )
 
-    async def pending(self, limit: int = 16) -> list[KnowledgeChunk]:
-        """按主键扫描未完成块，包含待删除向量的失效记录。"""
+    async def pending(
+        self, limit: int = 16, *, source_ref: str | None = None
+    ) -> list[KnowledgeChunk]:
+        """按主键扫描未完成块；上传可限定来源，包含待删除向量的失效记录。"""
         async with self.database.sessions() as session:
             return list(
                 await session.scalars(
                     select(KnowledgeChunk)
                     .where(KnowledgeChunk.vectorize_status == "pending")
+                    .where(
+                        KnowledgeChunk.source_ref == source_ref if source_ref is not None else True
+                    )
                     .order_by(KnowledgeChunk.id)
                     .limit(limit),
                 )
@@ -168,16 +173,30 @@ class KnowledgeStore:
             )
 
 
-async def synchronize(store, embeddings, vectors, *, interrupt_after_upsert: bool = False) -> int:
-    """重放 pending：先写 Milvus 再回填 MySQL；注入中断模拟最难恢复的双写窗口。"""
+async def synchronize(
+    store,
+    embeddings,
+    vectors,
+    *,
+    interrupt_after_upsert: bool = False,
+    source_ref: str | None = None,
+) -> int:
+    """重放全部或指定来源 pending；先写 Milvus 再回填，允许注入双写窗口中断。"""
     count = 0
-    while rows := await store.pending():
+    options = {"source_ref": source_ref} if source_ref is not None else {}
+    while rows := await store.pending(**options):
         active = [r for r in rows if r.is_active]
         if active:
             embedded = await embeddings.embed([draft_from_row(r).embedding_text() for r in active])
             await vectors.upsert(
                 [
-                    {"id": row.id, "vector": vector, "content_hash": row.content_hash}
+                    {
+                        "id": row.id,
+                        "vector": vector,
+                        "content_hash": row.content_hash,
+                        "text": draft_from_row(row).embedding_text(),
+                        "category": row.category,
+                    }
                     for row, vector in zip(active, embedded, strict=True)
                 ]
             )

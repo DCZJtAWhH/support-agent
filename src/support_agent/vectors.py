@@ -1,6 +1,7 @@
 """提供硅基流动 BGE-M3 dense 嵌入与 Milvus 索引访问。"""
 
 import asyncio
+import json
 import math
 from operator import itemgetter
 
@@ -57,13 +58,15 @@ class BGEEmbeddings:
 
 
 class MilvusVectors:
-    def __init__(self, uri: str = "http://127.0.0.1:19530", collection: str = "knowledge"):
+    def __init__(
+        self, uri: str = "http://127.0.0.1:19530", collection: str = "knowledge_hybrid_v1"
+    ):
         """延迟连接本地 Milvus，避免未使用检索时阻塞应用启动。"""
         self.uri, self.collection, self.client = uri, collection, None
         self.lock = asyncio.Lock()
 
     async def _connect(self):
-        """在线程中建立同步 SDK 连接，并创建自带整数主键的 1024 维集合。"""
+        """在线程中建立同步 SDK 连接，并创建 dense 与原生 BM25 混合集合。"""
         async with self.lock:
             if self.client is None:
                 self.client = await asyncio.to_thread(self._open)
@@ -71,23 +74,54 @@ class MilvusVectors:
 
     def _open(self):
         """检查或初始化集合；已有同名不兼容集合明确报错，不自动删除。"""
-        from pymilvus import MilvusClient
+        from pymilvus import DataType, Function, FunctionType, MilvusClient
 
         client = MilvusClient(uri=self.uri, timeout=10)
         try:
             if not client.has_collection(self.collection, timeout=10):
+                schema = client.create_schema(auto_id=False, enable_dynamic_field=False)
+                schema.add_field("id", DataType.INT64, is_primary=True)
+                schema.add_field("vector", DataType.FLOAT_VECTOR, dim=1024)
+                schema.add_field(
+                    "text",
+                    DataType.VARCHAR,
+                    max_length=65535,
+                    enable_analyzer=True,
+                    analyzer_params={"type": "chinese"},
+                )
+                schema.add_field("sparse", DataType.SPARSE_FLOAT_VECTOR)
+                schema.add_field("category", DataType.VARCHAR, max_length=1024)
+                schema.add_field("content_hash", DataType.VARCHAR, max_length=64)
+                schema.add_function(
+                    Function(
+                        name="text_bm25",
+                        function_type=FunctionType.BM25,
+                        input_field_names=["text"],
+                        output_field_names=["sparse"],
+                    )
+                )
+                indexes = client.prepare_index_params()
+                indexes.add_index("vector", index_type="AUTOINDEX", metric_type="COSINE")
+                indexes.add_index("sparse", index_type="SPARSE_INVERTED_INDEX", metric_type="BM25")
                 client.create_collection(
                     collection_name=self.collection,
-                    dimension=1024,
-                    metric_type="COSINE",
-                    auto_id=False,
+                    schema=schema,
+                    index_params=indexes,
                     consistency_level="Strong",
                     timeout=30,
                 )
             schema = client.describe_collection(self.collection, timeout=10)
             vector = next(f for f in schema["fields"] if f["name"] == "vector")
-            if int(vector["params"]["dim"]) != 1024 or schema.get("auto_id"):
-                raise ValueError("knowledge 集合必须为自带主键的1024维 dense 索引。")
+            names = {f["name"] for f in schema["fields"]}
+            if (
+                int(vector["params"]["dim"]) != 1024
+                or schema.get("auto_id")
+                or not {"text", "sparse", "category", "content_hash"} <= names
+                or not schema.get("functions")
+            ):
+                raise ValueError(
+                    "集合不兼容，请配置新的 MILVUS_HYBRID_COLLECTION 并 sync --rebuild。"
+                )
             client.load_collection(self.collection, timeout=30)
             return client
         except BaseException:
@@ -114,12 +148,69 @@ class MilvusVectors:
             limit=limit,
             output_fields=["content_hash"],
             search_params={"metric_type": "COSINE"},
+            anns_field="vector",
             consistency_level="Strong",
             timeout=10,
         )
         return [
             (int(hit["id"]), float(hit["distance"]), hit["entity"].get("content_hash", ""))
             for hit in results[0]
+        ]
+
+    async def retrieve(self, vector, text: str, *, strategy="hybrid", category=None):
+        """两路统一先按品类过滤，各召回50；混合策略交由 Milvus RRF 融合。"""
+        from pymilvus import AnnSearchRequest, RRFRanker
+
+        client = await self._connect()
+        expression = (
+            "" if category is None else "category == " + json.dumps(category, ensure_ascii=False)
+        )
+        requests = []
+        if strategy != "bm25":
+            requests.append(
+                AnnSearchRequest(
+                    [vector],
+                    "vector",
+                    {"metric_type": "COSINE"},
+                    50,
+                    expr=expression,
+                )
+            )
+        if strategy != "dense":
+            requests.append(
+                AnnSearchRequest(
+                    [text],
+                    "sparse",
+                    {"metric_type": "BM25"},
+                    50,
+                    expr=expression,
+                )
+            )
+        options = dict(output_fields=["content_hash"], consistency_level="Strong", timeout=30)
+        if len(requests) == 2:
+            results = await asyncio.to_thread(
+                client.hybrid_search,
+                self.collection,
+                reqs=requests,
+                ranker=RRFRanker(k=60),
+                limit=100,
+                **options,
+            )
+        else:
+            request = requests[0]
+            results = await asyncio.to_thread(
+                client.search,
+                self.collection,
+                data=request.data,
+                anns_field=request.anns_field,
+                search_params=request.param,
+                filter=expression,
+                limit=50,
+                **options,
+            )
+        return [
+            (int(h["id"]), float(h["distance"]), h["entity"].get("content_hash", ""))
+            for h in results[0]
         ]
 
     async def close(self):
@@ -157,3 +248,56 @@ class KnowledgeRetriever:
                     }
                 )
         return matches
+
+
+class BGEReranker:
+    def __init__(self, api_key: str, *, client=None, timeout: float = 30):
+        """绑定固定 bge-reranker-v2-m3 HTTP 服务，不在失败时替换模型或跳过精排。"""
+        self.api_key, self.client, self.timeout = api_key, client, timeout
+
+    async def rank(self, question: str, documents: list[str], top_n: int = 10):
+        """返回原文索引与相关分；完整校验数量、唯一索引、范围及有限分数。"""
+        if not documents:
+            return []
+        if not self.api_key:
+            raise ValueError("请配置 SILICONFLOW_API_KEY。")
+        if self.client is None:
+            async with httpx.AsyncClient(timeout=self.timeout, trust_env=False) as client:
+                return await self._request(client, question, documents, top_n)
+        return await self._request(self.client, question, documents, top_n)
+
+    async def _request(self, client, question, documents, top_n):
+        """请求官方精排端点；异常响应不带入提示或用户输出。"""
+        count = min(top_n, len(documents))
+        response = await client.post(
+            "https://api.siliconflow.cn/v1/rerank",
+            headers={"Authorization": f"Bearer {self.api_key}"},
+            json={
+                "model": "BAAI/bge-reranker-v2-m3",
+                "query": question,
+                "documents": documents,
+                "top_n": count,
+                "return_documents": False,
+            },
+            timeout=self.timeout,
+        )
+        response.raise_for_status()
+        rows = response.json()["results"]
+        indices = [r["index"] for r in rows]
+        if (
+            len(rows) != count
+            or len(set(indices)) != count
+            or any(type(i) is not int or not 0 <= i < len(documents) for i in indices)
+            or any(
+                not isinstance(r["relevance_score"], (int, float))
+                or not math.isfinite(r["relevance_score"])
+                or not 0 <= r["relevance_score"] <= 1
+                for r in rows
+            )
+        ):
+            raise ValueError("精排响应的索引、数量或分数无效。")
+        return sorted(
+            [(r["index"], float(r["relevance_score"])) for r in rows],
+            key=itemgetter(1),
+            reverse=True,
+        )

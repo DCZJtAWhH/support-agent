@@ -1,4 +1,5 @@
 import { readChatStream } from "./stream.mjs";
+import { setupKnowledgeUpload } from "./knowledge-upload.mjs";
 
 const form = document.querySelector("#chat-form");
 const input = document.querySelector("#message");
@@ -13,6 +14,126 @@ const newConversation = document.querySelector("#new-conversation");
 let conversationId = null;
 let activeRequest = null;
 let failedTurn = null;
+
+/** 显示本轮检索时的来源原文快照，避免知识更新后引用悄悄变化。 */
+function openSource(source) {
+  let dialog = document.querySelector("#source-dialog");
+  if (!dialog) {
+    dialog = document.createElement("dialog");
+    dialog.id = "source-dialog";
+    dialog.className = "source-dialog";
+    dialog.setAttribute("aria-labelledby", "source-title");
+    document.body.append(dialog);
+  }
+  dialog.replaceChildren();
+  const header = document.createElement("div");
+  header.className = "source-header";
+  const title = document.createElement("h2");
+  title.id = "source-title";
+  title.textContent = `引用 [${source.citation}]`;
+  const close = document.createElement("button");
+  close.type = "button";
+  close.textContent = "关闭 ×";
+  close.addEventListener("click", function closeSource() {
+    // 原生 dialog 恢复焦点到打开它的引用按钮。
+    dialog.close();
+  });
+  header.append(title, close);
+  const path = document.createElement("p");
+  path.className = "source-path";
+  path.textContent = source.section_path;
+  const origin = document.createElement("p");
+  origin.className = "source-origin";
+  origin.textContent = source.source_ref;
+  const text = document.createElement("pre");
+  text.className = "source-text";
+  text.textContent = source.answer || source.text;
+  const link = document.createElement("a");
+  link.textContent = "查看原文与所在章节 ↗";
+  link.href = `/knowledge/chunks/${source.chunk_id}/original?version=${encodeURIComponent(source.content_hash)}#chunk-${source.chunk_id}`;
+  link.target = "_blank";
+  link.rel = "noopener";
+  const note = document.createElement("p");
+  note.className = "source-origin";
+  note.textContent = "上方为回答时引用的原文；打开原文可查看当前版本。";
+  dialog.append(header, path, origin, text, link, note);
+  dialog.showModal();
+}
+
+/** 仅将存在来源映射的编号替换为按钮，其他内容始终以纯文本渲染。 */
+function renderCitations(assistant, sources) {
+  const text = assistant.reply.textContent;
+  assistant.reply.replaceChildren();
+  let offset = 0;
+  for (const match of text.matchAll(/\[(\d+)\]/g)) {
+    assistant.reply.append(document.createTextNode(text.slice(offset, match.index)));
+    const source = sources.find(function findCitation(item) {
+      // 编号和来源由本轮快照绑定，跨回答互不混用。
+      return item.citation === Number(match[1]);
+    });
+    if (source) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "citation";
+      button.textContent = match[0];
+      button.setAttribute("aria-label", `查看引用 ${source.citation}：${source.section_path}`);
+      button.addEventListener("click", function showCitation() {
+        // 通过闭包保留当前回答的来源版本。
+        openSource(source);
+      });
+      assistant.reply.append(button);
+    } else assistant.reply.append(document.createTextNode(match[0]));
+    offset = match.index + match[0].length;
+  }
+  assistant.reply.append(document.createTextNode(text.slice(offset)));
+}
+
+/** 为完整回答提供一次性满意度反馈；按请求标识仅在当前浏览器本地采集。 */
+function addFeedback(assistant, requestId) {
+  const key = `support-agent:feedback:${requestId}`;
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(key)); } catch { /* 存储不可用时仍允许本次页面采集。 */ }
+  let choice = ["up", "down"].includes(saved?.value) ? saved.value : null;
+  const group = document.createElement("div");
+  group.className = "answer-feedback";
+  group.setAttribute("role", "group");
+  group.setAttribute("aria-label", "这段回答对您有帮助吗");
+  const state = document.createElement("span");
+  state.setAttribute("role", "status");
+  const buttons = [];
+
+  /** 一次选定后锁定两项，重试同一回答也恢复已采集状态。 */
+  function updateFeedback() {
+    for (const button of buttons) {
+      button.disabled = Boolean(choice);
+      button.classList.toggle("selected", button.dataset.value === choice);
+      button.setAttribute("aria-pressed", String(button.dataset.value === choice));
+    }
+    state.textContent = choice ? "已反馈" : "回答有帮助吗";
+  }
+
+  for (const [value, icon, label] of [["up", "👍", "满意"], ["down", "👎", "不满意"]]) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.value = value;
+    button.textContent = icon;
+    button.setAttribute("aria-label", label);
+    button.addEventListener("click", function chooseFeedback() {
+      // 本次选择不可撤销；后续数据飞轮可从这些本地记录导出。
+      if (choice) return;
+      choice = value;
+      const record = { request_id: requestId, conversation_id: conversationId, value,
+        created_at: new Date().toISOString() };
+      try { localStorage.setItem(key, JSON.stringify(record)); } catch { /* 本轮内存锁定仍有效。 */ }
+      updateFeedback();
+    });
+    buttons.push(button);
+    group.append(button);
+  }
+  group.append(state);
+  assistant.bubble.append(group);
+  updateFeedback();
+}
 
 /** 只在顾客靠近底部时跟随新文字，阅读上文时不强制跳回底部。 */
 function followConversation(force = false) {
@@ -146,6 +267,7 @@ async function sendMessage(message, previous = null) {
   assistant.bubble.classList.add("streaming");
   const writer = createTypewriter(assistant.reply);
   const requestId = previous?.requestId || crypto.randomUUID();
+  let sources = [];
   const request = { controller: new AbortController(), writer };
   activeRequest = request;
   updateControls();
@@ -172,9 +294,12 @@ async function sendMessage(message, previous = null) {
         writer.append(data.text);
       }
       if (event === "tool_status") updateToolBadge(assistant, data);
+      if (event === "sources") sources = data.sources;
     });
     await writer.drain();
     if (activeRequest !== request) return;
+    renderCitations(assistant, sources);
+    addFeedback(assistant, requestId);
     status.textContent = "您可以继续追问，前面的内容会接着聊";
   } catch (error) {
     if (activeRequest !== request) return;
@@ -254,3 +379,4 @@ retry.addEventListener("click", retryFailedTurn);
 newConversation.addEventListener("click", resetConversation);
 welcome.addEventListener("click", handleSuggestion);
 updateControls();
+setupKnowledgeUpload();

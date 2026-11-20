@@ -103,7 +103,7 @@ def test_context_trimming_drops_entire_tool_turn_without_orphan_results(harness)
                 return tool_response(
                     [{"id": "call_1", "name": "query_order", "args": {"order_id": "1001"}}]
                 )
-            return stream_response(("查询完成",))
+            return stream_response(("您好，请问有什么可以帮您？",))
 
         async with harness(
             handler, context_window_tokens=3250, max_output_tokens=100, token_safety_margin=100

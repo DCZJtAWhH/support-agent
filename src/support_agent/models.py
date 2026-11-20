@@ -94,3 +94,17 @@ class Ticket(Base):
     status: Mapped[str] = mapped_column(String(32), default="pending")
     # 工单创建时间，按 UTC 存储。
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class LowConfidenceQuestion(Base):
+    """保存无法用现有证据回答的问题；同请求重放最多保留一条。"""
+
+    __tablename__ = "low_confidence_questions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    request_id: Mapped[str] = mapped_column(String(36), unique=True)
+    question: Mapped[str] = mapped_column(Text)
+    conversation_id: Mapped[str] = mapped_column(ForeignKey("conversations.id"), index=True)
+    entry_point: Mapped[str] = mapped_column(String(64))
+    reason: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)

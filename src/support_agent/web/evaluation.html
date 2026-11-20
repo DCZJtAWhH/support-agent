@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="查看客服RAG四策略评估、检索证据与逐事实回答依据。">
+    <meta name="theme-color" content="#f5f7f9">
+    <title>RAG 评估 · 电商智能客服</title>
+    <link rel="stylesheet" href="/static/evaluation.css">
+    <script type="module" src="/static/evaluation.mjs"></script>
+  </head>
+  <body>
+    <a class="skip" href="#strategy-comparison">跳到策略对比</a>
+    <header class="nav"><a class="brand" href="/"><span aria-hidden="true">评</span>电商智能客服 <small>知识评估</small></a><a class="back" href="/">返回聊天 ↗</a></header>
+    <main>
+      <div class="page-heading"><div><p class="eyebrow">检索与回答质量</p><h1>RAG 评估</h1><p class="intro">比较四种策略，沿着每一道题查看召回与回答依据。</p></div><div class="heading-actions"><button id="reload-report" class="secondary" type="button">刷新报告</button><button id="run-evaluation" class="primary" type="button" disabled>重新评估</button></div></div>
+      <p id="page-error" class="notice error" role="alert" hidden></p>
+      <div id="freshness" class="notice" role="status">正在读取已保存的评估报告…</div>
+      <section class="overview" aria-label="评估概况">
+        <article><p>评估题目</p><strong id="report-cases">—</strong><span id="report-rows">读取中</span></article>
+        <article><p>报告知识块</p><strong id="report-corpus">—</strong><span id="current-corpus">当前知识库：—</span></article>
+        <article><p>评估时间</p><strong class="date" id="report-time">—</strong><span id="report-mode">尚未读取</span></article>
+        <article><p>当前标注集</p><strong id="dataset-cases">—</strong><span>新知识需要补充对应标注题</span></article>
+      </section>
+      <section id="job-panel" class="job-panel" aria-label="评估运行进度" hidden><div><strong id="job-title">评估进度</strong><span id="job-count"></span></div><progress id="job-progress" max="80" value="0" aria-label="已完成的策略评估结果"></progress><p id="job-message" role="status" aria-live="polite"></p></section>
+      <section class="panel" id="strategy-comparison" tabindex="-1" aria-labelledby="comparison-title">
+        <div class="section-heading"><div><h2 id="comparison-title">四策略对比</h2><p id="selection-count">正在读取题目…</p></div><span class="legend"><i></i>该指标最优，含并列</span></div>
+        <div class="filters"><label>问题类型<select id="query-type" aria-label="问题类型"><option value="">全部类型</option></select></label><label>难度<select id="difficulty" aria-label="难度"><option value="">全部难度</option></select></label><label>召回深度 K<select id="recall-k" aria-label="召回深度 K"><option value="1">1</option><option value="5" selected>5</option><option value="10">10</option><option value="50">50</option></select></label><button id="clear-filters" class="text-button" type="button">清除筛选</button></div>
+        <div class="table-scroll" role="region" aria-label="四策略指标，可左右滚动" tabindex="0"><table><thead><tr><th scope="col">策略</th><th scope="col">样本</th><th scope="col" id="recall-heading">Recall@5</th><th scope="col">MRR</th><th scope="col">Faithfulness</th><th scope="col">拒答正确率</th><th scope="col">可回答题作答率</th></tr></thead><tbody id="strategy-rows"></tbody></table></div>
+        <p class="table-note">变化量相对纯向量；N/A 表示没有可评样本。检索指标看阈值前排名，精排策略最多保留 10 块，因此其 Recall@50 也只覆盖这 10 块。</p>
+      </section>
+      <section class="panel" aria-labelledby="case-title"><div class="section-heading"><div><h2 id="case-title">逐题查看</h2><p>对照标注要点，查看四种策略的实际回答与证据。</p></div></div><div class="case-filters"><label>搜索题目<input id="case-search" type="search" placeholder="输入问题或题目标识"></label><label>评估题目<select id="case-select" aria-label="评估题目"><option value="">正在读取…</option></select></label></div><div id="case-reference" class="case-reference"></div><div id="case-strategies" class="case-strategies"></div></section>
+      <details class="method-note"><summary>评估口径与适用范围</summary><p>Recall 与 MRR 只统计有 ground-truth 的题目。Faithfulness 由独立模型调用把回答拆成原子事实，再计算被召回原文支持的比例；拒答没有事实时为 N/A，不算满分。</p><p>当前标注集用于开发回归，阈值也参考过开发反馈，并非独立留出集。模型评委需要人工抽查。上传新内容后，重新评估会使用当前知识库，但不会自动为新知识生成标注题。</p><p id="model-info"></p></details>
+      <p class="run-note" id="run-note">重新评估会运行全部已有标注题并调用真实模型，通常需要数分钟；关闭此页面后任务仍在后台运行。评估期间请保持知识库和标注集不变。</p>
+    </main>
+    <dialog id="evaluation-source" aria-labelledby="source-title"><div class="source-heading"><h2 id="source-title">来源原文</h2><button id="close-source" class="secondary" type="button">关闭 ×</button></div><p id="source-path" class="source-path"></p><p id="source-origin" class="muted"></p><pre id="source-text"></pre><a id="source-link" target="_blank" rel="noopener">查看当前原文与章节 ↗</a><p class="muted">上方保留评估时的原文快照；当前知识库版本可能已经变化。</p></dialog>
+    <noscript>请启用 JavaScript 查看评估结果。</noscript>
+  </body>
+</html>

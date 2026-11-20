@@ -3,12 +3,13 @@
 import json
 import warnings
 from contextlib import asynccontextmanager
+from html import escape
 from pathlib import Path
 from uuid import UUID
 
 import httpx
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
@@ -18,11 +19,21 @@ from support_agent.config import Settings
 from support_agent.context import ContextBudgetExceeded, fit_messages
 from support_agent.database import Database
 from support_agent.errors import ModelResponseError, model_error
+from support_agent.evaluation_dashboard import EvaluationDashboard
+from support_agent.grounding import GroundedAnswerer
+from support_agent.knowledge_mining import KnowledgeLLM
 from support_agent.knowledge_store import KnowledgeStore
+from support_agent.knowledge_uploads import (
+    MAX_UPLOAD_BYTES,
+    KnowledgeUploader,
+    UploadIndexPending,
+    UploadRejected,
+)
 from support_agent.prompts import AFTER_SALES_EXTRACTION
 from support_agent.repositories import ChatRepository
+from support_agent.retrieval import HybridRetriever, QueryUnderstanding
 from support_agent.schemas import AfterSalesRequest, ChatRequest, ExtractionRequest
-from support_agent.vectors import BGEEmbeddings, KnowledgeRetriever, MilvusVectors
+from support_agent.vectors import BGEEmbeddings, BGEReranker, MilvusVectors
 
 
 def create_app(
@@ -61,20 +72,36 @@ def create_app(
                     use_responses_api=False,
                 )
                 database = Database(config.database_url.get_secret_value())
-                vectors = MilvusVectors(config.milvus_uri, config.milvus_collection)
+                vectors = MilvusVectors(config.milvus_uri, config.milvus_hybrid_collection)
                 try:
                     await database.initialize(seed=True)
-                    retriever = KnowledgeRetriever(
-                        KnowledgeStore(database),
+                    language = KnowledgeLLM(config, upstream_client or owned_client, sync_client)
+                    app.state.knowledge_store = KnowledgeStore(database)
+                    app.state.evaluations = EvaluationDashboard(app.state.knowledge_store)
+                    retriever = HybridRetriever(
+                        app.state.knowledge_store,
                         BGEEmbeddings(config.siliconflow_api_key.get_secret_value()),
                         vectors,
-                        top_k=config.knowledge_top_k,
-                        min_score=config.knowledge_min_score,
+                        BGEReranker(config.siliconflow_api_key.get_secret_value()),
+                        understanding=QueryUnderstanding(language),
+                        min_score=config.rerank_min_score,
                     )
                     app.state.repository = ChatRepository(database, retriever)
-                    app.state.chat = ChatService(app.state.model, app.state.repository, config)
+                    app.state.knowledge_uploads = KnowledgeUploader(
+                        app.state.knowledge_store,
+                        retriever.embeddings,
+                        vectors,
+                    )
+                    app.state.chat = ChatService(
+                        app.state.model,
+                        app.state.repository,
+                        config,
+                        answerer=GroundedAnswerer(language),
+                    )
                     yield
                 finally:
+                    if hasattr(app.state, "evaluations"):
+                        await app.state.evaluations.close()
                     await vectors.close()
                     await database.close()
 
@@ -86,6 +113,28 @@ def create_app(
     async def chat_page():
         """提供同源客服聊天页，静态资源路径基于模块位置，不依赖启动目录。"""
         return FileResponse(web_directory / "index.html", headers={"Cache-Control": "no-cache"})
+
+    @app.get("/evaluations", response_class=FileResponse, include_in_schema=False)
+    async def evaluation_page():
+        """提供独立的RAG评估结果页，让用户保留原聊天并查看评估证据。"""
+        return FileResponse(
+            web_directory / "evaluation.html", headers={"Cache-Control": "no-cache"}
+        )
+
+    @app.get("/api/evaluations")
+    async def evaluation_report(query_type: str = "", difficulty: str = ""):
+        """返回真实报告、联合分桶指标、逐题证据与当前知识库版本信息。"""
+        return await app.state.evaluations.overview(query_type=query_type, difficulty=difficulty)
+
+    @app.get("/api/evaluations/status")
+    async def evaluation_status():
+        """轮询评估任务进度，不传输重复的检索原文与回答明细。"""
+        return await app.state.evaluations.status()
+
+    @app.post("/api/evaluations/run", status_code=202)
+    async def start_evaluation():
+        """针对当前知识库和固定标注集启动完整四策略评估，不接受任意命令或路径。"""
+        return await app.state.evaluations.start()
 
     @app.post("/after-sales/extract", response_model=AfterSalesRequest)
     async def extract(body: ExtractionRequest):
@@ -147,5 +196,63 @@ def create_app(
         if result is None:
             raise HTTPException(404, detail="会话不存在。")
         return result
+
+    @app.get("/knowledge/chunks/{chunk_id}")
+    async def knowledge_chunk(chunk_id: int):
+        """展示权威来源原文与章节路径；过期或失效块不再作为有效原文返回。"""
+        row = await app.state.knowledge_store.get(chunk_id)
+        if row is None or not row.is_active:
+            raise HTTPException(404, detail="来源知识已失效或不存在。")
+        return {
+            "chunk_id": row.id,
+            "source_ref": row.source_ref,
+            "section_path": row.section_path or row.questions,
+            "question": row.questions,
+            "answer": row.answer,
+            "content_hash": row.content_hash,
+        }
+
+    @app.post("/knowledge/upload", status_code=201)
+    async def upload_knowledge(file: UploadFile):
+        """接收知识文件并同步建立索引；完整处理后才报告可供检索。"""
+        try:
+            content = await file.read(MAX_UPLOAD_BYTES + 1)
+            return await app.state.knowledge_uploads.import_document(file.filename or "", content)
+        except UploadRejected as exc:
+            raise HTTPException(exc.status_code, detail=str(exc)) from exc
+        except UploadIndexPending as exc:
+            return JSONResponse(status_code=503, content={"detail": exc.result})
+        finally:
+            await file.close()
+
+    @app.get("/knowledge/chunks/{chunk_id}/original", response_class=HTMLResponse)
+    async def original_document(chunk_id: int, version: str = ""):
+        """按来源重组已入库原文并定位章节；旧引用链接明确提示内容版本变化。"""
+        store = app.state.knowledge_store
+        selected = await store.get(chunk_id)
+        if selected is None or not selected.is_active:
+            raise HTTPException(404, detail="来源知识已失效或不存在；请在聊天引用中查看原快照。")
+        chunks = [r for r in await store.active() if r.source_ref == selected.source_ref]
+        sections = "".join(
+            f'<section id="chunk-{row.id}"><h2>{escape(row.section_path or row.questions)}</h2>'
+            f"<pre>{escape(row.answer)}</pre></section>"
+            for row in chunks
+        )
+        note = (
+            "版本已更新，下方为当前入库原文；回答时的原文保留在聊天引用面板。"
+            if version and version != selected.content_hash
+            else "当前入库原文 · 按知识块展示所在章节"
+        )
+        return HTMLResponse(
+            '<!doctype html><html lang="zh-CN"><meta charset="utf-8">'
+            '<meta name="viewport" content="width=device-width,initial-scale=1">'
+            "<title>知识来源原文</title><style>"
+            "body{font:16px/1.9 system-ui;max-width:860px;margin:40px auto;padding:0 24px;"
+            "color:#22332e}pre{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere}"
+            "h1{font-size:24px;overflow-wrap:anywhere}h2{font-size:19px}"
+            "section{padding:24px;border-bottom:1px solid #ddd;scroll-margin-top:24px}"
+            "section:target{background:#edf5f0}p{color:#64726e}</style>"
+            f"<h1>{escape(selected.source_ref)}</h1><p>{note}</p>{sections}</html>"
+        )
 
     return app

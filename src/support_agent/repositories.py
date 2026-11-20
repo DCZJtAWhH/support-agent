@@ -6,7 +6,7 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 
 from support_agent.database import Database
-from support_agent.models import Conversation, Message, Ticket
+from support_agent.models import Conversation, LowConfidenceQuestion, Message, Ticket
 
 
 class ChatRepository:
@@ -15,11 +15,61 @@ class ChatRepository:
         self.database = database
         self.retriever = retriever
 
-    async def query_faq(self, keyword: str) -> list[dict]:
-        """以原有 keyword 调用 dense 语义检索，返回原有三个知识字段。"""
+    async def query_faq(self, keyword: str, *, category=None) -> list[dict]:
+        """用完整本轮问题检索；指定品类时将条件传入两路召回前的过滤。"""
         if self.retriever is None:
             raise RuntimeError("知识检索尚未配置，请先建库。")
-        return await self.retriever.search(keyword)
+        return await self.retriever.search(keyword, **({"category": category} if category else {}))
+
+    async def record_low_confidence(
+        self, conversation_id, request_id, question, entry_point, reason
+    ):
+        """按请求幂等记录拒答原因，断流重试不重复入池。"""
+        try:
+            async with self.database.sessions.begin() as session:
+                existing = await session.scalar(
+                    select(LowConfidenceQuestion).where(
+                        LowConfidenceQuestion.request_id == request_id,
+                    )
+                )
+                if existing is None:
+                    session.add(
+                        LowConfidenceQuestion(
+                            conversation_id=conversation_id,
+                            request_id=request_id,
+                            question=question,
+                            entry_point=entry_point,
+                            reason=reason,
+                        )
+                    )
+        except IntegrityError:
+            # 并发重复提交只忽略已存在的唯一请求，其他完整性错误继续向上报告。
+            async with self.database.sessions() as session:
+                if not await session.scalar(
+                    select(LowConfidenceQuestion).where(
+                        LowConfidenceQuestion.request_id == request_id,
+                    )
+                ):
+                    raise
+
+    async def low_confidence_questions(self) -> list[dict]:
+        """按入池时间顺序返回问题，供离线复盘与验证使用。"""
+        async with self.database.sessions() as session:
+            rows = await session.scalars(
+                select(LowConfidenceQuestion).order_by(LowConfidenceQuestion.id)
+            )
+            return [
+                {
+                    "id": r.id,
+                    "request_id": r.request_id,
+                    "question": r.question,
+                    "conversation_id": r.conversation_id,
+                    "entry_point": r.entry_point,
+                    "reason": r.reason,
+                    "created_at": r.created_at.isoformat(),
+                }
+                for r in rows
+            ]
 
     async def resolve_request(self, request_id: str) -> tuple[str, str] | None:
         """根据稳定请求标识找到原会话和输入，让未收到 meta 的重试也能恢复。"""
