@@ -1,0 +1,29 @@
+# 使用官方 standalone_embed 的内嵌 etcd + 本地存储方式，适合本地 demo。
+# https://milvus.io/docs/install_standalone-docker.md
+name: support-agent-knowledge
+services:
+  standalone:
+    image: milvusdb/milvus:v2.6.18
+    command: [milvus, run, standalone]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_USE_EMBED: 'true'
+      ETCD_DATA_DIR: /var/lib/milvus/etcd
+      ETCD_CONFIG_PATH: /milvus/configs/embedEtcd.yaml
+      COMMON_STORAGETYPE: local
+      DEPLOY_MODE: STANDALONE
+    volumes:
+      - knowledge_milvus:/var/lib/milvus
+      - ./deploy/embedEtcd.yaml:/milvus/configs/embedEtcd.yaml:ro
+    ports:
+      - '127.0.0.1:19530:19530'
+      - '127.0.0.1:9091:9091'
+    healthcheck:
+      test: [CMD, curl, -f, http://localhost:9091/healthz]
+      interval: 10s
+      start_period: 60s
+      timeout: 5s
+      retries: 15
+volumes:
+  knowledge_milvus:

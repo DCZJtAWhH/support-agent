@@ -27,9 +27,12 @@ class Database:
         self.sessions = async_sessionmaker(self.engine, expire_on_commit=False)
 
     async def initialize(self, *, seed: bool = False):
-        """建立缺失的四张表，按需补充 FAQ 样例而不覆盖已存在的数据。"""
+        """建立业务表并增量补齐既有知识表，按需初始化 FAQ 演示数据。"""
+        from support_agent.knowledge_store import migrate_knowledge_schema
+
         async with self.engine.begin() as connection:
             await connection.run_sync(Base.metadata.create_all)
+            await connection.run_sync(migrate_knowledge_schema)
         if seed:
             async with self.sessions.begin() as session:
                 for question, answer, category in FAQ_SEEDS:

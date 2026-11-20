@@ -8,12 +8,17 @@ from support_agent.repositories import ChatRepository
 from support_agent.tools import ToolRegistry, build_tools
 
 
+class ReturnPolicyRetriever:
+    async def search(self, keyword):
+        return [{"question": "退货政策是什么", "answer": "签收后7天内申请。", "category": "售后"}]
+
+
 def test_business_tools_validate_literal_keyword_and_deduplicate_ticket(tmp_path):
     async def scenario():
         db = Database(f"sqlite+aiosqlite:///{tmp_path / 'tools.db'}")
         try:
             await db.initialize(seed=True)
-            repo = ChatRepository(db)
+            repo = ChatRepository(db, ReturnPolicyRetriever())
             cid, rid = str(uuid4()), str(uuid4())
             await repo.begin_request(cid, rid, "退货政策是什么，请创建人工工单")
             registry = ToolRegistry(build_tools(repo, cid, rid, "退货政策是什么，请创建人工工单"))

@@ -2,37 +2,24 @@
 
 from uuid import uuid4
 
-from sqlalchemy import or_, select, update
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 
 from support_agent.database import Database
-from support_agent.models import FAQ, Conversation, Message, Ticket
+from support_agent.models import Conversation, Message, Ticket
 
 
 class ChatRepository:
-    def __init__(self, database: Database):
-        """保存会话工厂，每个操作自行打开并关闭独立事务。"""
+    def __init__(self, database: Database, retriever=None):
+        """保存会话工厂和语义检索入口，每个持久化操作使用独立短事务。"""
         self.database = database
+        self.retriever = retriever
 
     async def query_faq(self, keyword: str) -> list[dict]:
-        """对问题和答案执行字面 LIKE 查询，转义通配符并限制返回数量。"""
-        pattern = "%" + keyword.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
-        async with self.database.sessions() as session:
-            rows = await session.scalars(
-                select(FAQ)
-                .where(
-                    or_(
-                        FAQ.question.like(pattern, escape="\\"),
-                        FAQ.answer.like(pattern, escape="\\"),
-                    )
-                )
-                .order_by(FAQ.id)
-                .limit(3)
-            )
-            return [
-                {"question": row.question, "answer": row.answer, "category": row.category}
-                for row in rows
-            ]
+        """以原有 keyword 调用 dense 语义检索，返回原有三个知识字段。"""
+        if self.retriever is None:
+            raise RuntimeError("知识检索尚未配置，请先建库。")
+        return await self.retriever.search(keyword)
 
     async def resolve_request(self, request_id: str) -> tuple[str, str] | None:
         """根据稳定请求标识找到原会话和输入，让未收到 meta 的重试也能恢复。"""

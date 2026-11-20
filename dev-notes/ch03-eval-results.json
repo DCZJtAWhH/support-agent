@@ -1,0 +1,212 @@
+{
+  "retrieval": [
+    {
+      "id": "postage-paraphrase",
+      "question": "邮费是多少",
+      "expected_answer_contains": [
+        "99元",
+        "8元"
+      ],
+      "purpose": "验收：邮费与运费语义召回",
+      "passed": true,
+      "matches": [
+        {
+          "question": "运费标准是什么\n邮费多少钱？",
+          "answer": "普通商品订单满99元免运费，未满99元收取8元运费；偏远地区需人工确认。",
+          "category": "配送"
+        },
+        {
+          "question": "退货政策",
+          "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+          "category": "售后手册（演示）"
+        },
+        {
+          "question": "退货政策是什么",
+          "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+          "category": "售后"
+        }
+      ],
+      "scores": [
+        {
+          "id": 2,
+          "score": 0.7388858795166016
+        },
+        {
+          "id": 4,
+          "score": 0.4415353238582611
+        },
+        {
+          "id": 1,
+          "score": 0.43166595697402954
+        }
+      ]
+    },
+    {
+      "id": "free-shipping",
+      "question": "买多少能包邮",
+      "expected_answer_contains": [
+        "99元"
+      ],
+      "purpose": "运费门槛换问法",
+      "passed": true,
+      "matches": [
+        {
+          "question": "运费标准是什么\n邮费多少钱？",
+          "answer": "普通商品订单满99元免运费，未满99元收取8元运费；偏远地区需人工确认。",
+          "category": "配送"
+        },
+        {
+          "question": "退货政策",
+          "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+          "category": "售后手册（演示）"
+        },
+        {
+          "question": "退货政策是什么",
+          "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+          "category": "售后"
+        }
+      ],
+      "scores": [
+        {
+          "id": 2,
+          "score": 0.6552464962005615
+        },
+        {
+          "id": 4,
+          "score": 0.550849437713623
+        },
+        {
+          "id": 1,
+          "score": 0.5460548400878906
+        }
+      ]
+    },
+    {
+      "id": "return-paraphrase",
+      "question": "收到东西多久还能退",
+      "expected_answer_contains": [
+        "7天"
+      ],
+      "purpose": "退货政策期限",
+      "passed": true,
+      "matches": [
+        {
+          "question": "退货政策",
+          "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+          "category": "售后手册（演示）"
+        },
+        {
+          "question": "退货政策是什么",
+          "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+          "category": "售后"
+        },
+        {
+          "question": "如何申请换货",
+          "answer": "请提供订单号和商品问题，客服登记后由人工确认换货条件。",
+          "category": "售后"
+        }
+      ],
+      "scores": [
+        {
+          "id": 4,
+          "score": 0.7681642174720764
+        },
+        {
+          "id": 1,
+          "score": 0.7612262964248657
+        },
+        {
+          "id": 3,
+          "score": 0.6135001182556152
+        }
+      ]
+    },
+    {
+      "id": "product-paraphrase",
+      "question": "杯子能用洗碗机洗吗",
+      "expected_answer_contains": [
+        "洗碗机",
+        "手洗"
+      ],
+      "purpose": "商品FAQ真实问法与同义表达",
+      "passed": true,
+      "matches": [
+        {
+          "question": "水杯可以放洗碗机吗？",
+          "answer": "演示款便携水杯不适合放入洗碗机，请使用温水手洗。",
+          "category": "便携水杯 FAQ（演示）"
+        },
+        {
+          "question": "杯盖密封圈能拆下来清洗吗？",
+          "answer": "演示款杯盖的密封圈可以拆下清洗，清洗后请装回原位并确认安装平整。",
+          "category": "便携水杯 FAQ（演示）"
+        },
+        {
+          "question": "杯子上的标签胶怎么去掉？",
+          "answer": "演示款水杯表面的标签残胶可以用温水浸润后轻轻擦除，请避免使用钢丝球。",
+          "category": "商品使用与清洁"
+        }
+      ],
+      "scores": [
+        {
+          "id": 8,
+          "score": 0.7233454585075378
+        },
+        {
+          "id": 9,
+          "score": 0.5466979146003723
+        },
+        {
+          "id": 10,
+          "score": 0.5146945714950562
+        }
+      ]
+    },
+    {
+      "id": "unknown-policy",
+      "question": "火星殖民飞船燃料补贴是多少",
+      "expected_empty": true,
+      "purpose": "无关问题不引用商家政策",
+      "passed": true,
+      "matches": [],
+      "scores": [
+        {
+          "id": 2,
+          "score": 0.36729609966278076
+        },
+        {
+          "id": 7,
+          "score": 0.30700570344924927
+        },
+        {
+          "id": 3,
+          "score": 0.2935965061187744
+        }
+      ]
+    }
+  ],
+  "recovery": {
+    "before": {
+      "total": 10,
+      "active": 10,
+      "pending": 10,
+      "done": 0
+    },
+    "interrupted": {
+      "total": 10,
+      "active": 10,
+      "pending": 10,
+      "done": 0
+    },
+    "resumed": 10,
+    "after": {
+      "total": 10,
+      "active": 10,
+      "pending": 0,
+      "done": 10
+    },
+    "replayed": 0,
+    "passed": true
+  },
+  "passed": true
+}

@@ -18,9 +18,11 @@ from support_agent.config import Settings
 from support_agent.context import ContextBudgetExceeded, fit_messages
 from support_agent.database import Database
 from support_agent.errors import ModelResponseError, model_error
+from support_agent.knowledge_store import KnowledgeStore
 from support_agent.prompts import AFTER_SALES_EXTRACTION
 from support_agent.repositories import ChatRepository
 from support_agent.schemas import AfterSalesRequest, ChatRequest, ExtractionRequest
+from support_agent.vectors import BGEEmbeddings, KnowledgeRetriever, MilvusVectors
 
 
 def create_app(
@@ -34,7 +36,7 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app):
-        """启动模型和持久化服务，退出时释放数据库连接池及自建 HTTP 客户端。"""
+        """启动模型、持久化和语义检索服务，退出时释放数据库及模型与向量客户端。"""
         with httpx.Client() as sync_client:
             async with httpx.AsyncClient() as owned_client:
                 app.state.model = ChatOpenAI(
@@ -59,12 +61,21 @@ def create_app(
                     use_responses_api=False,
                 )
                 database = Database(config.database_url.get_secret_value())
+                vectors = MilvusVectors(config.milvus_uri, config.milvus_collection)
                 try:
                     await database.initialize(seed=True)
-                    app.state.repository = ChatRepository(database)
+                    retriever = KnowledgeRetriever(
+                        KnowledgeStore(database),
+                        BGEEmbeddings(config.siliconflow_api_key.get_secret_value()),
+                        vectors,
+                        top_k=config.knowledge_top_k,
+                        min_score=config.knowledge_min_score,
+                    )
+                    app.state.repository = ChatRepository(database, retriever)
                     app.state.chat = ChatService(app.state.model, app.state.repository, config)
                     yield
                 finally:
+                    await vectors.close()
                     await database.close()
 
     app = FastAPI(title="电商智能客服", lifespan=lifespan)

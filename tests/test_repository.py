@@ -1,23 +1,50 @@
 import asyncio
 from uuid import uuid4
 
+from test_knowledge_store import DemoEmbedding, DemoVectors
+
 from support_agent.database import Database
+from support_agent.knowledge_chunks import KnowledgeDraft
+from support_agent.knowledge_store import KnowledgeStore, synchronize
 from support_agent.repositories import ChatRepository
+from support_agent.vectors import KnowledgeRetriever
 
 
-def test_faq_literal_keywords_find_return_policy_but_miss_postage(tmp_path):
+def test_faq_semantic_results_use_mysql_text_and_preserve_contract(tmp_path):
     async def scenario():
         db = Database(f"sqlite+aiosqlite:///{tmp_path / 'faq.db'}")
         try:
             await db.initialize(seed=True)
-            repo = ChatRepository(db)
-            matches = await repo.query_faq("退货")
-            assert matches[0]["question"] == "退货政策是什么"
-            assert "7天" in matches[0]["answer"]
-            assert await repo.query_faq("邮费") == []
-            assert await repo.query_faq("%") == []
-            await db.initialize(seed=True)
-            assert len(await repo.query_faq("退货")) == 1
+            store, embeddings, vectors = KnowledgeStore(db), DemoEmbedding(), DemoVectors()
+            ids = await store.replace_source(
+                "faq:freight",
+                [
+                    KnowledgeDraft("配送", ["运费标准是什么"], "满99元免运费，否则8元。"),
+                ],
+            )
+            await synchronize(store, embeddings, vectors)
+            repo = ChatRepository(db, KnowledgeRetriever(store, embeddings, vectors))
+            assert await repo.query_faq("邮费是多少") == [
+                {
+                    "question": "运费标准是什么",
+                    "answer": "满99元免运费，否则8元。",
+                    "category": "配送",
+                }
+            ]
+            await store.replace_source(
+                "faq:freight",
+                [
+                    KnowledgeDraft("配送", ["运费标准是什么"], "新政策：满199元免运费。"),
+                ],
+            )
+            assert await repo.query_faq("邮费是多少") == []
+            await synchronize(store, embeddings, vectors)
+            assert "199元" in (await repo.query_faq("邮费是多少"))[0]["answer"]
+            assert (await store.get(ids[0])).vector_id == str(ids[0])
+            await store.replace_source("faq:freight", [])
+            assert await repo.query_faq("邮费是多少") == []
+            await synchronize(store, embeddings, vectors)
+            assert vectors.rows == {}
         finally:
             await db.close()
 

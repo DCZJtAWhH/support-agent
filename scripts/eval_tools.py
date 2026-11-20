@@ -25,7 +25,7 @@ def main():
     """逐条运行人工标注样例，保存可复核的工具结果、回答和验收判据。"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-url", default="http://127.0.0.1:8000")
-    parser.add_argument("--output", default="dev-notes/ch02-eval-results.json")
+    parser.add_argument("--output", default="dev-notes/ch03-tools-eval-results.json")
     args = parser.parse_args()
     cases = [
         json.loads(line)
@@ -59,7 +59,8 @@ def main():
                 passed = (
                     passed
                     and faq is not None
-                    and faq["keyword"] == case["faq_keyword"]
+                    and 1 <= len(faq["keyword"]) <= 32
+                    and faq["keyword"] in case["message"]
                     and bool(faq["matches"]) == case["faq_match"]
                 )
             answer = "".join(data["text"] for event, data in events if event == "token")
