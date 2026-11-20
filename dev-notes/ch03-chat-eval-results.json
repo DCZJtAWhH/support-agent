@@ -1,0 +1,539 @@
+{
+  "retrieval": [
+    {
+      "id": "postage-paraphrase",
+      "question": "邮费是多少",
+      "expected_answer_contains": [
+        "99元",
+        "8元"
+      ],
+      "purpose": "验收：邮费与运费语义召回",
+      "passed": true,
+      "matches": [
+        {
+          "question": "运费标准是什么\n邮费多少钱？",
+          "answer": "普通商品订单满99元免运费，未满99元收取8元运费；偏远地区需人工确认。",
+          "category": "配送"
+        },
+        {
+          "question": "退货政策",
+          "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+          "category": "售后手册（演示）"
+        },
+        {
+          "question": "退货政策是什么",
+          "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+          "category": "售后"
+        }
+      ],
+      "scores": [
+        {
+          "id": 2,
+          "score": 0.7386384606361389
+        },
+        {
+          "id": 4,
+          "score": 0.4420084059238434
+        },
+        {
+          "id": 1,
+          "score": 0.43172699213027954
+        }
+      ]
+    },
+    {
+      "id": "free-shipping",
+      "question": "买多少能包邮",
+      "expected_answer_contains": [
+        "99元"
+      ],
+      "purpose": "运费门槛换问法",
+      "passed": true,
+      "matches": [
+        {
+          "question": "运费标准是什么\n邮费多少钱？",
+          "answer": "普通商品订单满99元免运费，未满99元收取8元运费；偏远地区需人工确认。",
+          "category": "配送"
+        },
+        {
+          "question": "退货政策",
+          "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+          "category": "售后手册（演示）"
+        },
+        {
+          "question": "退货政策是什么",
+          "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+          "category": "售后"
+        }
+      ],
+      "scores": [
+        {
+          "id": 2,
+          "score": 0.6563846468925476
+        },
+        {
+          "id": 4,
+          "score": 0.5508953928947449
+        },
+        {
+          "id": 1,
+          "score": 0.5456945896148682
+        }
+      ]
+    },
+    {
+      "id": "return-paraphrase",
+      "question": "收到东西多久还能退",
+      "expected_answer_contains": [
+        "7天"
+      ],
+      "purpose": "退货政策期限",
+      "passed": true,
+      "matches": [
+        {
+          "question": "退货政策",
+          "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+          "category": "售后手册（演示）"
+        },
+        {
+          "question": "退货政策是什么",
+          "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+          "category": "售后"
+        },
+        {
+          "question": "如何申请换货",
+          "answer": "请提供订单号和商品问题，客服登记后由人工确认换货条件。",
+          "category": "售后"
+        }
+      ],
+      "scores": [
+        {
+          "id": 4,
+          "score": 0.768208384513855
+        },
+        {
+          "id": 1,
+          "score": 0.7605746388435364
+        },
+        {
+          "id": 3,
+          "score": 0.614072322845459
+        }
+      ]
+    },
+    {
+      "id": "product-paraphrase",
+      "question": "杯子能用洗碗机洗吗",
+      "expected_answer_contains": [
+        "洗碗机",
+        "手洗"
+      ],
+      "purpose": "商品FAQ真实问法与同义表达",
+      "passed": true,
+      "matches": [
+        {
+          "question": "水杯可以放洗碗机吗？",
+          "answer": "演示款便携水杯不适合放入洗碗机，请使用温水手洗。",
+          "category": "便携水杯 FAQ（演示）"
+        },
+        {
+          "question": "杯盖密封圈能拆下来清洗吗？",
+          "answer": "演示款杯盖的密封圈可以拆下清洗，清洗后请装回原位并确认安装平整。",
+          "category": "便携水杯 FAQ（演示）"
+        },
+        {
+          "question": "杯子上的标签胶怎么去掉？",
+          "answer": "演示款水杯表面的标签残胶可以用温水浸润后轻轻擦除，请避免使用钢丝球。",
+          "category": "商品使用与清洁"
+        }
+      ],
+      "scores": [
+        {
+          "id": 8,
+          "score": 0.7233611345291138
+        },
+        {
+          "id": 9,
+          "score": 0.5473654866218567
+        },
+        {
+          "id": 10,
+          "score": 0.5160320997238159
+        }
+      ]
+    },
+    {
+      "id": "unknown-policy",
+      "question": "火星殖民飞船燃料补贴是多少",
+      "expected_empty": true,
+      "purpose": "无关问题不引用商家政策",
+      "passed": true,
+      "matches": [],
+      "scores": [
+        {
+          "id": 2,
+          "score": 0.3674645721912384
+        },
+        {
+          "id": 7,
+          "score": 0.307819128036499
+        },
+        {
+          "id": 3,
+          "score": 0.29397153854370117
+        }
+      ]
+    }
+  ],
+  "chat": {
+    "answer": "关于运费，我们目前的政策是（演示数据）：\n\n- 普通商品订单**满99元免运费**\n- 未满99元收取**8元运费**\n- 偏远地区需人工确认\n\n您看还有其他需要帮您确认的吗？",
+    "events": [
+      [
+        "meta",
+        {
+          "conversation_id": "c87dbe91-844e-487c-822e-5bbceadcfd7d",
+          "request_id": "db401ad3-9db9-423e-a6d5-f7dfefd70c33"
+        }
+      ],
+      [
+        "tool_status",
+        {
+          "name": "query_faq",
+          "tool_call_id": "call_00_jtpdsetZRxbNZx2QSCVZ5995",
+          "state": "running"
+        }
+      ],
+      [
+        "tool_status",
+        {
+          "name": "query_faq",
+          "tool_call_id": "call_00_jtpdsetZRxbNZx2QSCVZ5995",
+          "state": "succeeded",
+          "attempts": 1,
+          "reused": false
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "关于"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "运费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "我们"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "目前的"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "政策"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "是"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "（"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "演示"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "数据"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "）：\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "普通"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "商品"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "满"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "99"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "元"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "免"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "运费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "未"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "满"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "99"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "元"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "收取"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "8"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "元"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "运费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "偏远"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "地区"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "需"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "人工"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "确认"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "看"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "还有其他"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "需要"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "帮"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "确认"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "的吗"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "？"
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "c87dbe91-844e-487c-822e-5bbceadcfd7d",
+          "request_id": "db401ad3-9db9-423e-a6d5-f7dfefd70c33"
+        }
+      ]
+    ],
+    "passed": true
+  },
+  "passed": true
+}

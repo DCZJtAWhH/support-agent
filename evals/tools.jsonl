@@ -1,6 +1,6 @@
 {"id":"logistics-1001","message":"订单 1001 的物流到哪了","tools":["query_logistics"],"criteria":"物流状态和位置与工具结果一致，明确为演示数据，不编造真实追踪记录。"}
 {"id":"return-policy","message":"退货政策是什么","tools":["query_faq"],"faq_keyword":"退货","faq_match":true,"criteria":"根据查到的政策回答签收后7天、商品完好等条件，不自行增加承诺。"}
-{"id":"postage-literal-miss","message":"邮费是多少","tools":["query_faq"],"faq_keyword":"邮费","faq_match":false,"criteria":"预期漏召回：不将邮费改写为运费，不给出8元或满99元等未查到的政策，不自动创建工单。"}
+{"id":"postage-semantic-hit","message":"邮费是多少","tools":["query_faq"],"faq_keyword":"邮费","faq_match":true,"criteria":"语义召回运费标准，依据满99元免邮、未满8元和偏远地区人工确认回答；不自动创建工单。"}
 {"id":"explicit-human-ticket","message":"商品损坏了，请帮我创建人工工单","tools":["create_ticket"],"criteria":"真实登记一张待处理工单，回复包含返回的工单号，不声称已维修或已批准售后。"}
 {"id":"no-auto-ticket","message":"收到的商品坏了，我该怎么办","forbidden_tools":["create_ticket"],"criteria":"可以澄清、给出处理建议或查询FAQ，不能因为商品损坏就擅自创建工单。"}
 {"id":"order-and-logistics","message":"请查订单1001的订单情况和物流位置","tools":["query_order","query_logistics"],"criteria":"在同一次决策中使用两个工具，回答与结果一致并说明演示数据，回灌后不再调用工具。"}

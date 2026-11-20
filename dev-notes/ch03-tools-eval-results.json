@@ -1,0 +1,219 @@
+[
+  {
+    "id": "logistics-1001",
+    "message": "订单 1001 的物流到哪了",
+    "tools": [
+      "query_logistics"
+    ],
+    "criteria": "物流状态和位置与工具结果一致，明确为演示数据，不编造真实追踪记录。",
+    "passed": true,
+    "conversation_id": "368f6336-5f63-48b6-be73-8fc6bf4a02ea",
+    "selected_tools": [
+      "query_logistics"
+    ],
+    "tool_results": [
+      {
+        "ok": true,
+        "data": {
+          "order_id": "1001",
+          "carrier": "圆通",
+          "status": "运输中",
+          "location": "杭州转运中心",
+          "estimated_days": 1,
+          "simulated": true
+        },
+        "attempts": 1
+      }
+    ],
+    "answer": "您好，以下为订单 1001 的物流查询结果（演示数据）：\n\n- 承运商：圆通\n- 当前状态：运输中\n- 最新位置：杭州转运中心\n- 预计还需：1 天左右送达\n\n实际物流信息请以承运商官方更新为准。还需要我帮您做什么吗？"
+  },
+  {
+    "id": "return-policy",
+    "message": "退货政策是什么",
+    "tools": [
+      "query_faq"
+    ],
+    "faq_keyword": "退货",
+    "faq_match": true,
+    "criteria": "根据查到的政策回答签收后7天、商品完好等条件，不自行增加承诺。",
+    "passed": true,
+    "conversation_id": "91311d1d-1f2d-43fb-81e5-bddf8167502d",
+    "selected_tools": [
+      "query_faq"
+    ],
+    "tool_results": [
+      {
+        "ok": true,
+        "data": {
+          "keyword": "退货政策是什么",
+          "matches": [
+            {
+              "question": "退货政策是什么",
+              "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+              "category": "售后"
+            },
+            {
+              "question": "退货政策",
+              "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+              "category": "售后手册（演示）"
+            },
+            {
+              "question": "如何申请换货",
+              "answer": "请提供订单号和商品问题，客服登记后由人工确认换货条件。",
+              "category": "售后"
+            }
+          ]
+        },
+        "attempts": 1
+      }
+    ],
+    "answer": "以下是查询到的退货政策（演示数据，仅供参考）：\n\n- 签收后 **7 天内**，商品完好且不影响二次销售，可申请无理由退货。\n- 如果商品有质量问题，需要联系人工进一步核实。\n\n如需办理退货，请告诉我您的订单号和退货原因，我会帮您核对后续流程。"
+  },
+  {
+    "id": "postage-semantic-hit",
+    "message": "邮费是多少",
+    "tools": [
+      "query_faq"
+    ],
+    "faq_keyword": "邮费",
+    "faq_match": true,
+    "criteria": "语义召回运费标准，依据满99元免邮、未满8元和偏远地区人工确认回答；不自动创建工单。",
+    "passed": true,
+    "conversation_id": "314ecd67-679a-4d0b-bb38-905eb8fd9565",
+    "selected_tools": [
+      "query_faq"
+    ],
+    "tool_results": [
+      {
+        "ok": true,
+        "data": {
+          "keyword": "邮费是多少",
+          "matches": [
+            {
+              "question": "运费标准是什么\n邮费多少钱？",
+              "answer": "普通商品订单满99元免运费，未满99元收取8元运费；偏远地区需人工确认。",
+              "category": "配送"
+            },
+            {
+              "question": "退货政策",
+              "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+              "category": "售后手册（演示）"
+            },
+            {
+              "question": "退货政策是什么",
+              "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+              "category": "售后"
+            }
+          ]
+        },
+        "attempts": 1
+      }
+    ],
+    "answer": "运费标准（演示数据）：普通商品订单满 99 元免运费，未满 99 元收 8 元运费；偏远地区需人工确认。"
+  },
+  {
+    "id": "explicit-human-ticket",
+    "message": "商品损坏了，请帮我创建人工工单",
+    "tools": [
+      "create_ticket"
+    ],
+    "criteria": "真实登记一张待处理工单，回复包含返回的工单号，不声称已维修或已批准售后。",
+    "passed": false,
+    "conversation_id": "7cf1b34b-472b-4369-86df-78870e0a71fb",
+    "selected_tools": [],
+    "tool_results": [],
+    "answer": "好的，我来帮您登记人工处理。为了便于处理，请补充两个信息：\n\n1. 订单号；\n2. 您希望的处理方式：换货、退货退款还是维修？\n\n您确认后，我马上为您登记工单。"
+  },
+  {
+    "id": "no-auto-ticket",
+    "message": "收到的商品坏了，我该怎么办",
+    "forbidden_tools": [
+      "create_ticket"
+    ],
+    "criteria": "可以澄清、给出处理建议或查询FAQ，不能因为商品损坏就擅自创建工单。",
+    "passed": true,
+    "conversation_id": "0005f954-534c-4106-b82c-b58026da8937",
+    "selected_tools": [
+      "query_faq"
+    ],
+    "tool_results": [
+      {
+        "ok": true,
+        "data": {
+          "keyword": "收到的商品坏了，我该怎么办",
+          "matches": [
+            {
+              "question": "退货政策",
+              "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+              "category": "售后手册（演示）"
+            },
+            {
+              "question": "售后联系",
+              "answer": "申请售后时请说明商品问题和期望方案，客服会协助整理信息。具体处理条件由人工核实后确认。",
+              "category": "售后手册（演示）"
+            },
+            {
+              "question": "如何申请换货",
+              "answer": "请提供订单号和商品问题，客服登记后由人工确认换货条件。",
+              "category": "售后"
+            }
+          ]
+        },
+        "attempts": 1
+      }
+    ],
+    "answer": "很抱歉让您收到损坏的商品。根据售后手册（演示数据）：\n\n- **质量/损坏问题**：需要人工核实后确认处理方式，具体条件以核实结果为准。\n- **退换货**：如想申请换货，请提供订单号和商品的具体问题，登记后由人工确认是否符合换货条件。\n\n为帮您整理信息，请提供：\n1. 您的**订单号**\n2. 损坏的具体情况（如破损部位，方便的话可附照片）\n3. 您期望的处理方案（退货、换货或补发）\n\n需要我现在为您转人工登记处理吗？"
+  },
+  {
+    "id": "order-and-logistics",
+    "message": "请查订单1001的订单情况和物流位置",
+    "tools": [
+      "query_order",
+      "query_logistics"
+    ],
+    "criteria": "在同一次决策中使用两个工具，回答与结果一致并说明演示数据，回灌后不再调用工具。",
+    "passed": true,
+    "conversation_id": "102d06f0-93a7-4276-888d-e4110cb92894",
+    "selected_tools": [
+      "query_order",
+      "query_logistics"
+    ],
+    "tool_results": [
+      {
+        "ok": true,
+        "data": {
+          "order_id": "1001",
+          "status": "已签收",
+          "total": 299,
+          "currency": "CNY",
+          "simulated": true
+        },
+        "attempts": 1
+      },
+      {
+        "ok": true,
+        "data": {
+          "order_id": "1001",
+          "carrier": "圆通",
+          "status": "运输中",
+          "location": "杭州转运中心",
+          "estimated_days": 1,
+          "simulated": true
+        },
+        "attempts": 1
+      }
+    ],
+    "answer": "订单 **1001** 的查询结果如下（以下均为演示数据）：\n\n- **订单状态**：已签收\n- **订单金额**：¥299\n- **物流状态**：运输中\n- **当前位置**：杭州转运中心\n- **预计还需**：1 天\n\n请注意：订单显示“已签收”，但物流仍显示“运输中”，这两项信息不一致。建议您核实具体承运单号，或确认该订单是否已由他人代签。"
+  },
+  {
+    "id": "small-talk",
+    "message": "你好",
+    "tools": [],
+    "criteria": "自然问候，不调用无关业务工具。",
+    "passed": true,
+    "conversation_id": "fab1752d-a7fc-4bed-bb6c-1fbf7e246c77",
+    "selected_tools": [],
+    "tool_results": [],
+    "answer": "您好，请问有什么可以帮您？需要查询订单、商品、物流，或了解售后政策都可以告诉我。"
+  }
+]

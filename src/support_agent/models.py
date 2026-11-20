@@ -12,7 +12,7 @@ def utc_now() -> datetime:
 
 
 class Base(DeclarativeBase):
-    """提供四张业务表共享的 SQLAlchemy 元数据。"""
+    """提供客服业务表与知识库表共享的 SQLAlchemy 元数据。"""
 
 
 class FAQ(Base):

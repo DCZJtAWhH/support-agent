@@ -28,7 +28,7 @@ uv run --locked python scripts/check_eval_data.py
 
 ## 第二章：单轮工具调用
 
-`tools.jsonl` 包含七条人工标注，覆盖物流、退货政策、预期漏召回、明确建单、不自动建单、同批两个工具和普通问候。每条含输入、预期/禁止工具及回答语义 criteria；FAQ 样例还标注精确关键词和预期命中情况。
+`tools.jsonl` 包含七条工具标注。第三章已将邮费样例更新为语义命中，第二章的历史结果保存在原验收记录中。FAQ 的 keyword 继续检查原文连续片段与1～32字，不强制模型只选最短主题词。
 
 启动客服服务后运行：
 
@@ -37,8 +37,14 @@ uv run --locked python scripts/eval_tools.py
 uv run --locked python scripts/check_ch02_browser.py
 ```
 
-评估脚本调用真实配置的模型，校验终止状态、工具选择和 FAQ 字面匹配，保存工具结果与完整回答。回答的事实一致性、演示标识及不承诺处理完成等语义仍需结合 criteria 人工复核，不能把结构检查当作全部语义验收。
+评估脚本调用真实模型，校验终止状态、工具选择、FAQ 参数契约和预期命中，保存工具结果与完整回答。回答事实一致性及不承诺处理完成等语义仍需结合 criteria 复核。
 
-“邮费是多少”是特意保留的漏召回：样例库有“运费标准是什么”，但没有“邮费”；query_faq 的关键词必须来自用户原文，不做同义词扩展。预期工具返回 matches=[]，回答说明没有查到，不引用满99元免运费或8元费用，也不自动开单。该案例留待下一章检索能力升级。
+第二章“邮费是多少”曾是预期漏召回；第三章升级为 dense 检索后，应召回运费标准并回答99元门槛、8元费用和偏远地区例外，不自动开单。
 
 本次真实模型七例结构检查全部通过，输出已人工逐项复核；浏览器三个验收问题、工具徽章及手机布局通过。详细证据见 [第 02 章记录](../dev-notes/ch02.md)、[模型输出](../dev-notes/ch02-eval-results.json) 和 [浏览器结果](../dev-notes/ch02-browser-results.json)。这次验收不代表其他模型、后续修改或所有表达均能通过；第一章售后提取标注集未在本章重新进行真实模型语义评估。
+
+## 第三章：知识库
+
+`knowledge.jsonl` 标注邮费、包邮门槛、退货期限、商品FAQ换问法及无关问题拒答；运行 `scripts/eval_knowledge.py --recovery` 保存真实向量召回及中断恢复证据。可加 `--chat-url` 验证真实聊天回答。
+
+`knowledge-mining.jsonl` 对应 `examples/knowledge/history/reviewed-demo.jsonl`：应合并邮费问法、新增清洁知识、暂存冲突政策、排除个人订单与未审核对话。运行 `scripts/knowledge.py mine`，随后用 staging 结果及 MySQL 权威知识逐项复核。Prompt 的语义效果以标注和实际模型输出评估，HTTP 模拟测试只验证流程与契约。

@@ -1,0 +1,5 @@
+{"conversation_id":"demo-001","expected":"merge","question":"邮费多少钱？","criteria":"抽取实际问法，完整保留满99元、未满8元、偏远人工确认三项条件；归并运费标准，不改写权威答案。"}
+{"conversation_id":"demo-002","expected":"new","question":"杯子上的标签胶怎么去掉？","criteria":"新增演示款水杯标签残胶知识，保留温水和避免钢丝球条件。"}
+{"conversation_id":"demo-003","expected":"conflict","question":"不管买多少都包邮吗？","criteria":"与已有普通商品运费门槛冲突，留在暂存区，不覆盖正式政策。"}
+{"conversation_id":"demo-004","expected":"exclude","question":"我的订单1001什么时候能送到？","criteria":"个人订单履约时效不抽取为普遍知识。"}
+{"conversation_id":"demo-005","expected":"exclude","question":"模型猜的政策可信吗？","criteria":"未审核模型对话不进入抽取输入。"}

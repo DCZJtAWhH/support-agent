@@ -28,9 +28,7 @@ class ProductInput(ToolInput):
 class FAQInput(ToolInput):
     keyword: Annotated[
         str, StringConstraints(strip_whitespace=True, min_length=1, max_length=32)
-    ] = Field(
-        description="用户本轮原文中连续出现的关键词，例如退货；禁止同义词改写，邮费不能改为运费"
-    )
+    ] = Field(description="用户本轮原文中的连续片段，最多32字；优先保留完整问题，例如邮费是多少")
 
 
 class TicketInput(ToolInput):
@@ -81,9 +79,9 @@ def build_tools(
 
     @tool(args_schema=FAQInput)
     async def query_faq(keyword: str) -> dict:
-        """用用户原文的字面关键词执行 SQL LIKE 查询；未命中返回空列表，不做同义词扩展。"""
+        """用用户原文片段进行 dense 语义检索；返回相关知识，未命中返回空列表。"""
         if keyword not in user_text:
-            raise ToolArgumentsError("关键词必须是用户本轮原文中的连续片段，不支持同义词扩展。")
+            raise ToolArgumentsError("关键词必须是用户本轮原文中的连续片段。")
         return {"keyword": keyword, "matches": await repo.query_faq(keyword)}
 
     @tool(args_schema=TicketInput)

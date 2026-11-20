@@ -21,8 +21,13 @@ class Settings(BaseSettings):
     context_window_tokens: int = Field(default=8192, gt=0)
     token_safety_margin: int = Field(default=256, ge=0)
     database_url: SecretStr
-    tool_timeout_seconds: float = Field(default=5, gt=0)
+    tool_timeout_seconds: float = Field(default=30, gt=0)
     tool_max_retries: int = Field(default=1, ge=0, le=3)
+    siliconflow_api_key: SecretStr = SecretStr("")
+    milvus_uri: str = "http://127.0.0.1:19530"
+    milvus_collection: str = "knowledge"
+    knowledge_top_k: int = Field(default=3, ge=1, le=20)
+    knowledge_min_score: float = Field(default=0.4, ge=-1, le=1)
 
     @model_validator(mode="after")
     def validate_budget(self):
