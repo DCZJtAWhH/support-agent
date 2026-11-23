@@ -29,10 +29,12 @@ class Database:
     async def initialize(self, *, seed: bool = False):
         """建立业务表并增量补齐既有知识表，按需初始化 FAQ 演示数据。"""
         from support_agent.knowledge_store import migrate_knowledge_schema
+        from support_agent.summaries import migrate_context_schema
 
         async with self.engine.begin() as connection:
             await connection.run_sync(Base.metadata.create_all)
             await connection.run_sync(migrate_knowledge_schema)
+            await connection.run_sync(migrate_context_schema)
         if seed:
             async with self.sessions.begin() as session:
                 for question, answer, category in FAQ_SEEDS:

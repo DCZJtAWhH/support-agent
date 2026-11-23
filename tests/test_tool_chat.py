@@ -5,7 +5,7 @@ from uuid import uuid4
 from conftest import sse_events, stream_response, tool_response
 
 
-def test_simple_logistics_converges_after_one_tool_and_audits_observation(harness):
+def test_simple_logistics_converges_after_one_tool_and_audits_observation(harness, caplog):
     async def handler(request, payload):
         if payload["messages"][0]["content"].startswith("将顾客"):
             return stream_response(('{"intent":"物流","confidence":0.99}',))
@@ -17,7 +17,7 @@ def test_simple_logistics_converges_after_one_tool_and_audits_observation(harnes
         return stream_response(("演示物流：", result["data"]["location"]))
 
     async def scenario():
-        async with harness(handler) as (client, calls, _):
+        async with harness(handler) as (client, calls, app):
             response = await client.post("/chat", json={"message": "订单1001的物流到哪了"})
             events = sse_events(response)
             assert events[-1][0] == "done"
@@ -26,9 +26,19 @@ def test_simple_logistics_converges_after_one_tool_and_audits_observation(harnes
                 ("query_logistics", "succeeded"),
             ]
             assert len([c for c in calls if "tools" in c]) == 2
+            logged = [
+                json.loads(r.message.split("model_ctx ", 1)[1])
+                for r in caplog.records
+                if "model_ctx " in r.message
+            ]
+            assert logged[-1]["messages"] == calls[-1]["messages"]
             audit = (await client.get("/conversations/" + events[0][1]["conversation_id"])).json()
-            observations = [m for m in audit["messages"] if m["role"] == "tool"]
-            assert observations[0]["tool_call_id"] == "logistics"
+            assert not [m for m in audit["messages"] if m["role"] == "tool"]
+            snapshot = await app.state.chat.workflow.graph.aget_state(
+                {"configurable": {"thread_id": audit["id"]}}
+            )
+            observations = [m for m in snapshot.values["messages"] if m.type == "tool"]
+            assert observations[0].tool_call_id == "logistics"
             assert audit["messages"][0]["state"] == "completed"
 
     asyncio.run(scenario())

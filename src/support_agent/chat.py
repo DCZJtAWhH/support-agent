@@ -10,7 +10,7 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, Tool
 from langchain_core.utils.function_calling import convert_to_openai_tool
 
 from support_agent.agent import agent_tools
-from support_agent.context import ContextBudgetExceeded, fit_messages
+from support_agent.context import ContextBudgetExceeded, estimate_tokens, fit_messages
 from support_agent.errors import model_error
 from support_agent.schemas import REFUND_REASONS
 from support_agent.streaming import ChatStreamResponse
@@ -29,15 +29,26 @@ def completed_history(rows):
     """恢复已完成轮次的消息，首次升级没有图检查点时保留旧会话上下文。"""
     completed = {r["request_id"] for r in rows if r["position"] == 0 and r["state"] == "completed"}
     messages = []
+    origins = {r["request_id"]: r["id"] for r in rows if r["position"] == 0}
     for row in rows:
         if row["request_id"] not in completed:
             continue
+        meta = {
+            "turn_id": origins[row["request_id"]],
+            "msg_id": row["id"],
+            "request_id": row["request_id"],
+        }
+        options = {"id": f"import:{row['id']}", "additional_kwargs": meta}
         if row["role"] == "user":
-            messages.append(HumanMessage(row["content"]))
+            messages.append(HumanMessage(row["content"], **options))
         elif row["role"] == "tool":
-            messages.append(ToolMessage(row["content"], tool_call_id=row["tool_call_id"]))
+            messages.append(
+                ToolMessage(row["content"], tool_call_id=row["tool_call_id"], **options)
+            )
         elif row["role"] == "assistant":
-            messages.append(AIMessage(row["content"], tool_calls=row["tool_calls"] or []))
+            messages.append(
+                AIMessage(row["content"], tool_calls=row["tool_calls"] or [], **options)
+            )
     return messages
 
 
@@ -61,8 +72,10 @@ class ChatService:
         self.busy.add(cid)
         self.requests.add(rid)
         try:
+            if estimate_tokens(body.message, self.config) > self.config.max_user_input_tokens:
+                raise ContextBudgetExceeded("当前输入超过 MAX_USER_INPUT_TOKENS，请缩短后重试。")
             audit = await self.repo.read_conversation(cid)
-            if body.conversation_id and audit is None:
+            if (body.conversation_id or original) and audit is None:
                 raise HTTPException(404, "会话不存在。")
             turn = [m for m in (audit or {}).get("messages", []) if m["request_id"] == rid]
             metadata = next((json.loads(m["content"]) for m in turn if m["role"] == "workflow"), {})

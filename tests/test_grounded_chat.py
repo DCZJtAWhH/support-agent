@@ -98,7 +98,8 @@ def test_strong_evidence_streams_through_agent_with_projected_prompt_and_snapsho
         if payload["messages"][0]["content"].startswith("将顾客"):
             return stream_response(('{"intent":"商品咨询","confidence":0.99}',))
         assert "tools" in payload and payload["stream"]
-        evidence = json.loads(payload["messages"][0]["content"].split("evidence=", 1)[1])
+        evidence = json.loads(payload["messages"][-1]["content"].split("\n", 1)[1])["evidence"]
+        assert "政策正文" not in payload["messages"][0]["content"]
         assert len(evidence) == 10 and "content_hash" not in evidence[0]
         return stream_response(("会员条款。", "[1]"))
 

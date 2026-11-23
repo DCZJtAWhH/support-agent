@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "model_mode": "offline",
+  "full_model_acceptance_complete": true,
+  "errors": [],
+  "views": [
+    {
+      "width": 1440,
+      "originals_match": true,
+      "summary_badge": true,
+      "no_overflow": true,
+      "new_keeps_old": true
+    },
+    {
+      "width": 1024,
+      "originals_match": true,
+      "summary_badge": true,
+      "no_overflow": true,
+      "new_keeps_old": true
+    },
+    {
+      "width": 768,
+      "originals_match": true,
+      "summary_badge": true,
+      "no_overflow": true,
+      "new_keeps_old": true
+    },
+    {
+      "width": 390,
+      "originals_match": true,
+      "summary_badge": true,
+      "no_overflow": true,
+      "new_keeps_old": true
+    },
+    {
+      "width": 320,
+      "originals_match": true,
+      "summary_badge": true,
+      "no_overflow": true,
+      "new_keeps_old": true
+    }
+  ]
+}

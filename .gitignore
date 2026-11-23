@@ -12,3 +12,4 @@ dist/
 evaluation-results*.json
 .taste-skill/
 data/
+log/

@@ -1,6 +1,7 @@
 """组装客服对话与售后信息提取接口，管理模型客户端和持久化聊天服务。"""
 
 import json
+import logging
 import warnings
 from contextlib import AsyncExitStack, asynccontextmanager
 from html import escape
@@ -17,7 +18,12 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from support_agent.chat import ChatService
 from support_agent.config import Settings
-from support_agent.context import ContextBudgetExceeded, fit_messages
+from support_agent.context import (
+    ContextBudget,
+    ContextBudgetExceeded,
+    ensure_app_logging,
+    fit_messages,
+)
 from support_agent.database import Database
 from support_agent.errors import ModelResponseError, model_error
 from support_agent.evaluation_dashboard import EvaluationDashboard
@@ -50,6 +56,19 @@ def create_app(
     upstream_client 可注入异步上游客户端，其关闭由调用方负责。
     """
     config = settings or Settings()
+    ensure_app_logging()
+    budget = ContextBudget.from_settings(config)
+    logging.getLogger(__name__).info(
+        "context budget window=%s history=%s layer1=%s layer2=%s "
+        "fixed=%s peak=%s chars_per_token=%s",
+        config.context_window_tokens,
+        budget.history,
+        budget.layer1,
+        budget.layer2,
+        budget.fixed,
+        budget.peak,
+        config.token_chars_per_token,
+    )
 
     @asynccontextmanager
     async def lifespan(app):
@@ -111,6 +130,8 @@ def create_app(
                     )
                     yield
                 finally:
+                    if hasattr(app.state, "chat"):
+                        await app.state.chat.workflow.summaries.close()
                     if hasattr(app.state, "evaluations"):
                         await app.state.evaluations.close()
                     await vectors.close()
@@ -124,6 +145,23 @@ def create_app(
     async def chat_page():
         """提供同源客服聊天页，静态资源路径基于模块位置，不依赖启动目录。"""
         return FileResponse(web_directory / "index.html", headers={"Cache-Control": "no-cache"})
+
+    @app.get("/api/conversations")
+    async def conversations():
+        """只读列出演示用户全部会话，按新在前排序，不接受客户端指定其他用户。"""
+        return await app.state.repository.list_conversations()
+
+    @app.get("/api/conversations/{conversation_id}/messages")
+    async def messages(conversation_id: UUID):
+        """回载本会话用户与客服原文，不暴露工作流审计或工具结果，未知会话返回404。"""
+        audit = await app.state.repository.read_conversation(str(conversation_id))
+        if audit is None:
+            raise HTTPException(404, detail="会话不存在。")
+        return [
+            m
+            for m in audit["messages"]
+            if m["role"] in {"user", "assistant"} and not m["tool_calls"]
+        ]
 
     @app.get("/evaluations", response_class=FileResponse, include_in_schema=False)
     async def evaluation_page():

@@ -1,15 +1,23 @@
 """以同一聊天上游执行问题理解、意图选择和检索侧扩写。"""
 
 import json
+import logging
 import re
 from contextlib import aclosing
 from typing import Annotated, Literal
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationError
 
-from support_agent.context import fit_messages
+from support_agent.context import (
+    ContextBudgetExceeded,
+    assemble_context,
+    estimate_tokens,
+    routing_history,
+)
 from support_agent.errors import ModelResponseError
+
+logger = logging.getLogger(__name__)
 
 RESOLVE_PROMPT = """你是客服问题理解器，一次完成指代消解与 Query 改写。
 结合同一会话的历史，把本轮有指代、省略的口语问题补全为可独立检索的标准问题。
@@ -100,7 +108,7 @@ class RouterLanguage:
         """复用已配置的主力聊天模型及其原生 JSON 输出能力。"""
         self.model, self.config = model, config
 
-    async def ask(self, schema, prompt, question, *, history=None):
+    async def ask(self, schema, prompt, question, *, history=None, summary=""):
         """在预算内请求强制 JSON 并校验完整结束、字段和长度，失败明确报错。"""
         definition = schema.model_json_schema()
         response_format = {"type": "json_object"}
@@ -110,48 +118,67 @@ class RouterLanguage:
                 "json_schema": {"name": schema.__name__, "strict": True, "schema": definition},
             }
         model = self.model.bind(response_format=response_format)
-        messages = fit_messages(
-            SystemMessage(prompt + "\nJSON Schema：" + json.dumps(definition, ensure_ascii=False)),
-            history or [],
+        messages = assemble_context(
+            prompt + "\nJSON Schema：" + json.dumps(definition, ensure_ascii=False),
+            routing_history(history or []),
             HumanMessage(question),
-            self.config.input_token_budget - len(json.dumps(definition)),
+            summary,
         )
-        parts, length, finish = [], 0, None
-        async with aclosing(model.astream(messages)) as stream:
-            async for chunk in stream:
-                if (
-                    not isinstance(chunk.content, str)
-                    or chunk.tool_call_chunks
-                    or chunk.additional_kwargs.get("refusal")
-                ):
-                    raise ModelResponseError("分流模型未返回文本 JSON。")
-                finish = chunk.response_metadata.get("finish_reason") or finish
-                length += len(chunk.content)
-                if length > 12000:
-                    raise ModelResponseError("分流模型输出超出上限。")
-                parts.append(chunk.content)
+        if (
+            estimate_tokens(messages, self.config)
+            + estimate_tokens(json.dumps(definition), self.config)
+            > self.config.input_token_budget
+        ):
+            raise ContextBudgetExceeded("问题理解与意图识别的上下文预算不足。")
+        for attempt in range(2):
+            parts, length, finish = [], 0, None
+            async with aclosing(model.astream(messages)) as stream:
+                async for chunk in stream:
+                    if (
+                        not isinstance(chunk.content, str)
+                        or chunk.tool_call_chunks
+                        or chunk.additional_kwargs.get("refusal")
+                    ):
+                        raise ModelResponseError("分流模型未返回文本 JSON。")
+                    finish = chunk.response_metadata.get("finish_reason") or finish
+                    length += len(chunk.content)
+                    if length > 12000:
+                        raise ModelResponseError("分流模型输出超出上限。")
+                    parts.append(chunk.content)
+            if finish == "stop" and not "".join(parts).strip() and attempt == 0:
+                # DeepSeek 官方 JSON mode 可将非 JSON 正文过滤为空格，仅对此情况重试一次。
+                logger.warning("router blank_json retry schema=%s", schema.__name__)
+                continue
+            break
         if finish != "stop":
             raise ModelResponseError("分流模型被截断或未正常结束。")
         try:
             return schema.model_validate_json("".join(parts))
         except ValidationError as exc:
+            logger.warning(
+                "router invalid_json schema=%s content=%s", schema.__name__, "".join(parts)
+            )
             raise ModelResponseError("分流模型未返回符合字段约束的 JSON。") from exc
 
-    async def resolve(self, question, history):
+    async def resolve(self, question, history, *, summary=""):
         """联合消解历史指代并归一口语，原文型号、数字丢失时拒绝继续分流。"""
         if re.sub(r"[\s，。！？、,.!?：:]", "", question) in SOCIAL_MESSAGES:
             return question
-        result = await self.ask(ResolvedQuestion, RESOLVE_PROMPT, question, history=history)
+        result = await self.ask(
+            ResolvedQuestion, RESOLVE_PROMPT, question, history=history, summary=summary
+        )
         identifiers = re.findall(r"[a-zA-Z]+[-_]?\d+[a-zA-Z0-9_-]*|\d+(?:\.\d+)?", question)
         if any(value.casefold() not in result.question.casefold() for value in identifiers):
             raise ModelResponseError("问题理解丢失了原文中的型号或数字。")
         return result.question
 
-    async def classify(self, question):
+    async def classify(self, question, *, history=None, summary=""):
         """执行带边界样例的意图选择，低置信业务判断转为其他。"""
         if re.sub(r"[\s，。！？、,.!?：:]", "", question) in SOCIAL_MESSAGES:
             return IntentDecision(intent="闲聊", confidence=1.0)
-        decision = await self.ask(IntentDecision, INTENT_PROMPT, question)
+        decision = await self.ask(
+            IntentDecision, INTENT_PROMPT, question, history=history, summary=summary
+        )
         if decision.confidence < self.config.intent_min_confidence:
             decision.intent = "其他"
         return decision

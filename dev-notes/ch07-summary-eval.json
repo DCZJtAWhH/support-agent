@@ -1,0 +1,55 @@
+{
+  "passed": 7,
+  "total": 7,
+  "rows": [
+    {
+      "id": "identifiers",
+      "summary": "用户就BX-500保温杯、订单1001、手机号13800138000提出换货，明确表示尚未解决；客服称需核实换货条件，尚未办理。",
+      "missing": [],
+      "forbidden": [],
+      "passed": true
+    },
+    {
+      "id": "smalltalk",
+      "summary": "本段无业务事实",
+      "missing": [],
+      "forbidden": [],
+      "passed": true
+    },
+    {
+      "id": "negative",
+      "summary": "用户就订单1002明确表示不要退款、想维修，称还没修好；客服回复维修条件需人工核实，问题尚未解决。",
+      "missing": [],
+      "forbidden": [],
+      "passed": true
+    },
+    {
+      "id": "multiple_orders",
+      "summary": "用户提出订单1001要换货、订单1002只问物流；客服表示两笔诉求均仍在核实，均未解决。",
+      "missing": [],
+      "forbidden": [],
+      "passed": true
+    },
+    {
+      "id": "no_invention",
+      "summary": "用户称水壶不加热、想维修但找不到订单号；客服要求补充订单号，表示暂不能核实保修。",
+      "missing": [],
+      "forbidden": [],
+      "passed": true
+    },
+    {
+      "id": "background_not_merged",
+      "summary": "用户询问BX-600水壶容量，客服表示暂无可靠规格证据、无法确认，容量问题尚未解决。",
+      "missing": [],
+      "forbidden": [],
+      "passed": true
+    },
+    {
+      "id": "registration_not_resolution",
+      "summary": "用户就订单1003要求人工核实退款；客服称退款申请已登记为待核实，未执行退款。",
+      "missing": [],
+      "forbidden": [],
+      "passed": true
+    }
+  ]
+}

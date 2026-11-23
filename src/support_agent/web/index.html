@@ -17,12 +17,14 @@
       <button id="new-conversation" class="new-conversation" type="button"><span aria-hidden="true">＋</span> 新建对话</button>
       <div class="sidebar-label">当前对话</div>
       <div class="current-conversation"><span class="chat-symbol" aria-hidden="true">◻</span><span id="conversation-title">购物与售后咨询</span></div>
+      <div class="sidebar-label">历史会话</div>
+      <nav id="conversation-list" class="conversation-list" aria-label="历史会话列表"></nav>
       <div class="sidebar-note"><span class="note-symbol" aria-hidden="true">?</span><strong>从问题开始就好</strong><p>描述遇到的情况，也可以附上订单号和希望的处理方式。</p></div>
       <div class="sidebar-footer">电商智能客服<span>客服对话</span></div>
     </aside>
 
     <main class="workspace">
-      <header class="topbar"><div><span class="eyebrow">服务中心</span><h1>客服对话</h1></div><span class="session-label" id="session-label">新对话</span></header>
+      <header class="topbar"><div><span class="eyebrow">服务中心</span><h1>客服对话</h1></div><div class="session-controls"><button id="conversation-toggle" class="mobile-control" type="button" aria-controls="conversation-list" aria-expanded="false">历史会话</button><button id="mobile-new" class="mobile-control" type="button">新对话</button><span class="session-label" id="session-label">新对话</span></div></header>
       <div class="conversation-scroll" id="conversation-scroll">
         <div class="conversation-content">
           <section class="welcome" id="welcome" aria-labelledby="welcome-title">
@@ -50,6 +52,7 @@
         <p class="disclaimer">订单、商品与物流为演示数据；人工工单会实际登记，具体售后方案以商家确认为准。</p>
       </div>
     </main>
+    <button id="sidebar-backdrop" class="sidebar-backdrop" type="button" aria-label="关闭历史会话" hidden></button>
     <dialog id="knowledge-upload-dialog" class="knowledge-dialog" aria-labelledby="knowledge-upload-title">
       <div class="source-header"><h2 id="knowledge-upload-title">添加知识</h2><button id="knowledge-upload-close" type="button" aria-label="关闭知识上传">关闭 ×</button></div>
       <p class="knowledge-intro">上传产品说明、常见问题或售后政策，导入完成后就能在对话中查询。</p>

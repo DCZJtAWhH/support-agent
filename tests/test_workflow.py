@@ -88,8 +88,9 @@ def test_core_workflow_loads_order_before_policy_and_agent_only_judges():
                 async for chunk in super().astream(messages):
                     yield chunk
             else:
-                assert "签收后7天" in messages[0].content
-                assert '"order_id": "1001"' in messages[0].content
+                assert "签收后7天" in messages[-1].content
+                assert '"order_id": "1001"' in messages[-1].content
+                assert "签收后7天" not in messages[0].content
                 yield AIMessageChunk(
                     content="演示订单已查询；签收后7天可申请退货。[1]",
                     response_metadata={"finish_reason": "stop"},
@@ -109,6 +110,13 @@ def test_core_workflow_loads_order_before_policy_and_agent_only_judges():
             assert "tools" not in nodes
             assert any(e.get("name") == "query_order" for e in events)
             assert not await repo.low_confidence_questions()
+            audit = await repo.read_conversation(cid)
+            metadata = next(
+                json.loads(m["content"]) for m in audit["messages"] if m["role"] == "workflow"
+            )
+            assert "order" not in metadata
+            snapshot = await workflow.graph.aget_state({"configurable": {"thread_id": cid}})
+            assert snapshot.values["order"]["order_id"] == "1001"
         await database.close()
 
     asyncio.run(scenario())

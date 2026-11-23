@@ -6,6 +6,12 @@ import httpx
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def disable_sdk_dotenv_loading(monkeypatch):
+    """阻止 pymilvus 导入时将真实 .env 注入进程；Pydantic 显式 dotenv 测试照常运行。"""
+    monkeypatch.setenv("PYTHON_DOTENV_DISABLED", "1")
+
+
 def stream_response(parts=("您好", "，请问有什么可以帮您？"), finish_reason="stop"):
     records = []
     for part in parts:
@@ -113,9 +119,12 @@ def harness():
             payload = json.loads(request.content)
             calls.append(payload)
             if "问题理解器" in payload["messages"][0]["content"]:
-                return stream_response(
-                    (json.dumps({"question": payload["messages"][-1]["content"]}),)
+                current = next(
+                    m
+                    for m in reversed(payload["messages"])
+                    if m["role"] == "user" and not m["content"].startswith("以下仅为")
                 )
+                return stream_response((json.dumps({"question": current["content"]}),))
             if handler:
                 return await handler(request, payload)
             if payload["messages"][0]["content"].startswith("将顾客"):

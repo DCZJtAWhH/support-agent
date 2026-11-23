@@ -2,6 +2,41 @@
 
 FastAPI + SQLAlchemy + MySQL + LangChain + LangGraph。同一会话的问题理解同时处理指代与口语改写，完整问题原样透传；八选一意图（七类业务/社交意图加其他）以严格 JSON 返回 intent/confidence。退款退货与售后统一走确定性订单→政策子流程，主力 Agent 负责依据订单和政策判断及澄清。继续复用原有混合检索、置信闸和持久化检查点。
 
+## 第七章演示
+
+自动化验证统一使用离线模型 HTTP 替身，不读取模型密钥、不调用真实模型。应用的图、消息持久化、checkpoint、HTTP 与页面均走正式实现，离线数据单独放在 `data/ch07-offline/`。结构变更集中在 [ch7.sql](ch7.sql)，正常应用启动也会增量补齐两个锚点和独立摘要表，不清空原文。正常业务仍沿用原有 MySQL、Milvus 和模型配置；新 `MODEL_CONTEXT_WINDOW` / `MAX_AGENT_STEPS` 优先于旧变量名。
+
+```powershell
+# 默认组23轮：128000窗口，历史40000，层1 28000、层2 12000，不触发压缩
+uv run --locked python scripts/check_ch07_acceptance.py --mode default
+# 演示组23轮：18000 / 输出2000 / 输入2000 / Agent 3步 / 工具1200 / 精排5
+uv run --locked python scripts/check_ch07_acceptance.py --mode demo
+# 打开已生成的会话，观察分层、摘要标记和原文回载
+uv run --locked python scripts/run_ch07.py --demo --offline
+# 另一个终端：五种宽度、会话切换及续聊验证
+uv run --locked python scripts/check_ch07_browser.py
+uv run --locked python scripts/check_ch07_context_logs.py
+```
+
+打开演示页面 http://127.0.0.1:8007/ 。默认参数页面可用 `scripts/run_ch07.py --offline` 在8008端口启动。侧栏按新在前显示该演示用户的全部会话、首问预览和已摘要标记，点击回载完整原文并续聊。移动端使用「历史会话」打开抽屉；「新对话」开始空白草稿、首次发送时创建会话，旧会话仍可切回。目录或回载失败会静默降级。两个只读接口是 `GET /api/conversations` 与 `GET /api/conversations/{id}/messages`；原 `/conversations/{id}` 审计入口保留。当前仍使用 `demo-user`，没有新增身份系统或跨会话记忆。正常业务启动仍可使用原启动命令，或 `scripts/run_ch07.py --demo`；这不属于自动化测试命令。
+
+预算按 `min(目标轮数 × 每轮稳态, 模型窗口 − 固定预留 − 当前ReAct峰值)` 倒推。演示组固定预留3950（系统和工具1000、证据5×100、注入梗概200、输出2000、安全250）；瞬时峰值8400（当前输入2000 + 2×[输出2000+整批工具1200]），得到滑窗5650，按70%/30%向下取整为3954/1695。中文字符折算 `TOKEN_CHARS_PER_TOKEN=2` 与稳态估算1000、固定预留一起校准；这是估算，不是提供方 tokenizer 的精确计量。真实证据或摘要超预留时还会检查实际输入，单次ReAct也受最终输入闸限制。启动若连一轮都装不下会报警。
+
+层1保留原文；超额按完整轮次移动 `layer1_from_msg_id`，层2仅缩短客服回复、将工具结果变为单行标识，用户原话不动。层2实际原文用量（包括 checkpoint 中的工具结果）超额才调度后台摘要。`conversation_summaries` 每批追加，不回写旧段；`summary_upto_msg_id` 包含覆盖终点，层1起点也包含自身。原始 State 的 `messages` 使用 `add_messages`；模型用独立投影。新的工具轨迹存 SQLite checkpoint，因此部署必须持久保存 `data/`，不能只备份 MySQL。旧工具消息仍保留。
+
+每轮共享历史写 `history_ctx`，每次主力模型调用写 `model_ctx`（含摘要全文、实际滑窗、完整请求消息、工具定义与估算），后台摘要记录 trigger/start/done/skip/failed、边界和耗时，全部在 UTF-8 的 `log/app.log`：
+
+```powershell
+Get-Content -LiteralPath log/app.log -Encoding UTF8 -Wait
+Select-String -LiteralPath log/app.log -Pattern 'model_ctx|history_ctx|层1 降级|summary (trigger|start|done|skip|failed)' -Encoding UTF8
+uv run --locked pytest -q
+node --test tests/web/stream.test.mjs
+uv run --locked python scripts/eval_context_summaries.py
+uv run --locked python scripts/check_ch07_sql.py
+```
+
+摘要标注集：[evals/context-summaries.jsonl](evals/context-summaries.jsonl)，人工参考摘要：[evals/context-summary-responses.jsonl](evals/context-summary-responses.jsonl)。静态校验检查事实、禁止内容和长度，不将替身的输出当成真实模型语义质量评估。离线验收报告为 `dev-notes/ch07-offline-*-acceptance.json`；脚本先检查离线标记，拒绝向正常业务服务发送测试消息。过程记录：[dev-notes/ch07.md](dev-notes/ch07.md)；实施计划：[docs/ch07-plan.md](docs/ch07-plan.md)。
+
 ## 第六章演示
 
 沿用已有 `.env`、MySQL、Milvus 与知识索引，无新增运行组件。`ROUTER_MODEL` 默认 `deepseek-v4-pro`，使用现有聊天上游的同一地址与密钥；其他提供方需指定其支持的高能力模型。`OPENAI_MODEL` 仍控制主力 Agent。不启用小模型降级或跨会话记忆。
