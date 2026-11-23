@@ -1,0 +1,13 @@
+{"id":"social-01","message":"你好","intent":"闲聊","route":"social","zero_model":true}
+{"id":"social-02","message":"谢谢！","intent":"闲聊","route":"social","zero_model":true}
+{"id":"complaint-01","message":"我要投诉","intent":"投诉","route":"complaint","actions":["handoff","create_ticket"]}
+{"id":"complaint-02","message":"你们服务太差了，我要投诉客服","intent":"投诉","route":"complaint","actions":["handoff","create_ticket"]}
+{"id":"logistics-01","message":"订单 1001 的物流到哪了","intent":"物流","route":"business","tools":["query_logistics"],"min_steps":2}
+{"id":"order-01","message":"查询订单1001的状态和金额","intent":"订单","route":"business","tools":["query_order"]}
+{"id":"multi-01","message":"请先查询订单1001的状态和金额，得到结果后再查询这笔订单的物流位置，两个查询都需要，最后一起告诉我。","intent":"订单","route":"business","tools":["query_order","query_logistics"],"min_steps":3}
+{"id":"product-01","message":"BX-500容量是多少","intent":"商品咨询","route":"knowledge","evidence":true}
+{"id":"policy-01","message":"退货政策是什么","intent":"退款退货","route":"knowledge","evidence":true}
+{"id":"policy-02","message":"邮费是多少","intent":"商品咨询","route":"knowledge","evidence":true}
+{"id":"aftersales-01","message":"商品坏了，我想申请维修，请问需要提供什么信息","intent":"售后","route":"business"}
+{"id":"missing-01","message":"帮我查一下物流","intent":"物流","route":"business","clarification":true}
+{"id":"weak-01","message":"火星殖民飞船燃料补贴是多少","intent":"商品咨询","route":"knowledge","weak":true}

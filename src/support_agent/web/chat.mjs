@@ -180,6 +180,59 @@ function addMessage(role, text = "") {
   return { article, content, bubble, reply, tools };
 }
 
+/** 将后端建议呈现为独立按钮，只有明确点击才执行对应动作。 */
+function addActions(assistant, actions, requestId, sourceConversationId) {
+  if (!actions.length) return;
+  const group = document.createElement("div");
+  group.className = "answer-actions";
+  group.setAttribute("role", "group");
+  group.setAttribute("aria-label", "可选的后续处理");
+  const result = document.createElement("p");
+  result.className = "action-result";
+  result.setAttribute("role", "status");
+  for (const action of new Set(actions)) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.action = action;
+    button.textContent = action === "handoff" ? "转人工" : "建工单";
+    button.addEventListener("click", async function confirmAction() {
+      // 绑定原会话和原请求；新建会话后迟到的响应不能写入新的聊天页。
+      if (activeRequest || conversationId !== sourceConversationId) {
+        result.textContent = "请等待当前回复完成后再操作。";
+        return;
+      }
+      if (action === "handoff") {
+        button.disabled = true;
+        addMessage("assistant", "已转接人工客服");
+        const greeting = addMessage("assistant", "您好，我是客服小猫，请问有什么可以帮您的");
+        greeting.article.querySelector(".message-name").textContent = "客服小猫";
+        return;
+      }
+      if (!window.confirm("确认将本轮问题登记为待处理工单？")) return;
+      button.disabled = true;
+      button.textContent = "正在建单…";
+      result.textContent = "";
+      try {
+        const response = await fetch("/actions/ticket", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ conversation_id: sourceConversationId, request_id: requestId }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || "建单失败，请重试。");
+        if (conversationId !== sourceConversationId) return;
+        button.textContent = "已建工单";
+        result.textContent = `已登记工单 ${data.ticket_no}，等待人工跟进。`;
+      } catch (error) {
+        button.disabled = false;
+        button.textContent = "建工单";
+        result.textContent = error.message || "建单失败，请重试。";
+      }
+    });
+    group.append(button);
+  }
+  assistant.bubble.append(group, result);
+}
+
 /** 在客服气泡中按调用标识更新工具徽章，保留本轮已完成或失败的轨迹。 */
 function updateToolBadge(assistant, data) {
   const labels = { query_order: "查订单", query_product: "查商品", query_logistics: "查物流", query_faq: "查常见问题", create_ticket: "登记人工工单" };
@@ -268,6 +321,8 @@ async function sendMessage(message, previous = null) {
   const writer = createTypewriter(assistant.reply);
   const requestId = previous?.requestId || crypto.randomUUID();
   let sources = [];
+  let actions = [];
+  let sourceConversationId = conversationId;
   const request = { controller: new AbortController(), writer };
   activeRequest = request;
   updateControls();
@@ -287,6 +342,7 @@ async function sendMessage(message, previous = null) {
       if (activeRequest !== request) return;
       if (event === "meta") {
         conversationId = data.conversation_id;
+        sourceConversationId = data.conversation_id;
         document.querySelector("#session-label").textContent = "当前对话";
       }
       if (event === "token") {
@@ -295,10 +351,12 @@ async function sendMessage(message, previous = null) {
       }
       if (event === "tool_status") updateToolBadge(assistant, data);
       if (event === "sources") sources = data.sources;
+      if (event === "actions") actions = data.actions;
     });
     await writer.drain();
     if (activeRequest !== request) return;
     renderCitations(assistant, sources);
+    addActions(assistant, actions, requestId, sourceConversationId);
     addFeedback(assistant, requestId);
     status.textContent = "您可以继续追问，前面的内容会接着聊";
   } catch (error) {

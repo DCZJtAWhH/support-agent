@@ -1,6 +1,38 @@
-# 电商智能客服 · 混合检索与证据回答
+# 电商智能客服 · Workflow 与 ReAct Agent
 
-FastAPI + SQLAlchemy + MySQL + LangChain，实现客服工具、SSE 回复和售后信息提取。第四章加入 Milvus 原生 BM25 + BGE-M3 dense 混合检索、RRF、bge-reranker-v2-m3、引用与证据自评、低置信度问题池及四策略评估。项目为可运行 demo；本章不做指代消解、多轮改写或真实电商接口。
+FastAPI + SQLAlchemy + MySQL + LangChain + LangGraph。第五章用确定性 Workflow 编排分流、混合检索与前置置信闸，核心业务节点运行 ReAct 工具循环，State 使用内置 checkpointer 持久化。复用前几章工具和检索器，原生聊天页提供独立的转人工、建工单选项。订单工具和人工接入仍为演示；指代消解先透传，不升级上下文策略。
+
+## 第五章演示
+
+沿用下方已有 MySQL、Milvus、知识建库和 `.env`。升级后执行 `uv sync --locked`，启动：
+
+```powershell
+# 不依赖 LangGraph 的裸工具循环；去掉 --offline 使用 .env 中的真实模型
+uv run --locked python scripts/demo_bare_agent.py --offline
+# 图编排服务，节点轨迹同时写入 SSE 和对话审计
+uv run --locked uvicorn support_agent.app:create_app --factory --app-dir src --host 127.0.0.1 --port 8005 --workers 1 --log-config deploy/logging.json
+```
+
+打开 http://127.0.0.1:8005/ ，依次尝试：
+
+- `退货政策是什么`：`resolve → classify → route → retrieve → confidence → prepare_agent → agent → log`。证据弱则进入 `fallback`，记录现有低置信问题池，不调用 Agent。
+- `订单 1001 的物流到哪了`：业务路径直接进入 Agent，自主调用 `query_logistics`，说明为演示数据。
+- `请先查询订单1001的状态和金额，得到结果后再查询这笔订单的物流位置，两个查询都需要，最后一起告诉我。`：观察订单→物流两次工具节点，以及三次 Agent 模型节点。
+- `我要投诉`：固定安抚回复及两个按钮；转人工仅前端显示“已转接人工客服”和小猫问候；建工单弹出确认，确认后才写 tickets；取消确认或不点击不执行。
+- `你好`：白名单直接固定话术，零模型调用。其他消息由最简 Prompt 输出七类 JSON；模型判为闲聊后仍返回固定话术。
+
+```powershell
+uv run --locked pytest -q
+node --test tests/web/stream.test.mjs
+uv run --locked python scripts/eval_workflow.py --base-url http://127.0.0.1:8005
+uv run --locked python scripts/check_ch05_browser.py --base-url http://127.0.0.1:8005
+```
+
+13 条标注集位于 `evals/workflow.jsonl`；真实评估保存节点路径、意图、工具、步数、估算预算及原始 SSE，并检查数字引用格式，不自动创建工单。浏览器验收覆盖 1440/390/320 宽度、忽略按钮继续聊天、取消确认、仅转人工、仅建单、互相独立及引用点击。最终 [真实评估 13/13](dev-notes/ch05-eval-verified-results.json)、[验证汇总](dev-notes/ch05-verification.json)。过程记录见 [dev-notes/ch05.md](dev-notes/ch05.md)，计划见 [docs/ch05-plan.md](docs/ch05-plan.md)。
+
+`CHECKPOINT_PATH` 默认 `data/ch05-checkpoints.sqlite`，保存 LangGraph State；该目录被 Git 忽略，部署时需使用持久卷。`AGENT_MAX_STEPS=6` 限制每轮模型调用数，`AGENT_TOKEN_BUDGET=50000` 限制累计输入/输出预算。每次调用前预留一次输入预算和输出上限，缺少上游 usage 时按保守输入估算加完整输出预留记账；工具结果过长则停止。模型的单次输出仍受 `MAX_OUTPUT_TOKENS` 控制。失败重试复用 request_id，通过 `astream(None, config)` 从原生 checkpoint 未完成节点续跑；完成请求直接重放结果。会话锁沿用单工作进程约束，未扩展多实例协调或身份认证。
+
+`POST /actions/ticket` 只接受 `{conversation_id, request_id}`，校验该轮已完成且包含建单建议，然后调用第二章 `create_ticket`；同轮重复确认幂等。模型注册表不暴露建单工具，越权调用也被执行层阻断。工单创建不会更改会话为转人工状态，转人工不调用后端。来源与动作建议保存于 `workflow` 审计消息，可通过现有 `/conversations/{id}` 检查；旧章节审计原样保留。
 
 ## 本地启动
 
@@ -37,11 +69,11 @@ MySQL 连接地址必须通过 `DATABASE_URL` 环境变量或 `.env` 提供，�
 - `订单 1001 的物流到哪了`：选择 `query_logistics`，显示徽章，并依据随机演示物流回答。
 - `退货政策是什么`：语义召回退货政策，依据签收后 7 天等条件回答。
 - `邮费是多少`：即使库中用“运费”表述，也能召回满99元免运费、未满8元、偏远地区人工确认的说明。
-- `商品损坏了，请帮我创建人工工单`：实际写入待处理工单，返回工单号；仅报告损坏或 FAQ 无结果不会自动开单。
+- `商品损坏了，请帮我创建人工工单`：Agent 建议建单，只有点击并确认“建工单”后才写入并返回工单号。
 
 `query_order`、`query_product`、`query_logistics` 随机生成并标记 `simulated=true`。`query_faq` 的 `keyword` 仍校验本轮原文片段及1～32字，但检索使用完整本轮问题，避免型号和否定条件被截掉。返回 `{keyword, category, matches}`，matches 保留 question/answer/category 并增加 chunk_id、章节、来源链接、原文摘要和相关分。历史问法可合并在同一块，同义词扩展只发生在查询侧。`create_ticket` 每次请求最多创建一张工单。
 
-调用顺序是“模型一次决策（最多两个工具）→ 依次执行 → 回答”。知识工具结果进入结构化生成自评，程序先校验充分性与引用，再发送 SSE；空召回、低相关、自评不足或无效引用会拒答并幂等入池。模型无工具直接输出业务事实时程序补查 FAQ，固定寒暄可直接发送。普通业务工具仍使用流式回答，不再开启工具循环。工具参数严格校验；默认单次超时30秒，超时和数据库瞬时故障额外重试一次；模型本身不自动重试。
+当前调用顺序见第五章：固定分流→知识类预检索与前置闸→ReAct 多步工具循环→流式回答→日志。第四章的生成后结构化自评仍用于离线 RAG 评估器，在线聊天已改为生成前阈值闸，不等待答完再判断。工具参数严格校验；默认单次超时30秒，超时和数据库瞬时故障额外重试一次；模型本身不自动重试。
 
 ## 第三章知识库演示
 
@@ -75,7 +107,7 @@ uv run --locked python scripts/knowledge.py schedule --run-now
 
 历史导出默认位于 `examples/knowledge/history`，可用 `--history 你的目录` 指定。每行是包含 `conversation_id`、`reviewed:true` 和 `messages:[{role,content}]` 的 JSON；可选 state，只有 completed 消息参与。仓库例子均为虚构演示，不代表真实商家政策。现有库中的模型回复不自动作为已审核历史。成功批次有摘要检查点，重复扫描不重复抽取；抽取 Prompt 改动会形成新批次。所有候选先暂存，再与本轮和既有知识整体去重，同义问法合并，答案冲突保留暂存；可用 `mine --retry-conflicts` 重新核对。离线近邻与LLM只服务知识治理，在线仍为 dense 单路。
 
-`KNOWLEDGE_TOP_K` / `KNOWLEDGE_MIN_SCORE` 仅供第三章 dense 基线。当前在线固定每路50、RRF k=60、融合最多100、精排10；`RERANK_MIN_SCORE` 默认0.05，仅作用于精排分。初始0.4曾误拒答邮费同义问法，0.05来自开发集调试，需用真实业务留出集再次校准；生成充分性门控继续执行。BGE-M3 固定1024维，不能在服务故障时替换模型或改用本地 BM25。
+`KNOWLEDGE_TOP_K` / `KNOWLEDGE_MIN_SCORE` 仅供第三章 dense 基线。当前在线固定每路50、RRF k=60、融合最多100、精排10；`RERANK_MIN_SCORE` 默认0.05，仅作用于精排分。初始0.4曾误拒答邮费同义问法，0.05来自开发集调试，需用真实业务留出集再次校准；第五章在进入 Agent 前再次以此阈值过闸。BGE-M3 固定1024维，不能在服务故障时替换模型或改用本地 BM25。
 
 ```powershell
 # 真实检索标注集 + 故意中断恢复；会调用硅基流动
@@ -170,7 +202,7 @@ data: {"conversation_id":"同一 UUID"}
 
 前端每次发送生成 `request_id`，点击“重试本轮”复用该标识，恢复已保存的工具结果和工单；即使首次 `meta` 未送达，也能找到原会话。已成功的同请求重放直接回放已保存结果，不再次调用模型。同一请求标识搭配不同问题或会话返回 409。接口调用方若不传 `request_id`，服务端会生成并放入 `meta`；要在未收到 meta 时也能可靠重试，调用方应自行生成并保存 UUID。同会话并发返回 409；未知会话返回 404；空白输入、非法 UUID 或多余字段返回 422。提取失败返回 502，响应不会泄露上游错误原文。
 
-历史保存在 MySQL，不同会话 ID 隔离；conversations 的用户为 `demo-user`，新会话状态 active，建单后 waiting_human，工单为 pending。本章按本机单工作进程运行，内存占用锁不支持多工作进程协调，没有用户身份鉴权。会话 ID 是演示阶段的访问凭据，不适合作为多用户生产鉴权。关闭页面不会撤销已建工单；服务崩溃遗留的 running 请求可凭原 request_id 恢复。
+审计历史保存在 MySQL，图状态保存在内置 SQLite checkpointer，不同会话 ID 隔离；conversations 的用户为 `demo-user`，新会话及建单后均为 active，工单为 pending。旧版 waiting_human 值保留。当前按本机单工作进程运行，内存占用锁不支持多工作进程协调，没有用户身份鉴权。会话 ID 是演示阶段的访问凭据。关闭页面不会撤销已确认工单；失败请求可凭原 request_id 恢复。
 
 输入预算为 `CONTEXT_WINDOW_TOKENS - MAX_OUTPUT_TOKENS - TOKEN_SAFETY_MARGIN`。使用 LangChain 近似计数，每字符按约一个 token，计入消息开销与工具 Schema；超限从最早完整轮次裁剪，保留 System Prompt 与当前输入，不拆散工具申请和结果。仍超限返回 413，不调用模型；回灌后再检查预算，当前工具结果仍超限则发送 error。售后提取也计入 Schema 的近似开销。配置窗口需匹配上游模型；近似计数不能保证与 tokenizer 完全一致。截断回复仅留失败审计。上游超时由 `MODEL_TIMEOUT_SECONDS` 配置。
 

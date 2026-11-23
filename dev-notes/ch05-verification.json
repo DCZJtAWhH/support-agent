@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-23",
+  "pytest": {"command": "uv run --locked pytest -q --tb=short", "passed": 109, "seconds": 153.35},
+  "javascript": {"command": "node --test tests/web/stream.test.mjs", "passed": 23},
+  "lint": {"command": "uv run --locked ruff check .", "passed": true},
+  "diff_check": {"command": "git diff --check", "passed": true},
+  "chinese_docstrings": {"functions_checked": 72, "missing": 0},
+  "real_model_evaluation": {"passed": 13, "total": 13, "report": "dev-notes/ch05-eval-verified-results.json", "citation_format_checked": true},
+  "real_browser": {"widths": [1440, 390, 320], "passed": true, "citation_click_checked": true, "report": "dev-notes/ch05-browser-results.json"},
+  "node_log_excerpt": "dev-notes/ch05-workflow.log",
+  "deployment_scope": "single process; official SQLite checkpointer; simulated business tools and frontend human handoff"
+}

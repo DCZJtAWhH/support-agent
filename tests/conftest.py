@@ -113,6 +113,8 @@ def harness():
             calls.append(payload)
             if handler:
                 return await handler(request, payload)
+            if payload["messages"][0]["content"].startswith("将顾客"):
+                return stream_response(('{"intent":"订单"}',))
             return stream_response()
 
         settings = Settings(
@@ -122,6 +124,7 @@ def harness():
                 "openai_api_key": "test-key",
                 "openai_model": "test-model",
                 "database_url": "sqlite+aiosqlite:///:memory:",
+                "checkpoint_path": ":memory:",
                 **overrides,
             },
         )

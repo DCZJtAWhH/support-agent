@@ -132,6 +132,14 @@ textarea::placeholder { color: #7b8983; font-size: 14px; }
 .notice button { flex-shrink: 0; min-height: 44px; border: 1px solid #d6b8a7; background: white; color: #82462f; border-radius: 5px; padding: 0 10px; }
 .notice button:hover { background: #fcebdd; }
 [hidden] { display: none !important; }
+.answer-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.answer-actions button { min-height: 44px; padding: 0 16px; border: 1px solid #cadbd2; border-radius: 7px; background: white; color: var(--accent); font-size: 14px; }
+.answer-actions button:hover:not(:disabled) { background: #e3eee9; transform: translateY(-1px); }
+.answer-actions button:active:not(:disabled) { transform: translateY(1px); }
+.answer-actions button:focus-visible { outline: 3px solid #308e7b; outline-offset: 3px; }
+.answer-actions button:disabled { opacity: .6; cursor: default; }
+.action-result { margin: 8px 0 0; font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.action-result:empty { display: none; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @keyframes enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes cursor { 50% { opacity: 0; } }

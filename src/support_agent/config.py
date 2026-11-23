@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     rerank_min_score: float = Field(default=0.05, ge=0, le=1)
     knowledge_top_k: int = Field(default=3, ge=1, le=20)
     knowledge_min_score: float = Field(default=0.4, ge=-1, le=1)
+    checkpoint_path: str = "data/ch05-checkpoints.sqlite"
+    agent_max_steps: int = Field(default=6, ge=1, le=20)
+    agent_token_budget: int = Field(default=50000, gt=0)
 
     @model_validator(mode="after")
     def validate_budget(self):

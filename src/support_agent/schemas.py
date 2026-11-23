@@ -26,6 +26,14 @@ class ExtractionRequest(BaseModel):
     description: InputText
 
 
+class TicketConfirmation(BaseModel):
+    """显式建单确认仅引用已完成轮次，不接受客户端伪造的描述或处理结果。"""
+
+    model_config = ConfigDict(extra="forbid")
+    conversation_id: UUID
+    request_id: UUID
+
+
 class AfterSalesRequest(BaseModel):
     """从顾客售后描述中提取的信息，不代表订单核实或已批准方案。"""
 

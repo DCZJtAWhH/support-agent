@@ -93,3 +93,14 @@ test("aborted transport rejects an incomplete turn", async () => {
   await assert.rejects(readChatStream(response, () => {}), /disconnected/);
   assert.equal(response.body.locked, false);
 });
+test("actions remain separate and are delivered before completion", async () => {
+  const events = [];
+  const body = 'event: meta\ndata: {"conversation_id":"c"}\n\n' +
+    'event: token\ndata: {"text":"抱歉"}\n\n' +
+    'event: actions\ndata: {"actions":["handoff","create_ticket"]}\n\n' +
+    'event: done\ndata: {"conversation_id":"c"}\n\n';
+  await readChatStream(new Response(body, {headers: {"content-type": "text/event-stream"}}),
+    (name, data) => events.push([name, data]));
+  assert.deepEqual(events.find(([name]) => name === "actions")[1].actions,
+    ["handoff", "create_ticket"]);
+});

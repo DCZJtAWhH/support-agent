@@ -177,8 +177,6 @@ class ChatRepository:
                     ticket_type=ticket_type,
                 )
                 session.add(row)
-                conversation = await session.get(Conversation, conversation_id)
-                conversation.status = "waiting_human"
                 await session.flush()
                 result = self.ticket_data(row)
             return result

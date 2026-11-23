@@ -2,7 +2,7 @@
 
 import json
 import warnings
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 from html import escape
 from pathlib import Path
 from uuid import UUID
@@ -13,6 +13,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Streamin
 from fastapi.staticfiles import StaticFiles
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
+from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from support_agent.chat import ChatService
 from support_agent.config import Settings
@@ -20,7 +21,6 @@ from support_agent.context import ContextBudgetExceeded, fit_messages
 from support_agent.database import Database
 from support_agent.errors import ModelResponseError, model_error
 from support_agent.evaluation_dashboard import EvaluationDashboard
-from support_agent.grounding import GroundedAnswerer
 from support_agent.knowledge_mining import KnowledgeLLM
 from support_agent.knowledge_store import KnowledgeStore
 from support_agent.knowledge_uploads import (
@@ -32,7 +32,12 @@ from support_agent.knowledge_uploads import (
 from support_agent.prompts import AFTER_SALES_EXTRACTION
 from support_agent.repositories import ChatRepository
 from support_agent.retrieval import HybridRetriever, QueryUnderstanding
-from support_agent.schemas import AfterSalesRequest, ChatRequest, ExtractionRequest
+from support_agent.schemas import (
+    AfterSalesRequest,
+    ChatRequest,
+    ExtractionRequest,
+    TicketConfirmation,
+)
 from support_agent.vectors import BGEEmbeddings, BGEReranker, MilvusVectors
 
 
@@ -49,7 +54,7 @@ def create_app(
     async def lifespan(app):
         """启动模型、持久化和语义检索服务，退出时释放数据库及模型与向量客户端。"""
         with httpx.Client() as sync_client:
-            async with httpx.AsyncClient() as owned_client:
+            async with httpx.AsyncClient() as owned_client, AsyncExitStack() as resources:
                 app.state.model = ChatOpenAI(
                     model=config.openai_model,
                     base_url=config.openai_base_url,
@@ -92,11 +97,16 @@ def create_app(
                         retriever.embeddings,
                         vectors,
                     )
+                    if config.checkpoint_path != ":memory:":
+                        Path(config.checkpoint_path).parent.mkdir(parents=True, exist_ok=True)
+                    checkpointer = await resources.enter_async_context(
+                        AsyncSqliteSaver.from_conn_string(config.checkpoint_path)
+                    )
                     app.state.chat = ChatService(
                         app.state.model,
                         app.state.repository,
                         config,
-                        answerer=GroundedAnswerer(language),
+                        checkpointer=checkpointer,
                     )
                     yield
                 finally:
@@ -186,8 +196,13 @@ def create_app(
         responses={200: {"content": {"text/event-stream": {}}}},
     )
     async def chat(body: ChatRequest):
-        """从现有聊天入口执行单轮工具决策、持久化和最终 SSE 回复。"""
+        """从现有入口执行确定性 Workflow、ReAct 迭代和最终 SSE 回复。"""
         return await app.state.chat.respond(body)
+
+    @app.post("/actions/ticket")
+    async def confirm_ticket(body: TicketConfirmation):
+        """用户点击并确认建工单后，调用既有工具并返回幂等工单结果。"""
+        return await app.state.chat.confirm_ticket(body)
 
     @app.get("/conversations/{conversation_id}")
     async def conversation_history(conversation_id: UUID):
