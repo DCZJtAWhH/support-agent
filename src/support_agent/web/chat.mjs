@@ -15,6 +15,100 @@ let conversationId = null;
 let activeRequest = null;
 let failedTurn = null;
 
+/** 在原客服气泡内显示点选订单，保留原请求标识以恢复暂停的子流程。 */
+function addOrderPicker(assistant, orders, message, requestId, sourceConversationId) {
+  const group = document.createElement("div");
+  group.className = "order-picker";
+  group.setAttribute("role", "group");
+  group.setAttribute("aria-label", "选择要处理的订单");
+  const heading = document.createElement("strong");
+  heading.textContent = "选择一笔订单";
+  group.append(heading);
+  for (const order of orders) {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "order-card";
+    const title = document.createElement("strong");
+    title.textContent = order.product_name;
+    const detail = document.createElement("span");
+    detail.textContent = `订单 ${order.order_id} · ${order.status} · ¥${order.total}`;
+    const action = document.createElement("span");
+    action.className = "order-card-action";
+    action.textContent = "选择此订单 →";
+    card.append(title, detail, action);
+    card.addEventListener("click", function selectOrder() {
+      // 点选只回填服务端列表中的编号；继续同一请求，避免重新猜测意图。
+      if (activeRequest || conversationId !== sourceConversationId) return;
+      for (const button of group.querySelectorAll("button")) button.disabled = true;
+      addMessage("user", `选择订单 ${order.order_id} · ${order.product_name}`);
+      void sendMessage(message, { ...assistant, requestId }, order.order_id);
+    });
+    group.append(card);
+  }
+  assistant.bubble.append(group);
+}
+
+/** 用户提交时才采集固定原因，并将申请凭据显示在原聊天气泡中。 */
+function addRefundForm(assistant, data, requestId, sourceConversationId) {
+  const form = document.createElement("form");
+  form.className = "refund-form";
+  const heading = document.createElement("strong");
+  heading.textContent = `退款申请 · 订单 ${data.order_id}`;
+  const label = document.createElement("label");
+  label.htmlFor = `refund-reason-${requestId}`;
+  label.textContent = "退款原因";
+  const select = document.createElement("select");
+  select.id = label.htmlFor;
+  select.required = true;
+  const empty = document.createElement("option");
+  empty.value = "";
+  empty.textContent = "请选择退款原因";
+  empty.disabled = true;
+  empty.selected = true;
+  select.append(empty);
+  for (const reason of data.reasons) {
+    const option = document.createElement("option");
+    option.value = reason;
+    option.textContent = reason;
+    select.append(option);
+  }
+  const submit = document.createElement("button");
+  submit.type = "submit";
+  submit.textContent = "提交退款申请";
+  const result = document.createElement("p");
+  result.className = "refund-result";
+  result.setAttribute("role", "status");
+  result.textContent = "演示申请将保存为待核实，不会直接执行退款。";
+  form.append(heading, label, select, submit, result);
+  form.addEventListener("submit", async function submitRefund(event) {
+    // 原因无需在对话中追问，订单由后端使用本轮已核实的快照。
+    event.preventDefault();
+    if (activeRequest || submit.disabled || conversationId !== sourceConversationId) return;
+    submit.disabled = true;
+    select.disabled = true;
+    submit.textContent = "正在提交…";
+    try {
+      const response = await fetch("/actions/refund", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversation_id: sourceConversationId, request_id: requestId,
+          reason: select.value }),
+      });
+      const saved = await response.json();
+      if (!response.ok) throw new Error(saved.detail || "提交失败，请重试。");
+      if (conversationId !== sourceConversationId) return;
+      submit.textContent = "已提交申请";
+      result.textContent = `申请 ${saved.application_no} 已登记，等待核实。`;
+    } catch (error) {
+      submit.disabled = false;
+      select.disabled = false;
+      submit.textContent = "提交退款申请";
+      result.textContent = error.message || "提交失败，请重试。";
+    }
+    followConversation();
+  });
+  assistant.bubble.append(form);
+}
+
 /** 显示本轮检索时的来源原文快照，避免知识更新后引用悄悄变化。 */
 function openSource(source) {
   let dialog = document.querySelector("#source-dialog");
@@ -307,8 +401,9 @@ function createTypewriter(bubble) {
 }
 
 /** 发送一轮对话或重试失败轮次，沿用 meta 给出的会话 ID 以衔接服务端上下文。 */
-async function sendMessage(message, previous = null) {
+async function sendMessage(message, previous = null, selectedOrderId = null) {
   if (activeRequest || !message.trim()) return;
+  for (const card of document.querySelectorAll(".order-picker button")) card.disabled = true;
   notice.hidden = true;
   failedTurn = null;
   welcome.hidden = true;
@@ -322,6 +417,8 @@ async function sendMessage(message, previous = null) {
   const requestId = previous?.requestId || crypto.randomUUID();
   let sources = [];
   let actions = [];
+  let orders = null;
+  let refundForm = null;
   let sourceConversationId = conversationId;
   const request = { controller: new AbortController(), writer };
   activeRequest = request;
@@ -330,13 +427,9 @@ async function sendMessage(message, previous = null) {
   document.querySelector("#conversation-title").textContent = message;
   try {
     const body = { message, request_id: requestId };
+    if (selectedOrderId) body.selected_order_id = selectedOrderId;
     if (conversationId) body.conversation_id = conversationId;
-    const response = await fetch("/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
-      body: JSON.stringify(body),
-      signal: request.controller.signal,
-    });
+    const response = await requestChat(body, request.controller.signal);
     // 保存会话信息，将文本交给逐字渲染器。
     await readChatStream(response, function handleEvent(event, data) {
       if (activeRequest !== request) return;
@@ -352,13 +445,31 @@ async function sendMessage(message, previous = null) {
       if (event === "tool_status") updateToolBadge(assistant, data);
       if (event === "sources") sources = data.sources;
       if (event === "actions") actions = data.actions;
+      if (event === "order_required") orders = data.orders;
+      if (event === "refund_form") refundForm = data;
+      if (event === "understanding") {
+        let note = assistant.bubble.querySelector(".question-understanding");
+        if (!note) {
+          note = document.createElement("p");
+          note.className = "question-understanding";
+          assistant.bubble.prepend(note);
+        }
+        note.textContent = `理解为：${data.question} · ${data.intent}`;
+      }
+      if (event === "workflow") {
+        const labels = { resolve: "正在理解您的问题…", select_order: "正在核对所选订单…",
+          load_order: "正在查询订单…", retrieve: "正在检索相关政策…", confidence: "正在核对政策依据…" };
+        if (labels[data.node]) status.textContent = labels[data.node];
+      }
     });
     await writer.drain();
     if (activeRequest !== request) return;
     renderCitations(assistant, sources);
     addActions(assistant, actions, requestId, sourceConversationId);
-    addFeedback(assistant, requestId);
-    status.textContent = "您可以继续追问，前面的内容会接着聊";
+    if (orders) addOrderPicker(assistant, orders, message, requestId, sourceConversationId);
+    else addFeedback(assistant, requestId);
+    if (refundForm) addRefundForm(assistant, refundForm, requestId, sourceConversationId);
+    status.textContent = orders ? "点选订单后继续处理，也可以发送其他问题" : "您可以继续追问，前面的内容会接着聊";
   } catch (error) {
     if (activeRequest !== request) return;
     writer.stop();
@@ -368,7 +479,7 @@ async function sendMessage(message, previous = null) {
     state.className = "message-state";
     state.textContent = "本轮未完成";
     assistant.content.append(state);
-    failedTurn = { message, requestId, ...assistant, expired: error.status === 404 };
+    failedTurn = { message, requestId, selectedOrderId, ...assistant, expired: error.status === 404 };
     document.querySelector("#notice-text").textContent = error instanceof TypeError
       ? "无法连接客服服务，请检查网络后重试。"
       : error.message || "本轮回复失败，请稍后重试。";
@@ -382,6 +493,24 @@ async function sendMessage(message, previous = null) {
       followConversation();
       input.focus({ preventScroll: true });
     }
+  }
+}
+
+/** 同一轮点选可能紧随上次流结束，仅在服务端提交收尾的短暂互斥期自动重试。 */
+async function requestChat(body, signal) {
+  for (let attempt = 0; ; attempt += 1) {
+    const response = await fetch("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+      body: JSON.stringify(body), signal,
+    });
+    if (!body.selected_order_id || response.status !== 409 || attempt >= 4) return response;
+    const failure = await response.clone().json();
+    if (typeof failure.detail !== "string" || !failure.detail.includes("正在执行")) return response;
+    await new Promise(function waitForCommit(resolve) {
+      // 保持原会话、请求与所选订单，只等待上次响应完成持久化。
+      setTimeout(resolve, 250);
+    });
   }
 }
 
@@ -401,7 +530,7 @@ function handleKeydown(event) {
 
 /** 通过新请求重试原问题，复用原顾客气泡并替换不完整的客服回复。 */
 function retryFailedTurn() {
-  if (failedTurn && !failedTurn.expired) void sendMessage(failedTurn.message, failedTurn);
+  if (failedTurn && !failedTurn.expired) void sendMessage(failedTurn.message, failedTurn, failedTurn.selectedOrderId);
 }
 
 /** 中止当前请求并清空当前页面状态，之后发送不再带旧会话 ID。 */

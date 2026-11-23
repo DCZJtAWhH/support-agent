@@ -77,7 +77,7 @@ def test_grounded_generation_keeps_ten_full_sources_in_budget_and_preserves_snap
 
 def test_strong_evidence_streams_through_agent_with_projected_prompt_and_snapshot(harness):
     class SearchAPI:
-        async def search(self, question):
+        async def search(self, question, **kwargs):
             return [
                 {
                     "chunk_id": i + 1,
@@ -96,7 +96,7 @@ def test_strong_evidence_streams_through_agent_with_projected_prompt_and_snapsho
 
     async def handler(request, payload):
         if payload["messages"][0]["content"].startswith("将顾客"):
-            return stream_response(('{"intent":"商品咨询"}',))
+            return stream_response(('{"intent":"商品咨询","confidence":0.99}',))
         assert "tools" in payload and payload["stream"]
         evidence = json.loads(payload["messages"][0]["content"].split("evidence=", 1)[1])
         assert len(evidence) == 10 and "content_hash" not in evidence[0]
@@ -117,12 +117,12 @@ def test_strong_evidence_streams_through_agent_with_projected_prompt_and_snapsho
 
 def test_unknown_knowledge_refuses_before_agent_and_pool_is_idempotent_on_retry(harness):
     class SearchAPI:
-        async def search(self, question):
+        async def search(self, question, **kwargs):
             return []
 
     async def handler(request, payload):
         assert "tools" not in payload
-        return stream_response(('{"intent":"商品咨询"}',))
+        return stream_response(('{"intent":"商品咨询","confidence":0.99}',))
 
     async def scenario():
         async with harness(handler) as (client, calls, app):
@@ -136,7 +136,7 @@ def test_unknown_knowledge_refuses_before_agent_and_pool_is_idempotent_on_retry(
             assert rows[0]["question"] == body["message"]
             assert sse_events(await client.post("/chat", json=body))[-1][0] == "done"
             assert len(await app.state.repository.low_confidence_questions()) == 1
-            assert len(calls) == 1
+            assert len(calls) == 2
             audit = (await client.get("/conversations/" + events[0][1]["conversation_id"])).json()
             assert audit["tickets"] == []
 

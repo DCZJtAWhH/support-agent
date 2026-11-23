@@ -6,6 +6,14 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 InputText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=16384)]
+REFUND_REASONS = [
+    "不想要了",
+    "商品质量问题",
+    "收到商品破损",
+    "商品与描述不符",
+    "发错货或少件",
+    "其他",
+]
 
 
 class ChatRequest(BaseModel):
@@ -14,6 +22,9 @@ class ChatRequest(BaseModel):
     message: InputText
     conversation_id: UUID | None = None
     request_id: UUID | None = None
+    selected_order_id: (
+        Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=64)] | None
+    ) = None
     category: (
         Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=255)]
         | None
@@ -32,6 +43,17 @@ class TicketConfirmation(BaseModel):
     model_config = ConfigDict(extra="forbid")
     conversation_id: UUID
     request_id: UUID
+
+
+class RefundSubmission(BaseModel):
+    """只接受原轮次与固定退款原因；订单从服务端已核实快照中读取。"""
+
+    model_config = ConfigDict(extra="forbid")
+    conversation_id: UUID
+    request_id: UUID
+    reason: Literal[
+        "不想要了", "商品质量问题", "收到商品破损", "商品与描述不符", "发错货或少件", "其他"
+    ]
 
 
 class AfterSalesRequest(BaseModel):

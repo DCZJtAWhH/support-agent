@@ -148,3 +148,20 @@ textarea::placeholder { color: #7b8983; font-size: 14px; }
 @media (max-width: 700px) { .sidebar { width: auto; padding: 0; border: 0; flex: none; background: transparent; } .sidebar > :not(.new-conversation) { display: none; } .new-conversation { position: absolute; right: 17px; top: 17px; margin: 0; min-height: 44px; padding: 0 12px; z-index: 2; background: white; } .topbar { flex-basis: 79px; padding: 0 20px; } .session-label { display: none; } .conversation-content, .composer-area { width: calc(100% - 32px); } .welcome { padding: 34px 0 10px; } .welcome-mark { width: 53px; height: 53px; font-size: 26px; margin-bottom: 22px; border-radius: 17px; } .welcome h2 { font-size: 24px; } .welcome-description { margin: 15px 0 22px; } .suggestions { grid-template-columns: 1fr; gap: 8px; } .suggestions button { display: flex; align-items: center; gap: 12px; padding: 13px 15px; min-height: 48px; } .suggestions button > span:first-child { margin: 0; width: 22px; font-size: 20px; } .suggestions strong { margin: 0; } .suggestions button > span:last-child { margin-left: auto; font-size: 12px; } .composer-area { padding-top: 6px; padding-bottom: max(12px, env(safe-area-inset-bottom)); } .composer { padding: 13px 13px 10px; } #input-hint { font-size: 11px; } .send-button { padding: 0 12px; } .message { gap: 8px; } .avatar { width: 29px; height: 29px; flex-basis: 29px; font-size: 12px; } .message-content { max-width: calc(100% - 37px); } .bubble { padding: 12px 14px; } .disclaimer { font-size: 11px; margin-top: 9px; } }
 @media (max-width: 350px) { .suggestions button > span:last-child { display: none; } #input-hint { max-width: 130px; line-height: 1.6; } .send-button > span { display: none; } .welcome h2 { font-size: 21px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+.question-understanding { margin: 0 0 14px; padding-bottom: 10px; border-bottom: 1px solid #dce7e2; color: #526e60; font-size: 13px; overflow-wrap: anywhere; }
+.order-picker, .refund-form { display: grid; gap: 10px; margin-top: 20px; min-width: 0; }
+.order-card { display: grid; gap: 6px; text-align: left; padding: 14px 16px; border: 1px solid #c8d9cf; border-radius: 12px; background: #fff; color: #263f31; width: 100%; font: inherit; cursor: pointer; transition: border-color .15s, transform .15s; }
+.order-card:hover { border-color: #4e8066; transform: translateY(-2px); }
+.order-card:active { transform: translateY(0); }
+.order-card span { font-size: 13px; color: #52675b; }
+.order-card .order-card-action { color: #286143; font-weight: 600; }
+.order-card:disabled { opacity: .6; cursor: default; }
+.refund-form { padding-top: 16px; border-top: 1px solid #dce7e2; }
+.refund-form label { font-size: 14px; }
+.refund-form select, .refund-form button { min-height: 44px; width: 100%; border-radius: 8px; font: inherit; }
+.refund-form select { padding: 10px; border: 1px solid #b9cdbf; background: #fff; color: #263f31; }
+.refund-form button { border: 0; padding: 10px 14px; color: #fff; background: #286143; cursor: pointer; }
+.refund-form button:hover { background: #1c4b32; }
+.refund-form button:disabled { opacity: .65; cursor: default; }
+.refund-result { font-size: 12px; margin: 0; color: #52675b; overflow-wrap: anywhere; }
+.order-card:focus-visible, .refund-form select:focus-visible, .refund-form button:focus-visible { outline: 3px solid #7fae91; outline-offset: 3px; }

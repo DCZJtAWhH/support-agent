@@ -11,6 +11,7 @@ def stream_response(parts=("您好", "，请问有什么可以帮您？"), finis
     for part in parts:
         records.append({"delta": {"content": part}, "finish_reason": None})
     records.append({"delta": {}, "finish_reason": finish_reason})
+    records[0]["delta"]["role"] = "assistant"
     body = "".join(
         "data: "
         + json.dumps(
@@ -111,10 +112,14 @@ def harness():
             assert request.headers["authorization"] == "Bearer test-key"
             payload = json.loads(request.content)
             calls.append(payload)
+            if "问题理解器" in payload["messages"][0]["content"]:
+                return stream_response(
+                    (json.dumps({"question": payload["messages"][-1]["content"]}),)
+                )
             if handler:
                 return await handler(request, payload)
             if payload["messages"][0]["content"].startswith("将顾客"):
-                return stream_response(('{"intent":"订单"}',))
+                return stream_response(('{"intent":"订单","confidence":0.99}',))
             return stream_response()
 
         settings = Settings(

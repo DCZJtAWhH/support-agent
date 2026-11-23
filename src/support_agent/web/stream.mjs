@@ -60,7 +60,8 @@ export async function readChatStream(response, onEvent) {
 
   /** 校验事件顺序和字段，流内 error 立即中止，未知事件留给后续协议扩展。 */
   function acceptEvent(event, data) {
-    if (!["meta", "tool_status", "sources", "actions", "token", "done", "error"].includes(event)) return;
+    if (!["meta", "tool_status", "sources", "actions", "token", "done", "error",
+      "understanding", "order_required", "refund_form", "workflow", "retrieval_queries"].includes(event)) return;
     if (done || !data || typeof data !== "object") throw new Error("回复格式异常，请重试本轮。");
     if (event === "error") throw new Error(data.message || "本轮回复失败，请重试。");
     if (event === "meta") {
@@ -70,6 +71,30 @@ export async function readChatStream(response, onEvent) {
       conversationId = data.conversation_id;
     } else if (!conversationId) {
       throw new Error("回复缺少会话信息，请重试。");
+    } else if (event === "understanding") {
+      if (typeof data.question !== "string" || typeof data.intent !== "string" ||
+          !Number.isFinite(data.confidence) || data.confidence < 0 || data.confidence > 1) {
+        throw new Error("问题理解格式异常，请重试本轮。");
+      }
+    } else if (event === "order_required") {
+      if (!Array.isArray(data.orders) || !data.orders.length || data.orders.some(function invalidOrder(order) {
+        // 卡片只显示服务端订单快照，订单编号不能由页面内容推断。
+        return typeof order.order_id !== "string" || typeof order.product_name !== "string" ||
+          typeof order.status !== "string" || !Number.isFinite(order.total);
+      })) throw new Error("订单列表异常，请重试本轮。");
+    } else if (event === "refund_form") {
+      if (typeof data.order_id !== "string" || !Array.isArray(data.reasons) ||
+          !data.reasons.length || data.reasons.some(function invalidReason(reason) {
+            // 原因只作为下拉选项显示，提交仍由后端固定枚举校验。
+            return typeof reason !== "string" || !reason;
+          })) throw new Error("退款申请格式异常，请重试本轮。");
+    } else if (event === "workflow" || event === "retrieval_queries") {
+      if (event === "workflow" && typeof data.node !== "string") throw new Error("处理状态异常。");
+      if (event === "retrieval_queries" && (!Array.isArray(data.queries) ||
+          data.queries.some(function invalidQuery(query) {
+            // 检索查询仅用于显示本轮可观察轨迹。
+            return typeof query !== "string";
+          }))) throw new Error("检索查询格式异常。");
     } else if (event === "tool_status") {
       if (typeof data.name !== "string" || typeof data.tool_call_id !== "string" ||
           !["running", "succeeded", "failed"].includes(data.state)) {

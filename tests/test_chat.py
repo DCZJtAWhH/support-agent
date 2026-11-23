@@ -98,7 +98,7 @@ def test_existing_completed_conversation_is_imported_when_it_has_no_graph_checkp
 def test_failed_generation_is_reported_and_never_enters_state_history(harness, failure):
     async def handler(request, payload):
         if payload["messages"][0]["content"].startswith("将顾客"):
-            return stream_response(('{"intent":"订单"}',))
+            return stream_response(('{"intent":"订单","confidence":0.99}',))
         if payload["messages"][-1]["content"] == "失败轮次":
             if failure == "rate_limit":
                 return httpx.Response(429, json={"error": {"message": "private-upstream-detail"}})

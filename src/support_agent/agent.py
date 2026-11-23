@@ -39,7 +39,8 @@ async def model_step(model, registry, messages, *, input_budget=7000, output_bud
         return
     aggregate = None
     output_chars = 0
-    async with aclosing(model.bind_tools(tools).astream(messages)) as chunks:
+    bound = model.bind_tools(tools) if tools else model
+    async with aclosing(bound.astream(messages)) as chunks:
         async for chunk in chunks:
             if not isinstance(chunk.content, str) or chunk.additional_kwargs.get("refusal"):
                 raise ModelResponseError("模型返回了不支持的内容或拒绝响应。")

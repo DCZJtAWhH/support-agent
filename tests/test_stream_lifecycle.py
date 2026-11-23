@@ -11,7 +11,7 @@ def test_same_conversation_rejects_concurrent_request_while_tokens_are_streaming
 
         async def handler(request, payload):
             if payload["messages"][0]["content"].startswith("将顾客"):
-                return stream_response(('{"intent":"订单"}',))
+                return stream_response(('{"intent":"订单","confidence":0.99}',))
             if payload["messages"][-1]["content"] == "慢请求":
                 return httpx.Response(
                     200, stream=held, headers={"content-type": "text/event-stream"}
@@ -71,7 +71,7 @@ def test_disconnect_cancels_upstream_unlocks_session_and_discards_partial_turn(
 
         async def handler(request, payload):
             if payload["messages"][0]["content"].startswith("将顾客"):
-                return stream_response(('{"intent":"订单"}',))
+                return stream_response(('{"intent":"订单","confidence":0.99}',))
             if payload["messages"][-1]["content"] == "将要断流":
                 return httpx.Response(
                     200, stream=held, headers={"content-type": "text/event-stream"}

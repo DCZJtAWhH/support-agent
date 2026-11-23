@@ -1,0 +1,8073 @@
+[
+  {
+    "id": "social-01",
+    "message": "你好",
+    "intent": "闲聊",
+    "route": "social",
+    "zero_model": true,
+    "passed": true,
+    "actual_intent": "闲聊",
+    "nodes": [
+      "resolve",
+      "classify",
+      "route",
+      "social",
+      "log"
+    ],
+    "tools": [],
+    "steps": 0,
+    "tokens": 0,
+    "answer": "您好，我是本店智能客服，可以帮您查询订单、物流、商品信息和售后政策。",
+    "conversation_id": "2feb4f8f-ea1d-4436-811e-ae1e3df7b8a2",
+    "events": [
+      [
+        "meta",
+        {
+          "conversation_id": "2feb4f8f-ea1d-4436-811e-ae1e3df7b8a2",
+          "request_id": "2b72c3f8-3c08-43b2-b905-55036beb18f6"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "resolve"
+        }
+      ],
+      [
+        "understanding",
+        {
+          "question": "你好",
+          "intent": "闲聊",
+          "confidence": 1.0
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "classify"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "route"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您好，我是本店智能客服，可以帮您查询订单、物流、商品信息和售后政策。"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "social"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "log"
+        }
+      ],
+      [
+        "actions",
+        {
+          "actions": []
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "2feb4f8f-ea1d-4436-811e-ae1e3df7b8a2",
+          "request_id": "2b72c3f8-3c08-43b2-b905-55036beb18f6"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "social-02",
+    "message": "谢谢！",
+    "intent": "闲聊",
+    "route": "social",
+    "zero_model": true,
+    "passed": true,
+    "actual_intent": "闲聊",
+    "nodes": [
+      "resolve",
+      "classify",
+      "route",
+      "social",
+      "log"
+    ],
+    "tools": [],
+    "steps": 0,
+    "tokens": 0,
+    "answer": "您好，我是本店智能客服，可以帮您查询订单、物流、商品信息和售后政策。",
+    "conversation_id": "6bb52b16-4334-4429-9bb4-5baf934a5511",
+    "events": [
+      [
+        "meta",
+        {
+          "conversation_id": "6bb52b16-4334-4429-9bb4-5baf934a5511",
+          "request_id": "b51d4c47-0d81-4405-af64-753dd4a75a7f"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "resolve"
+        }
+      ],
+      [
+        "understanding",
+        {
+          "question": "谢谢！",
+          "intent": "闲聊",
+          "confidence": 1.0
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "classify"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "route"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您好，我是本店智能客服，可以帮您查询订单、物流、商品信息和售后政策。"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "social"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "log"
+        }
+      ],
+      [
+        "actions",
+        {
+          "actions": []
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "6bb52b16-4334-4429-9bb4-5baf934a5511",
+          "request_id": "b51d4c47-0d81-4405-af64-753dd4a75a7f"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "complaint-01",
+    "message": "我要投诉",
+    "intent": "投诉",
+    "route": "complaint",
+    "actions": [
+      "handoff",
+      "create_ticket"
+    ],
+    "passed": true,
+    "actual_intent": "投诉",
+    "nodes": [
+      "resolve",
+      "classify",
+      "route",
+      "complaint",
+      "log"
+    ],
+    "tools": [],
+    "steps": 0,
+    "tokens": 0,
+    "answer": "很抱歉给您带来不好的体验，我们重视您的反馈。您可以自行选择转人工或建工单，也可以继续补充问题。",
+    "conversation_id": "167bee63-562f-41e9-b103-5b157f51f266",
+    "events": [
+      [
+        "meta",
+        {
+          "conversation_id": "167bee63-562f-41e9-b103-5b157f51f266",
+          "request_id": "1878c307-1eae-4f6e-9b90-4e8432f421a7"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "resolve"
+        }
+      ],
+      [
+        "understanding",
+        {
+          "question": "我要投诉",
+          "intent": "投诉",
+          "confidence": 0.98
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "classify"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "route"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "很抱歉给您带来不好的体验，我们重视您的反馈。您可以自行选择转人工或建工单，也可以继续补充问题。"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "complaint"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "log"
+        }
+      ],
+      [
+        "actions",
+        {
+          "actions": [
+            "handoff",
+            "create_ticket"
+          ]
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "167bee63-562f-41e9-b103-5b157f51f266",
+          "request_id": "1878c307-1eae-4f6e-9b90-4e8432f421a7"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "complaint-02",
+    "message": "你们服务太差了，我要投诉客服",
+    "intent": "投诉",
+    "route": "complaint",
+    "actions": [
+      "handoff",
+      "create_ticket"
+    ],
+    "passed": true,
+    "actual_intent": "投诉",
+    "nodes": [
+      "resolve",
+      "classify",
+      "route",
+      "complaint",
+      "log"
+    ],
+    "tools": [],
+    "steps": 0,
+    "tokens": 0,
+    "answer": "很抱歉给您带来不好的体验，我们重视您的反馈。您可以自行选择转人工或建工单，也可以继续补充问题。",
+    "conversation_id": "5fbb6c1d-a7d1-4fa2-8483-7fdabc4ab577",
+    "events": [
+      [
+        "meta",
+        {
+          "conversation_id": "5fbb6c1d-a7d1-4fa2-8483-7fdabc4ab577",
+          "request_id": "0bc04b4b-f7ac-4e2d-9c9b-2dfc4269840e"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "resolve"
+        }
+      ],
+      [
+        "understanding",
+        {
+          "question": "你们服务太差了，我要投诉客服",
+          "intent": "投诉",
+          "confidence": 0.99
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "classify"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "route"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "很抱歉给您带来不好的体验，我们重视您的反馈。您可以自行选择转人工或建工单，也可以继续补充问题。"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "complaint"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "log"
+        }
+      ],
+      [
+        "actions",
+        {
+          "actions": [
+            "handoff",
+            "create_ticket"
+          ]
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "5fbb6c1d-a7d1-4fa2-8483-7fdabc4ab577",
+          "request_id": "0bc04b4b-f7ac-4e2d-9c9b-2dfc4269840e"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "logistics-01",
+    "message": "订单 1001 的物流到哪了",
+    "intent": "物流",
+    "route": "business",
+    "tools": [
+      "query_logistics"
+    ],
+    "min_steps": 2,
+    "passed": true,
+    "actual_intent": "物流",
+    "nodes": [
+      "resolve",
+      "classify",
+      "route",
+      "prepare_agent",
+      "agent",
+      "tools",
+      "agent",
+      "log"
+    ],
+    "steps": 2,
+    "tokens": 5104,
+    "answer": "订单 1001 的物流信息如下（演示数据，非真实物流）：\n\n- 承运商：中通\n- 状态：运输中\n- 当前位置：上海分拨中心\n- 预计还需：1 天\n\n需要我帮您看其他订单或其他信息吗？",
+    "conversation_id": "d53caae1-bc8d-485c-b7bf-2657124511b8",
+    "events": [
+      [
+        "meta",
+        {
+          "conversation_id": "d53caae1-bc8d-485c-b7bf-2657124511b8",
+          "request_id": "fdfdc350-90ce-4f14-987f-dcffcda3afc2"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "resolve"
+        }
+      ],
+      [
+        "understanding",
+        {
+          "question": "订单 1001 的物流到哪了",
+          "intent": "物流",
+          "confidence": 0.99
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "classify"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "route"
+        }
+      ],
+      [
+        "sources",
+        {
+          "sources": []
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "prepare_agent"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "agent"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "tools"
+        }
+      ],
+      [
+        "tool_status",
+        {
+          "name": "query_logistics",
+          "tool_call_id": "call_00_x062exyApxQSHnWqFZ0O1140",
+          "state": "running"
+        }
+      ],
+      [
+        "tool_status",
+        {
+          "name": "query_logistics",
+          "tool_call_id": "call_00_x062exyApxQSHnWqFZ0O1140",
+          "state": "succeeded",
+          "attempts": 1
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "agent"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "100"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "1"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "的"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "物流"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "信息"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "如下"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "（"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "演示"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "数据"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "非"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "真实"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "物流"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "）：\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "承运"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "商"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "中"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "通"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "状态"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "运输"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "中"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "当前位置"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "上海"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "分"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "拨"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "中心"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "预计"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "还需"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "1"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "天"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "需要"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "我"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "帮"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "看"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "其他"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "或其他"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "信息"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "吗"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "？"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "log"
+        }
+      ],
+      [
+        "actions",
+        {
+          "actions": []
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "d53caae1-bc8d-485c-b7bf-2657124511b8",
+          "request_id": "fdfdc350-90ce-4f14-987f-dcffcda3afc2"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "order-01",
+    "message": "查询订单1001的状态和金额",
+    "intent": "订单",
+    "route": "business",
+    "tools": [
+      "query_order"
+    ],
+    "passed": true,
+    "actual_intent": "订单",
+    "nodes": [
+      "resolve",
+      "classify",
+      "route",
+      "prepare_agent",
+      "agent",
+      "tools",
+      "agent",
+      "log"
+    ],
+    "steps": 2,
+    "tokens": 5172,
+    "answer": "订单 1001 的查询结果如下（演示数据）：\n\n- 商品：BX-500 保温杯\n- 订单状态：已签收\n- 签收时间：3 天前\n- 订单金额：99 元（CNY）\n\n以上信息来自演示系统，不是真实订单数据。如需查看物流轨迹，请告诉我。",
+    "conversation_id": "5067a512-31f0-4fbb-94e5-a9af49f959eb",
+    "events": [
+      [
+        "meta",
+        {
+          "conversation_id": "5067a512-31f0-4fbb-94e5-a9af49f959eb",
+          "request_id": "7baf31fe-3d38-4e06-a8fe-a79e7a3cc8e8"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "resolve"
+        }
+      ],
+      [
+        "understanding",
+        {
+          "question": "查询订单1001的状态和金额",
+          "intent": "订单",
+          "confidence": 0.99
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "classify"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "route"
+        }
+      ],
+      [
+        "sources",
+        {
+          "sources": []
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "prepare_agent"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "agent"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "tools"
+        }
+      ],
+      [
+        "tool_status",
+        {
+          "name": "query_order",
+          "tool_call_id": "call_00_lOrKOYtgsxG8t7htepOg3627",
+          "state": "running"
+        }
+      ],
+      [
+        "tool_status",
+        {
+          "name": "query_order",
+          "tool_call_id": "call_00_lOrKOYtgsxG8t7htepOg3627",
+          "state": "succeeded",
+          "attempts": 1
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "agent"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "100"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "1"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "的"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "查询"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "结果"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "如下"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "（"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "演示"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "数据"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "）：\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "商品"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "BX"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "500"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "保温"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "杯"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "状态"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "已"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "签"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "收"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "签"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "收"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "时间"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "3"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "天"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "前"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "金额"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "99"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "元"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "（"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "CN"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "Y"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "）\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "以上"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "信息"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "来自"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "演示"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "系统"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "不是"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "真实"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "数据"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "如需"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "查看"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "物流"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "轨迹"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "请"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "告诉我"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "log"
+        }
+      ],
+      [
+        "actions",
+        {
+          "actions": []
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "5067a512-31f0-4fbb-94e5-a9af49f959eb",
+          "request_id": "7baf31fe-3d38-4e06-a8fe-a79e7a3cc8e8"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "multi-01",
+    "message": "请先查询订单1001的状态和金额，得到结果后再查询这笔订单的物流位置，两个查询都需要，最后一起告诉我。",
+    "intent": "订单",
+    "route": "business",
+    "tools": [
+      "query_order",
+      "query_logistics"
+    ],
+    "min_steps": 3,
+    "passed": true,
+    "actual_intent": "订单",
+    "nodes": [
+      "resolve",
+      "classify",
+      "route",
+      "prepare_agent",
+      "agent",
+      "tools",
+      "agent",
+      "tools",
+      "agent",
+      "log"
+    ],
+    "steps": 3,
+    "tokens": 8449,
+    "answer": "我先为您查询订单1001的信息。订单信息已获取，现在为您查询物流位置。已为您查询完毕，以下两项结果均为演示数据，非真实订单系统数据：\n\n**订单1001**\n- 商品：BX-500 保温杯\n- 订单状态：已签收（签收后约 3 天）\n- 金额：99 元（CNY）\n\n**物流信息**\n- 承运商：中通\n- 物流状态：运输中\n- 当前位置：杭州转运中心\n- 预计还需：1 天\n\n需要提醒您：订单状态显示“已签收”，但物流状态仍为“运输中”，两者存在不一致。可能是系统数据未同步，如您需要核实，建议转人工或建工单跟进。",
+    "conversation_id": "a82ac572-e95a-4d12-80a1-8ac0edb96cc0",
+    "events": [
+      [
+        "meta",
+        {
+          "conversation_id": "a82ac572-e95a-4d12-80a1-8ac0edb96cc0",
+          "request_id": "33c24641-38de-493d-b9a4-061f0600785d"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "resolve"
+        }
+      ],
+      [
+        "understanding",
+        {
+          "question": "请先查询订单1001的状态和金额，得到结果后再查询这笔订单的物流位置，两个查询都需要，最后一起告诉我。",
+          "intent": "订单",
+          "confidence": 0.98
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "classify"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "route"
+        }
+      ],
+      [
+        "sources",
+        {
+          "sources": []
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "prepare_agent"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "agent"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "我先"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "为您"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "查询"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "100"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "1"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "的信息"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "tools"
+        }
+      ],
+      [
+        "tool_status",
+        {
+          "name": "query_order",
+          "tool_call_id": "call_00_LUnLGSunita4JV14B4Ie6745",
+          "state": "running"
+        }
+      ],
+      [
+        "tool_status",
+        {
+          "name": "query_order",
+          "tool_call_id": "call_00_LUnLGSunita4JV14B4Ie6745",
+          "state": "succeeded",
+          "attempts": 1
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "agent"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "信息"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "已"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "获取"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "现在"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "为您"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "查询"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "物流"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "位置"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "tools"
+        }
+      ],
+      [
+        "tool_status",
+        {
+          "name": "query_logistics",
+          "tool_call_id": "call_00_ET_Y3ktn4HhoV16wQKY8KSF6776",
+          "state": "running"
+        }
+      ],
+      [
+        "tool_status",
+        {
+          "name": "query_logistics",
+          "tool_call_id": "call_00_ET_Y3ktn4HhoV16wQKY8KSF6776",
+          "state": "succeeded",
+          "attempts": 1
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "agent"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "已"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "为您"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "查询"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "完毕"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "以下"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "两项"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "结果"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "均为"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "演示"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "数据"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "非"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "真实"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "系统"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "数据"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "：\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "100"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "1"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "商品"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "BX"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "500"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "保温"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "杯"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "状态"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "已"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "签"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "收"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "（"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "签"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "收"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "后"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "约"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "3"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "天"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "）\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "金额"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "99"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "元"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "（"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "CN"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "Y"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "）\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "物流"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "信息"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "承运"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "商"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "中"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "通"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "物流"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "状态"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "运输"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "中"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "当前位置"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "杭州"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "转运"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "中心"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "预计"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "还需"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "1"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "天"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "需要"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "提醒"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "状态"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "显示"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "“"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "已"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "签"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "收"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "”，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "但"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "物流"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "状态"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "仍"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "为"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "“"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "运输"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "中"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "”，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "两者"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "存在"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "不一致"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "可能是"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "系统"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "数据"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "未"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "同步"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "如"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "需要"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "核实"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "建议"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "转"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "人工"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "或"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "建"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "工"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "跟进"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "log"
+        }
+      ],
+      [
+        "actions",
+        {
+          "actions": [
+            "handoff",
+            "create_ticket"
+          ]
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "a82ac572-e95a-4d12-80a1-8ac0edb96cc0",
+          "request_id": "33c24641-38de-493d-b9a4-061f0600785d"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "product-01",
+    "message": "BX-500容量是多少",
+    "intent": "商品咨询",
+    "route": "knowledge",
+    "evidence": true,
+    "passed": true,
+    "actual_intent": "商品咨询",
+    "nodes": [
+      "resolve",
+      "classify",
+      "route",
+      "retrieve",
+      "confidence",
+      "prepare_agent",
+      "agent",
+      "log"
+    ],
+    "tools": [],
+    "steps": 1,
+    "tokens": 2686,
+    "answer": "BX-500 便携水杯的标称容量为500毫升 [1]。\n\n另外提醒：BX-500 不适合放入洗碗机，请使用温水手洗，清洗前需拆下杯盖 [1]。\n\n以上信息来自型号手册（演示）数据。",
+    "conversation_id": "2cc26794-a4c9-48f1-9a67-675b909a8d73",
+    "events": [
+      [
+        "meta",
+        {
+          "conversation_id": "2cc26794-a4c9-48f1-9a67-675b909a8d73",
+          "request_id": "9247ec4c-49ec-414a-a5c7-29933589e62c"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "resolve"
+        }
+      ],
+      [
+        "understanding",
+        {
+          "question": "BX-500容量是多少",
+          "intent": "商品咨询",
+          "confidence": 0.96
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "classify"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "route"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "retrieve"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "confidence"
+        }
+      ],
+      [
+        "sources",
+        {
+          "sources": [
+            {
+              "chunk_id": 11,
+              "question": "BX-500 容量与清洗",
+              "answer": "BX-500 便携水杯的标称容量为500毫升。BX-500 不适合放入洗碗机，请使用温水手洗。清洗前应拆下杯盖。",
+              "text": "分类：型号手册（演示）\n问题：BX-500 容量与清洗\n答案：BX-500 便携水杯的标称容量为500毫升。BX-500 不适合放入洗碗机，请使用温水手洗。清洗前应拆下杯盖。",
+              "category": "型号手册（演示）",
+              "source_ref": "markdown:08140701a142:models.md",
+              "section_path": "型号手册（演示） / BX-500 容量与清洗",
+              "content_hash": "bd4baa00343d97ac37ea049870ac4e61339fa3c5e996ed1bc8ef4a10a31da366",
+              "content_type": "policy",
+              "score": 0.9988195300102234,
+              "source_url": "/knowledge/chunks/11",
+              "citation": 1
+            },
+            {
+              "chunk_id": 12,
+              "question": "BX-750 容量与清洗",
+              "answer": "BX-750 便携水杯的标称容量为750毫升。BX-750 的杯体可以放入洗碗机，杯盖和密封圈需要单独手洗。",
+              "text": "分类：型号手册（演示）\n问题：BX-750 容量与清洗\n答案：BX-750 便携水杯的标称容量为750毫升。BX-750 的杯体可以放入洗碗机，杯盖和密封圈需要单独手洗。",
+              "category": "型号手册（演示）",
+              "source_ref": "markdown:08140701a142:models.md",
+              "section_path": "型号手册（演示） / BX-750 容量与清洗",
+              "content_hash": "5ecf5d49910473a7ad96166243f31de60afc05cfceaa935dffcab500dd498eac",
+              "content_type": "policy",
+              "score": 0.4029169976711273,
+              "source_url": "/knowledge/chunks/12",
+              "citation": 2
+            }
+          ]
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "prepare_agent"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "agent"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "BX"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "500"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "便携"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "水"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "杯"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "的"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "标"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "称"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "容量"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "为"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "500"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "毫升"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " ["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "1"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]。\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "另外"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "提醒"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "BX"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "500"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "不适合"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "放入"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "洗碗"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "机"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "请"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "使用"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "温水"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "手"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "洗"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "清洗"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "前"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "需"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "拆"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "下"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "杯"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "盖"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " ["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "1"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]。\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "以上"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "信息"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "来自"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "型号"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "手册"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "（"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "演示"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "）"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "数据"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "log"
+        }
+      ],
+      [
+        "actions",
+        {
+          "actions": []
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "2cc26794-a4c9-48f1-9a67-675b909a8d73",
+          "request_id": "9247ec4c-49ec-414a-a5c7-29933589e62c"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "policy-01",
+    "message": "退货政策是什么",
+    "intent": "退款退货",
+    "route": "after_sales",
+    "evidence": true,
+    "pick_order": "1001",
+    "passed": true,
+    "actual_intent": "退款退货",
+    "nodes": [
+      "resolve",
+      "classify",
+      "route",
+      "select_order",
+      "load_order",
+      "retrieve",
+      "confidence",
+      "prepare_agent",
+      "agent",
+      "log"
+    ],
+    "tools": [
+      "query_order"
+    ],
+    "steps": 1,
+    "tokens": 3243,
+    "answer": "请选择要处理的订单，点选后将继续核对订单与政策。以下为演示订单。根据本店演示政策，退货规则如下（以下均为演示数据，具体以平台售后规则为准）：\n\n- **7天无理由退货**：自签收之日起7天内，商品完好、不影响二次销售的，可申请无理由退货 [1][2][4]。\n- **除外商品**：定制类、生鲜类、已拆封的猫砂等消耗品，以及标注“不支持无理由退货”的商品，非质量问题不支持退货 [4][9]。\n- **退货运费**：无理由退货的退回运费由买家承担；因质量问题、发错货、少发漏发导致的退换货，运费由平台承担 [7]。\n- **退款时效**：退货商品经平台核验通过后，退款原路退回，到账时效以平台售后规则为准 [8]。\n- **运输破损**：签收后48小时内联系客服并提供开箱视频与照片，核实后可免费补发或退款 [10]。\n\n结合您这笔订单：订单 **1001（BX-500 保温杯）** 已签收 **3天**，属于普通商品，**时间上仍在7天无理由退货期内** [2][4]。能否办理还需确认商品是否完好、未使用且不影响二次销售；您可告知商品当前状态，我再帮您判断。提交退货申请并不代表退款一定成功，需经平台核验。",
+    "conversation_id": "8233ea9a-75a3-400c-893c-5d41e44e8c2c",
+    "events": [
+      [
+        "meta",
+        {
+          "conversation_id": "8233ea9a-75a3-400c-893c-5d41e44e8c2c",
+          "request_id": "c2adf51e-d01a-42c0-a380-244ecbca1070"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "resolve"
+        }
+      ],
+      [
+        "understanding",
+        {
+          "question": "退货政策是什么",
+          "intent": "退款退货",
+          "confidence": 0.98
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "classify"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "route"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "请选择要处理的订单，点选后将继续核对订单与政策。以下为演示订单。"
+        }
+      ],
+      [
+        "order_required",
+        {
+          "orders": [
+            {
+              "order_id": "1001",
+              "product_name": "BX-500 保温杯",
+              "product_id": "BX-500",
+              "status": "已签收",
+              "days_since_received": 3,
+              "total": 99,
+              "currency": "CNY",
+              "category": "普通商品",
+              "simulated": true
+            },
+            {
+              "order_id": "1002",
+              "product_name": "FD-200 智能喂食器",
+              "product_id": "FD-200",
+              "status": "已签收",
+              "days_since_received": 12,
+              "total": 299,
+              "currency": "CNY",
+              "category": "电子类商品",
+              "simulated": true
+            },
+            {
+              "order_id": "1003",
+              "product_name": "定制刻字保温杯",
+              "product_id": "CUSTOM-01",
+              "status": "已签收",
+              "days_since_received": 2,
+              "total": 199,
+              "currency": "CNY",
+              "category": "定制类",
+              "simulated": true
+            }
+          ]
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "8233ea9a-75a3-400c-893c-5d41e44e8c2c",
+          "request_id": "c2adf51e-d01a-42c0-a380-244ecbca1070"
+        }
+      ],
+      [
+        "meta",
+        {
+          "conversation_id": "8233ea9a-75a3-400c-893c-5d41e44e8c2c",
+          "request_id": "c2adf51e-d01a-42c0-a380-244ecbca1070"
+        }
+      ],
+      [
+        "understanding",
+        {
+          "question": "退货政策是什么",
+          "intent": "退款退货",
+          "confidence": 0.98
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "select_order"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "load_order"
+        }
+      ],
+      [
+        "tool_status",
+        {
+          "name": "query_order",
+          "tool_call_id": "order:c2adf51e-d01a-42c0-a380-244ecbca1070",
+          "state": "running"
+        }
+      ],
+      [
+        "tool_status",
+        {
+          "name": "query_order",
+          "tool_call_id": "order:c2adf51e-d01a-42c0-a380-244ecbca1070",
+          "state": "succeeded"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "retrieve"
+        }
+      ],
+      [
+        "retrieval_queries",
+        {
+          "queries": [
+            "退货政策是什么；商品：BX-500 保温杯；检索退款退货或售后政策条款",
+            "BX-500 保温杯退货适用条件和商品完好要求",
+            "BX-500 保温杯退货申请期限与不支持退货的例外",
+            "BX-500 保温杯退款退货办理流程"
+          ]
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "confidence"
+        }
+      ],
+      [
+        "sources",
+        {
+          "sources": [
+            {
+              "chunk_id": 25,
+              "question": "退货政策是什么",
+              "answer": "支持 7 天无理由退货,商品需保持完好、不影响二次销售,具体以平台售后规则为准。",
+              "text": "分类：商品与购物 FAQ\n问题：退货政策是什么\n答案：支持 7 天无理由退货,商品需保持完好、不影响二次销售,具体以平台售后规则为准。",
+              "category": "商品与购物 FAQ",
+              "source_ref": "upload:product-faq.md",
+              "section_path": "商品与购物 FAQ / 退货政策是什么",
+              "content_hash": "855557c870013e3f266fa6bf0fe70f494a7e44ece04dcb30d1689919b084dc0c",
+              "content_type": "policy",
+              "score": 0.8677694797515869,
+              "source_url": "/knowledge/chunks/25",
+              "citation": 1
+            },
+            {
+              "chunk_id": 4,
+              "question": "退货政策",
+              "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+              "text": "分类：售后手册（演示）\n问题：退货政策\n答案：签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+              "category": "售后手册（演示）",
+              "source_ref": "markdown:08140701a142:after-sales.md",
+              "section_path": "售后手册（演示） / 退货政策",
+              "content_hash": "c51e78ecf4d297b538fc3713cb483821681349764b3d36fc58f07ce1f7ec0c2d",
+              "content_type": "policy",
+              "score": 0.7072489857673645,
+              "source_url": "/knowledge/chunks/4",
+              "citation": 2
+            },
+            {
+              "chunk_id": 57,
+              "question": "质量问题与保修",
+              "answer": "电子类商品自签收起保修 12 个月,保修期内非人为损坏可申请免费维修或换货;人为损坏、超保商品维修可能收取工本费。",
+              "text": "分类：退货退款政策\n问题：质量问题与保修\n答案：电子类商品自签收起保修 12 个月,保修期内非人为损坏可申请免费维修或换货;人为损坏、超保商品维修可能收取工本费。",
+              "category": "退货退款政策",
+              "source_ref": "upload:returns-policy.md",
+              "section_path": "退货退款政策 / 质量问题与保修",
+              "content_hash": "2498fc08d1e10ec83ca5e23fa296b04f7264d161d77998bf417a04b2217d3b7f",
+              "content_type": "policy",
+              "score": 0.3120783865451813,
+              "source_url": "/knowledge/chunks/57",
+              "citation": 3
+            },
+            {
+              "chunk_id": 52,
+              "question": "适用范围",
+              "answer": "自签收之日起 7 天内,商品完好、不影响二次销售的,支持无理由退货。定制类、生鲜类商品除外。",
+              "text": "分类：退货退款政策 / 无理由退货\n问题：适用范围\n答案：自签收之日起 7 天内,商品完好、不影响二次销售的,支持无理由退货。定制类、生鲜类商品除外。",
+              "category": "退货退款政策 / 无理由退货",
+              "source_ref": "upload:returns-policy.md",
+              "section_path": "退货退款政策 / 无理由退货 / 适用范围",
+              "content_hash": "7397a2fdfbb7ae723ce2eea7436b8709e40260322b08522889e771c1e5956558",
+              "content_type": "policy",
+              "score": 0.24971452355384827,
+              "source_url": "/knowledge/chunks/52",
+              "citation": 4
+            },
+            {
+              "chunk_id": 54,
+              "question": "换货条件",
+              "answer": "收到商品 7 天内,商品完好且配件齐全的,可申请一次同款换货;不同型号或颜色需先退货再重新下单。",
+              "text": "分类：退货退款政策 / 换货政策\n问题：换货条件\n答案：收到商品 7 天内,商品完好且配件齐全的,可申请一次同款换货;不同型号或颜色需先退货再重新下单。",
+              "category": "退货退款政策 / 换货政策",
+              "source_ref": "upload:returns-policy.md",
+              "section_path": "退货退款政策 / 换货政策 / 换货条件",
+              "content_hash": "deada413dcf19938b88ef79fa3126ae25fd21e7caa3d44430b5226d156c87d0a",
+              "content_type": "policy",
+              "score": 0.18814100325107574,
+              "source_url": "/knowledge/chunks/54",
+              "citation": 5
+            },
+            {
+              "chunk_id": 60,
+              "question": "预售与定金",
+              "answer": "预售商品以详情页标注的时间发货;定金支付后不支持无理由退定金,尾款未按时支付的,定金按活动规则处理。",
+              "text": "分类：退货退款政策\n问题：预售与定金\n答案：预售商品以详情页标注的时间发货;定金支付后不支持无理由退定金,尾款未按时支付的,定金按活动规则处理。",
+              "category": "退货退款政策",
+              "source_ref": "upload:returns-policy.md",
+              "section_path": "退货退款政策 / 预售与定金",
+              "content_hash": "d225edf1e32f6c87ecc8cb5b9bd81462e88259f2c2741a44a163420902412180",
+              "content_type": "policy",
+              "score": 0.18601323664188385,
+              "source_url": "/knowledge/chunks/60",
+              "citation": 6
+            },
+            {
+              "chunk_id": 56,
+              "question": "退换货运费承担",
+              "answer": "无理由退货的退回运费由买家承担;因商品质量问题、发错货、少发漏发导致的退换货,运费由平台承担。运费承担以平台售后规则最终判定为准。",
+              "text": "分类：退货退款政策\n问题：退换货运费承担\n答案：无理由退货的退回运费由买家承担;因商品质量问题、发错货、少发漏发导致的退换货,运费由平台承担。运费承担以平台售后规则最终判定为准。",
+              "category": "退货退款政策",
+              "source_ref": "upload:returns-policy.md",
+              "section_path": "退货退款政策 / 退换货运费承担",
+              "content_hash": "6f1515d26257e3d24932058a5cb38e5dc88e4b9c20a0d9a0e19ae7b759e9baa6",
+              "content_type": "policy",
+              "score": 0.1768915206193924,
+              "source_url": "/knowledge/chunks/56",
+              "citation": 7
+            },
+            {
+              "chunk_id": 53,
+              "question": "退款时效",
+              "answer": "退货商品经平台核验通过后,退款原路退回,到账时效以平台售后规则为准。",
+              "text": "分类：退货退款政策 / 无理由退货\n问题：退款时效\n答案：退货商品经平台核验通过后,退款原路退回,到账时效以平台售后规则为准。",
+              "category": "退货退款政策 / 无理由退货",
+              "source_ref": "upload:returns-policy.md",
+              "section_path": "退货退款政策 / 无理由退货 / 退款时效",
+              "content_hash": "41abdf6a045d365bf691498776a49f7226ba1e033b77f66f854df38b0cd4f5a8",
+              "content_type": "policy",
+              "score": 0.17676517367362976,
+              "source_url": "/knowledge/chunks/53",
+              "citation": 8
+            },
+            {
+              "chunk_id": 59,
+              "question": "不支持退货的商品",
+              "answer": "定制类、生鲜类、已拆封的猫砂等消耗品,以及标注「不支持无理由退货」的商品,非质量问题不支持退货。",
+              "text": "分类：退货退款政策\n问题：不支持退货的商品\n答案：定制类、生鲜类、已拆封的猫砂等消耗品,以及标注「不支持无理由退货」的商品,非质量问题不支持退货。",
+              "category": "退货退款政策",
+              "source_ref": "upload:returns-policy.md",
+              "section_path": "退货退款政策 / 不支持退货的商品",
+              "content_hash": "9c1242500a3243928d89d603d6a3767c6363484334e1fbe6b0dcba364ff877c0",
+              "content_type": "policy",
+              "score": 0.14950717985630035,
+              "source_url": "/knowledge/chunks/59",
+              "citation": 9
+            },
+            {
+              "chunk_id": 58,
+              "question": "运输破损处理",
+              "answer": "商品运输途中破损的,请在签收后 48 小时内联系客服并提供开箱视频与照片,核实后可免费补发或退款,相关运费由平台承担。",
+              "text": "分类：退货退款政策\n问题：运输破损处理\n答案：商品运输途中破损的,请在签收后 48 小时内联系客服并提供开箱视频与照片,核实后可免费补发或退款,相关运费由平台承担。",
+              "category": "退货退款政策",
+              "source_ref": "upload:returns-policy.md",
+              "section_path": "退货退款政策 / 运输破损处理",
+              "content_hash": "dbd71a64e33c164cdf069f7ae5b0d1d574a3e158cdb7f01dcf1c50b496010d89",
+              "content_type": "policy",
+              "score": 0.12681059539318085,
+              "source_url": "/knowledge/chunks/58",
+              "citation": 10
+            }
+          ]
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "prepare_agent"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "agent"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "根据"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "本"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "店"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "演示"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "政策"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退货"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "规则"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "如下"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "（"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "以下"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "均为"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "演示"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "数据"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "具体"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "以"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "平台"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "售后"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "规则"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "为准"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "）：\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " **"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "7"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "天"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "无"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "理由"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退货"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "自"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "签"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "收"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "之日起"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "7"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "天内"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "商品"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "完好"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "、"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "不影响"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "二次"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "销售的"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "可"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "申请"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "无"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "理由"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退货"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " ["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "1"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "2"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "4"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " **"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "除外"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "商品"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "定制"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "类"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "、"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "生"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "鲜"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "类"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "、"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "已"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "拆"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "封"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "的"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "猫"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "砂"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "等"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "消耗"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "品"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "以及"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "标注"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "“"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "不支持"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "无"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "理由"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退货"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "”"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "的商品"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "非"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "质量问题"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "不支持"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退货"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " ["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "4"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "9"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " **"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "货运"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "无"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "理由"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退货"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "的"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退回"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "运费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "由"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "买家"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "承担"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "；"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "因"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "质量问题"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "、"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "发"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "错"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "货"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "、"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "少"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "发"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "漏"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "发"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "导致的"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "换"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "货"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "运费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "由"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "平台"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "承担"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " ["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "7"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " **"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退款"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "时效"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退货"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "商品"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "经"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "平台"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "核"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "验"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "通过"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "后"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退款"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "原"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "路"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退回"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "到"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "账"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "时效"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "以"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "平台"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "售后"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "规则"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "为准"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " ["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "8"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " **"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "运输"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "破损"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "签"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "收"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "后"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "48"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "小时内"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "联系"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "客服"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "并提供"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "开"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "箱"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "视频"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "与"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "照片"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "核实"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "后可"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "免费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "补"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "发"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "或"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退款"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " ["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "10"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]。\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "结合"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "这笔"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " **"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "100"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "1"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "（"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "BX"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "500"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "保温"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "杯"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "）"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "已"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "签"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "收"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " **"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "3"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "天"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "属于"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "普通"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "商品"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "时间"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "上"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "仍在"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "7"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "天"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "无"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "理由"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退货"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "期内"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " ["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "2"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "4"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]。"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "能否"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "办理"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "还需"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "确认"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "商品"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "是否"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "完好"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "、"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "未"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "使用"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "且"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "不影响"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "二次"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "销售"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "；"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "可"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "告知"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "商品"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "当前"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "状态"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "我再"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "帮"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "判断"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "提交"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退货"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "申请"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "并不"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "代表"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "退款"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "一定"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "成功"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "需"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "经"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "平台"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "核"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "验"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "log"
+        }
+      ],
+      [
+        "actions",
+        {
+          "actions": []
+        }
+      ],
+      [
+        "refund_form",
+        {
+          "order_id": "1001",
+          "reasons": [
+            "不想要了",
+            "商品质量问题",
+            "收到商品破损",
+            "商品与描述不符",
+            "发错货或少件",
+            "其他"
+          ]
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "8233ea9a-75a3-400c-893c-5d41e44e8c2c",
+          "request_id": "c2adf51e-d01a-42c0-a380-244ecbca1070"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "policy-02",
+    "message": "邮费是多少",
+    "intent": "商品咨询",
+    "route": "knowledge",
+    "evidence": true,
+    "passed": true,
+    "actual_intent": "商品咨询",
+    "nodes": [
+      "resolve",
+      "classify",
+      "route",
+      "retrieve",
+      "confidence",
+      "prepare_agent",
+      "agent",
+      "log"
+    ],
+    "tools": [],
+    "steps": 1,
+    "tokens": 2634,
+    "answer": "关于邮费，现有资料中存在两种不同的标准：\n\n- 单笔订单满 99 元包邮，未满 99 元收取 **10 元**运费，偏远地区运费另计 [1]。\n- 普通商品订单满 99 元免运费，未满 99 元收取 **8 元**运费，偏远地区需人工确认 [2]。\n\n由于“未满 99 元”时的运费金额存在 8 元和 10 元两种说法，我无法确认适用哪一种。您可以提供订单号，我来帮您核实具体订单的运费；也可以转人工，由人工进一步确认。（以上为演示数据）",
+    "conversation_id": "efd0ce6c-44f5-4801-8687-f11e2889838e",
+    "events": [
+      [
+        "meta",
+        {
+          "conversation_id": "efd0ce6c-44f5-4801-8687-f11e2889838e",
+          "request_id": "73d8b228-3e99-4724-9932-f9d5a0bb5466"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "resolve"
+        }
+      ],
+      [
+        "understanding",
+        {
+          "question": "邮费是多少",
+          "intent": "商品咨询",
+          "confidence": 0.98
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "classify"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "route"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "retrieve"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "confidence"
+        }
+      ],
+      [
+        "sources",
+        {
+          "sources": [
+            {
+              "chunk_id": 29,
+              "question": "运费怎么算",
+              "answer": "单笔订单满 99 元包邮,未满收取 10 元运费,偏远地区运费另计。邮费即运费,按此规则收取。",
+              "text": "分类：商品与购物 FAQ\n问题：运费怎么算\n答案：单笔订单满 99 元包邮,未满收取 10 元运费,偏远地区运费另计。邮费即运费,按此规则收取。",
+              "category": "商品与购物 FAQ",
+              "source_ref": "upload:product-faq.md",
+              "section_path": "商品与购物 FAQ / 运费怎么算",
+              "content_hash": "1041a4d59a69111ca646f090d0b6ecfc8a239c459ec022f6e6c62e14bc08f3da",
+              "content_type": "policy",
+              "score": 0.7721297740936279,
+              "source_url": "/knowledge/chunks/29",
+              "citation": 1
+            },
+            {
+              "chunk_id": 2,
+              "question": "运费标准是什么\n邮费多少钱？",
+              "answer": "普通商品订单满99元免运费，未满99元收取8元运费；偏远地区需人工确认。",
+              "text": "分类：配送\n问题：运费标准是什么\n邮费多少钱？\n答案：普通商品订单满99元免运费，未满99元收取8元运费；偏远地区需人工确认。",
+              "category": "配送",
+              "source_ref": "faq:2",
+              "section_path": "运费标准是什么\n邮费多少钱？",
+              "content_hash": "0b7e46ff3de5efc1ad52f8062d5a287f260f647c0e7db37651baefe75e51e179",
+              "content_type": "faq",
+              "score": 0.7497668862342834,
+              "source_url": "/knowledge/chunks/2",
+              "citation": 2
+            }
+          ]
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "prepare_agent"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "agent"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "关于"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "邮"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "现有"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "资料"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "中存在"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "两种"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "不同的"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "标准"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "：\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "笔"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "满"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "99"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "元"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "包"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "邮"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "未"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "满"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "99"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "元"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "收取"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " **"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "10"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "元"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "运费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "偏远"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "地区"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "运费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "另"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "计"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " ["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "1"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "普通"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "商品"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "满"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "99"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "元"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "免"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "运费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "未"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "满"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "99"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "元"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "收取"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " **"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "8"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "元"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "**"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "运费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "偏远"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "地区"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "需"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "人工"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "确认"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " ["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "2"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]。\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "由于"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "“"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "未"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "满"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "99"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "元"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "”"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "时的"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "运费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "金额"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "存在"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "8"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "元和"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "10"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "元"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "两种"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "说法"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "我"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "无法"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "确认"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "适用"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "哪一种"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您可以"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "提供"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "号"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "我来"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "帮"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "核实"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "具体"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "的"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "运费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "；"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "也可以"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "转"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "人工"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "由"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "人工"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "进一步"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "确认"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。（"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "以上"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "为"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "演示"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "数据"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "）"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "log"
+        }
+      ],
+      [
+        "actions",
+        {
+          "actions": [
+            "handoff"
+          ]
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "efd0ce6c-44f5-4801-8687-f11e2889838e",
+          "request_id": "73d8b228-3e99-4724-9932-f9d5a0bb5466"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "aftersales-01",
+    "message": "商品坏了，我想申请维修，请问需要提供什么信息",
+    "intent": "售后",
+    "route": "after_sales",
+    "evidence": true,
+    "pick_order": "1002",
+    "passed": true,
+    "actual_intent": "售后",
+    "nodes": [
+      "resolve",
+      "classify",
+      "route",
+      "select_order",
+      "load_order",
+      "retrieve",
+      "confidence",
+      "prepare_agent",
+      "agent",
+      "log"
+    ],
+    "tools": [
+      "query_order"
+    ],
+    "steps": 1,
+    "tokens": 3410,
+    "answer": "请选择要处理的订单，点选后将继续核对订单与政策。以下为演示订单。您的订单 1002（FD-200 智能喂食器）已签收 12 天。电子类商品自签收日起保修 12 个月，保修期内非人为损坏可申请免费维修或换货 [1][10]；人为损坏不在保修范围，超保或人为损坏的维修可能收取工本费 [1][10]。本店为演示数据，具体处理条件需人工核实后确认 [3]。\n\n申请维修时，请提供以下信息：\n1. 具体故障现象，如无法出粮、报错、断电等；\n2. 您的期望方案，例如维修或换货 [3]；\n3. 如方便，可附上故障照片或视频，便于核实。\n\n另外，您可以先尝试基础自查：喂食器卡粮时，请检查粮食颗粒直径是否超过 12mm、粮桶是否受潮结块，清理出粮口后重试 [5]。\n\n请先告知具体故障现象；确认后，我可以建议您转人工进一步核实处理。",
+    "conversation_id": "b604af29-0ef6-4de0-9d60-24561532b5ca",
+    "events": [
+      [
+        "meta",
+        {
+          "conversation_id": "b604af29-0ef6-4de0-9d60-24561532b5ca",
+          "request_id": "fc48069c-1fd8-4b03-b0e1-5361c000abc9"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "resolve"
+        }
+      ],
+      [
+        "understanding",
+        {
+          "question": "商品坏了，我想申请维修，请问需要提供什么信息",
+          "intent": "售后",
+          "confidence": 0.98
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "classify"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "route"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "请选择要处理的订单，点选后将继续核对订单与政策。以下为演示订单。"
+        }
+      ],
+      [
+        "order_required",
+        {
+          "orders": [
+            {
+              "order_id": "1001",
+              "product_name": "BX-500 保温杯",
+              "product_id": "BX-500",
+              "status": "已签收",
+              "days_since_received": 3,
+              "total": 99,
+              "currency": "CNY",
+              "category": "普通商品",
+              "simulated": true
+            },
+            {
+              "order_id": "1002",
+              "product_name": "FD-200 智能喂食器",
+              "product_id": "FD-200",
+              "status": "已签收",
+              "days_since_received": 12,
+              "total": 299,
+              "currency": "CNY",
+              "category": "电子类商品",
+              "simulated": true
+            },
+            {
+              "order_id": "1003",
+              "product_name": "定制刻字保温杯",
+              "product_id": "CUSTOM-01",
+              "status": "已签收",
+              "days_since_received": 2,
+              "total": 199,
+              "currency": "CNY",
+              "category": "定制类",
+              "simulated": true
+            }
+          ]
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "b604af29-0ef6-4de0-9d60-24561532b5ca",
+          "request_id": "fc48069c-1fd8-4b03-b0e1-5361c000abc9"
+        }
+      ],
+      [
+        "meta",
+        {
+          "conversation_id": "b604af29-0ef6-4de0-9d60-24561532b5ca",
+          "request_id": "fc48069c-1fd8-4b03-b0e1-5361c000abc9"
+        }
+      ],
+      [
+        "understanding",
+        {
+          "question": "商品坏了，我想申请维修，请问需要提供什么信息",
+          "intent": "售后",
+          "confidence": 0.98
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "select_order"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "load_order"
+        }
+      ],
+      [
+        "tool_status",
+        {
+          "name": "query_order",
+          "tool_call_id": "order:fc48069c-1fd8-4b03-b0e1-5361c000abc9",
+          "state": "running"
+        }
+      ],
+      [
+        "tool_status",
+        {
+          "name": "query_order",
+          "tool_call_id": "order:fc48069c-1fd8-4b03-b0e1-5361c000abc9",
+          "state": "succeeded"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "retrieve"
+        }
+      ],
+      [
+        "retrieval_queries",
+        {
+          "queries": [
+            "商品坏了，我想申请维修，请问需要提供什么信息；商品：FD-200 智能喂食器；检索退款退货或售后政策条款",
+            "FD-200 智能喂食器 维修申请 需要提供的信息 和 适用条件",
+            "FD-200 智能喂食器 维修 办理期限 与 不予维修的例外情形",
+            "FD-200 智能喂食器 售后维修 办理流程 与 所需证明材料"
+          ]
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "confidence"
+        }
+      ],
+      [
+        "sources",
+        {
+          "sources": [
+            {
+              "chunk_id": 57,
+              "question": "质量问题与保修",
+              "answer": "电子类商品自签收起保修 12 个月,保修期内非人为损坏可申请免费维修或换货;人为损坏、超保商品维修可能收取工本费。",
+              "text": "分类：退货退款政策\n问题：质量问题与保修\n答案：电子类商品自签收起保修 12 个月,保修期内非人为损坏可申请免费维修或换货;人为损坏、超保商品维修可能收取工本费。",
+              "category": "退货退款政策",
+              "source_ref": "upload:returns-policy.md",
+              "section_path": "退货退款政策 / 质量问题与保修",
+              "content_hash": "2498fc08d1e10ec83ca5e23fa296b04f7264d161d77998bf417a04b2217d3b7f",
+              "content_type": "policy",
+              "score": 0.5246200561523438,
+              "source_url": "/knowledge/chunks/57",
+              "citation": 1
+            },
+            {
+              "chunk_id": 4,
+              "question": "退货政策",
+              "answer": "签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+              "text": "分类：售后手册（演示）\n问题：退货政策\n答案：签收后7天内，商品完好且不影响二次销售可申请无理由退货。质量问题请联系人工核实。",
+              "category": "售后手册（演示）",
+              "source_ref": "markdown:08140701a142:after-sales.md",
+              "section_path": "售后手册（演示） / 退货政策",
+              "content_hash": "c51e78ecf4d297b538fc3713cb483821681349764b3d36fc58f07ce1f7ec0c2d",
+              "content_type": "policy",
+              "score": 0.4097714424133301,
+              "source_url": "/knowledge/chunks/4",
+              "citation": 2
+            },
+            {
+              "chunk_id": 5,
+              "question": "售后联系",
+              "answer": "申请售后时请说明商品问题和期望方案，客服会协助整理信息。具体处理条件由人工核实后确认。",
+              "text": "分类：售后手册（演示）\n问题：售后联系\n答案：申请售后时请说明商品问题和期望方案，客服会协助整理信息。具体处理条件由人工核实后确认。",
+              "category": "售后手册（演示）",
+              "source_ref": "markdown:08140701a142:after-sales.md",
+              "section_path": "售后手册（演示） / 售后联系",
+              "content_hash": "9fba4e5f0b4048340204c7600e84400c09405500b23e66d97b6a366917c46a7c",
+              "content_type": "policy",
+              "score": 0.3520066738128662,
+              "source_url": "/knowledge/chunks/5",
+              "citation": 3
+            },
+            {
+              "chunk_id": 25,
+              "question": "退货政策是什么",
+              "answer": "支持 7 天无理由退货,商品需保持完好、不影响二次销售,具体以平台售后规则为准。",
+              "text": "分类：商品与购物 FAQ\n问题：退货政策是什么\n答案：支持 7 天无理由退货,商品需保持完好、不影响二次销售,具体以平台售后规则为准。",
+              "category": "商品与购物 FAQ",
+              "source_ref": "upload:product-faq.md",
+              "section_path": "商品与购物 FAQ / 退货政策是什么",
+              "content_hash": "855557c870013e3f266fa6bf0fe70f494a7e44ece04dcb30d1689919b084dc0c",
+              "content_type": "policy",
+              "score": 0.2171282172203064,
+              "source_url": "/knowledge/chunks/25",
+              "citation": 4
+            },
+            {
+              "chunk_id": 21,
+              "question": "常见故障自查",
+              "answer": "- 饮水机不出水:检查水位是否低于最低线、水泵是否卡阻,断电清洗水泵后重试。\n- 猫砂盆报错:清空废砂盒并检查滚筒是否卡砂,重启设备;仍报错联系售后。\n- 喂食器卡粮:检查粮食颗粒直径是否超 12mm、粮桶是否受潮结块,清理出粮口后重试。\n- 摄像头离线:确认 Wi-Fi 为 2.4G 频段、信号良好,重启设备或在 App 内重新配网。",
+              "text": "分类：售后手册\n问题：常见故障自查\n答案：- 饮水机不出水:检查水位是否低于最低线、水泵是否卡阻,断电清洗水泵后重试。\n- 猫砂盆报错:清空废砂盒并检查滚筒是否卡砂,重启设备;仍报错联系售后。\n- 喂食器卡粮:检查粮食颗粒直径是否超 12mm、粮桶是否受潮结块,清理出粮口后重试。\n- 摄像头离线:确认 Wi-Fi 为 2.4G 频段、信号良好,重启设备或在 App 内重新配网。",
+              "category": "售后手册",
+              "source_ref": "upload:after-sales-manual.md",
+              "section_path": "售后手册 / 常见故障自查",
+              "content_hash": "3e1af22fbde8422bbe2a41e940796bf632c5ac39d3a7972b24ecb9a0266deb39",
+              "content_type": "policy",
+              "score": 0.12025067210197449,
+              "source_url": "/knowledge/chunks/21",
+              "citation": 5
+            },
+            {
+              "chunk_id": 52,
+              "question": "适用范围",
+              "answer": "自签收之日起 7 天内,商品完好、不影响二次销售的,支持无理由退货。定制类、生鲜类商品除外。",
+              "text": "分类：退货退款政策 / 无理由退货\n问题：适用范围\n答案：自签收之日起 7 天内,商品完好、不影响二次销售的,支持无理由退货。定制类、生鲜类商品除外。",
+              "category": "退货退款政策 / 无理由退货",
+              "source_ref": "upload:returns-policy.md",
+              "section_path": "退货退款政策 / 无理由退货 / 适用范围",
+              "content_hash": "7397a2fdfbb7ae723ce2eea7436b8709e40260322b08522889e771c1e5956558",
+              "content_type": "policy",
+              "score": 0.11659391969442368,
+              "source_url": "/knowledge/chunks/52",
+              "citation": 6
+            },
+            {
+              "chunk_id": 58,
+              "question": "运输破损处理",
+              "answer": "商品运输途中破损的,请在签收后 48 小时内联系客服并提供开箱视频与照片,核实后可免费补发或退款,相关运费由平台承担。",
+              "text": "分类：退货退款政策\n问题：运输破损处理\n答案：商品运输途中破损的,请在签收后 48 小时内联系客服并提供开箱视频与照片,核实后可免费补发或退款,相关运费由平台承担。",
+              "category": "退货退款政策",
+              "source_ref": "upload:returns-policy.md",
+              "section_path": "退货退款政策 / 运输破损处理",
+              "content_hash": "dbd71a64e33c164cdf069f7ae5b0d1d574a3e158cdb7f01dcf1c50b496010d89",
+              "content_type": "policy",
+              "score": 0.10566116124391556,
+              "source_url": "/knowledge/chunks/58",
+              "citation": 7
+            },
+            {
+              "chunk_id": 54,
+              "question": "换货条件",
+              "answer": "收到商品 7 天内,商品完好且配件齐全的,可申请一次同款换货;不同型号或颜色需先退货再重新下单。",
+              "text": "分类：退货退款政策 / 换货政策\n问题：换货条件\n答案：收到商品 7 天内,商品完好且配件齐全的,可申请一次同款换货;不同型号或颜色需先退货再重新下单。",
+              "category": "退货退款政策 / 换货政策",
+              "source_ref": "upload:returns-policy.md",
+              "section_path": "退货退款政策 / 换货政策 / 换货条件",
+              "content_hash": "deada413dcf19938b88ef79fa3126ae25fd21e7caa3d44430b5226d156c87d0a",
+              "content_type": "policy",
+              "score": 0.10246571153402328,
+              "source_url": "/knowledge/chunks/54",
+              "citation": 8
+            },
+            {
+              "chunk_id": 49,
+              "question": "自动喂食器 基础版(型号 MH-FD10)",
+              "answer": "- 型号:MH-FD10\n- 粮桶容量:4L\n- 核心功能:定时定量投喂,每日最多 6 餐,语音呼唤进食\n- 供电:市电供电 + 4 节 5 号电池断电应急\n- 说明:基础版不含摄像头与 App 远程投喂",
+              "text": "分类：商品规格手册\n问题：自动喂食器 基础版(型号 MH-FD10)\n答案：- 型号:MH-FD10\n- 粮桶容量:4L\n- 核心功能:定时定量投喂,每日最多 6 餐,语音呼唤进食\n- 供电:市电供电 + 4 节 5 号电池断电应急\n- 说明:基础版不含摄像头与 App 远程投喂",
+              "category": "商品规格手册",
+              "source_ref": "upload:product-specs.md",
+              "section_path": "商品规格手册 / 自动喂食器 基础版(型号 MH-FD10)",
+              "content_hash": "d16f056c962c9f1e2c20e3a85e78fc469ae4b8a4afc194782572cb1d2e9b0260",
+              "content_type": "policy",
+              "score": 0.061555974185466766,
+              "source_url": "/knowledge/chunks/49",
+              "citation": 9
+            },
+            {
+              "chunk_id": 19,
+              "question": "保修说明",
+              "answer": "电子类商品保修 12 个月,自签收日起算;人为损坏不在保修范围。",
+              "text": "分类：售后手册\n问题：保修说明\n答案：电子类商品保修 12 个月,自签收日起算;人为损坏不在保修范围。",
+              "category": "售后手册",
+              "source_ref": "upload:after-sales-manual.md",
+              "section_path": "售后手册 / 保修说明",
+              "content_hash": "6d35c1a36ad2881f1cfcf5c1340f7a9617852d58a1f58f7d45f8db7590adca34",
+              "content_type": "policy",
+              "score": 0.061369989067316055,
+              "source_url": "/knowledge/chunks/19",
+              "citation": 10
+            }
+          ]
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "prepare_agent"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "agent"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您的"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "100"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "2"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "（"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "FD"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "-"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "200"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "智能"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "喂"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "食"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "器"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "）"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "已"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "签"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "收"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "12"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "天"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "电子"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "类"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "商品"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "自"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "签"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "收"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "日起"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "保修"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "12"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "个月"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "保修"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "期内"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "非"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "人为"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "损坏"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "可"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "申请"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "免费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "维修"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "或"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "换"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "货"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " ["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "1"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "10"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "；"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "人为"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "损坏"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "不在"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "保修"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "范围"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "超"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "保"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "或"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "人为"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "损坏"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "的"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "维修"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "可能"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "收取"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "工"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "本"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "费"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " ["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "1"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "10"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]。"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "本"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "店"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "为"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "演示"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "数据"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "具体"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "处理"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "条件"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "需"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "人工"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "核实"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "后"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "确认"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " ["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "3"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]。\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "申请"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "维修"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "时"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "请"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "提供"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "以下"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "信息"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "：\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "1"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "."
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "具体"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "故障"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "现象"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "如"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "无法"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "出"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "粮"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "、"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "报"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "错"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "、"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "断电"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "等"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "；\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "2"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "."
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您的"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "期望"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "方案"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "例如"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "维修"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "或"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "换"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "货"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " ["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "3"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "；\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "3"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "."
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "如"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "方便"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "可"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "附"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "上"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "故障"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "照片"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "或"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "视频"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "便于"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "核实"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "另外"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您可以"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "先"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "尝试"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "基础"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "自查"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "："
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "喂"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "食"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "器"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "卡"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "粮"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "时"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "请"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "检查"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "粮食"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "颗粒"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "直径"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "是否"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "超过"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " "
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "12"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "mm"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "、"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "粮"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "桶"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "是否"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "受"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "潮"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "结"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "块"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "清理"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "出"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "粮"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "口"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "后"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "重"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "试"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": " ["
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "5"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "]。\n\n"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "请"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "先"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "告知"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "具体"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "故障"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "现象"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "；"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "确认"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "后"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "我可以"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "建议"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "转"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "人工"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "进一步"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "核实"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "处理"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "log"
+        }
+      ],
+      [
+        "actions",
+        {
+          "actions": [
+            "handoff"
+          ]
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "b604af29-0ef6-4de0-9d60-24561532b5ca",
+          "request_id": "fc48069c-1fd8-4b03-b0e1-5361c000abc9"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "missing-01",
+    "message": "帮我查一下物流",
+    "intent": "物流",
+    "route": "business",
+    "clarification": true,
+    "passed": true,
+    "actual_intent": "物流",
+    "nodes": [
+      "resolve",
+      "classify",
+      "route",
+      "prepare_agent",
+      "agent",
+      "log"
+    ],
+    "tools": [],
+    "steps": 1,
+    "tokens": 2382,
+    "answer": "请提供您的订单号，我来帮您查询物流。",
+    "conversation_id": "d1965eb8-b3d8-4afe-9657-de57d877b564",
+    "events": [
+      [
+        "meta",
+        {
+          "conversation_id": "d1965eb8-b3d8-4afe-9657-de57d877b564",
+          "request_id": "8936df9a-ebcb-4800-ba6a-37a3c273dd90"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "resolve"
+        }
+      ],
+      [
+        "understanding",
+        {
+          "question": "帮我查一下物流",
+          "intent": "物流",
+          "confidence": 0.99
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "classify"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "route"
+        }
+      ],
+      [
+        "sources",
+        {
+          "sources": []
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "prepare_agent"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "agent"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "请"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "提供"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您的"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "订单"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "号"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "，"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "我来"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "帮"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "您"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "查询"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "物流"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "。"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "log"
+        }
+      ],
+      [
+        "actions",
+        {
+          "actions": []
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "d1965eb8-b3d8-4afe-9657-de57d877b564",
+          "request_id": "8936df9a-ebcb-4800-ba6a-37a3c273dd90"
+        }
+      ]
+    ]
+  },
+  {
+    "id": "weak-01",
+    "message": "火星殖民飞船燃料补贴是多少",
+    "intent": "其他",
+    "route": "other",
+    "passed": true,
+    "actual_intent": "其他",
+    "nodes": [
+      "resolve",
+      "classify",
+      "route",
+      "other",
+      "log"
+    ],
+    "tools": [],
+    "steps": 0,
+    "tokens": 0,
+    "answer": "暂时无法确定您的诉求，您可以说明想查询的商品、订单或需要处理的问题。",
+    "conversation_id": "5b7fd57d-2b69-4182-bdaa-537a1c5edc97",
+    "events": [
+      [
+        "meta",
+        {
+          "conversation_id": "5b7fd57d-2b69-4182-bdaa-537a1c5edc97",
+          "request_id": "b6c2bf42-9076-425b-8cf7-f53b5383e452"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "resolve"
+        }
+      ],
+      [
+        "understanding",
+        {
+          "question": "火星殖民飞船燃料补贴是多少",
+          "intent": "其他",
+          "confidence": 0.98
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "classify"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "route"
+        }
+      ],
+      [
+        "token",
+        {
+          "text": "暂时无法确定您的诉求，您可以说明想查询的商品、订单或需要处理的问题。"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "other"
+        }
+      ],
+      [
+        "workflow",
+        {
+          "node": "log"
+        }
+      ],
+      [
+        "actions",
+        {
+          "actions": []
+        }
+      ],
+      [
+        "done",
+        {
+          "conversation_id": "5b7fd57d-2b69-4182-bdaa-537a1c5edc97",
+          "request_id": "b6c2bf42-9076-425b-8cf7-f53b5383e452"
+        }
+      ]
+    ]
+  }
+]

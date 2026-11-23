@@ -6,7 +6,7 @@ from conftest import sse_events, stream_response
 
 def test_only_explicit_ticket_confirmation_creates_ticket_and_retries_are_idempotent(harness):
     async def handler(request, payload):
-        return stream_response(('{"intent":"投诉"}',))
+        return stream_response(('{"intent":"投诉","confidence":0.99}',))
 
     async def scenario():
         async with harness(handler) as (client, calls, _):
@@ -27,7 +27,7 @@ def test_only_explicit_ticket_confirmation_creates_ticket_and_retries_are_idempo
             assert first.json()["ticket_no"] == second.json()["ticket_no"]
             after = (await client.get("/conversations/" + cid)).json()
             assert len(after["tickets"]) == 1 and after["status"] == "active"
-            assert len(calls) == 1
+            assert len(calls) == 2  # 问题理解与意图分类，确认建单不调用模型。
             forged = await client.post("/actions/ticket", json={**body, "request_id": str(uuid4())})
             assert forged.status_code == 409
 
