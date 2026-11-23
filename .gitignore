@@ -11,3 +11,4 @@ dist/
 .coverage
 evaluation-results*.json
 .taste-skill/
+data/

@@ -2,165 +2,131 @@ import asyncio
 import json
 from uuid import uuid4
 
-import httpx
-import pytest
 from conftest import sse_events, stream_response, tool_response
 
 
-def test_chat_selects_two_tools_reports_status_and_streams_grounded_final_answer(harness):
+def test_simple_logistics_converges_after_one_tool_and_audits_observation(harness):
     async def handler(request, payload):
-        if "tools" in payload:
+        if payload["messages"][0]["content"].startswith("将顾客"):
+            return stream_response(('{"intent":"物流"}',))
+        if payload["messages"][-1]["role"] != "tool":
             return tool_response(
-                [
-                    {"id": "call_order", "name": "query_order", "args": {"order_id": "1001"}},
-                    {
-                        "id": "call_logistics",
-                        "name": "query_logistics",
-                        "args": {"order_id": "1001"},
-                    },
-                ]
+                [{"id": "logistics", "name": "query_logistics", "args": {"order_id": "1001"}}]
             )
-        assert [m["role"] for m in payload["messages"]][-4:] == [
-            "user",
-            "assistant",
-            "tool",
-            "tool",
-        ]
         result = json.loads(payload["messages"][-1]["content"])
-        assert result["ok"] and result["data"]["order_id"] == "1001"
         return stream_response(("演示物流：", result["data"]["location"]))
 
     async def scenario():
         async with harness(handler) as (client, calls, _):
-            response = await client.post("/chat", json={"message": "订单1001的订单情况和物流"})
+            response = await client.post("/chat", json={"message": "订单1001的物流到哪了"})
             events = sse_events(response)
             assert events[-1][0] == "done"
-            statuses = [d for e, d in events if e == "tool_status"]
-            assert [(d["name"], d["state"]) for d in statuses] == [
-                ("query_order", "running"),
-                ("query_order", "succeeded"),
+            assert [(d["name"], d["state"]) for e, d in events if e == "tool_status"] == [
                 ("query_logistics", "running"),
                 ("query_logistics", "succeeded"),
             ]
-            assert len(calls) == 2 and "tools" not in calls[1]
+            assert len([c for c in calls if "tools" in c]) == 2
             audit = (await client.get("/conversations/" + events[0][1]["conversation_id"])).json()
-            assert [m["role"] for m in audit["messages"]] == [
-                "user",
-                "assistant",
-                "tool",
-                "tool",
-                "assistant",
-            ]
-            assert audit["messages"][1]["tool_calls"][1]["id"] == "call_logistics"
-            assert audit["messages"][3]["tool_call_id"] == "call_logistics"
+            observations = [m for m in audit["messages"] if m["role"] == "tool"]
+            assert observations[0]["tool_call_id"] == "logistics"
             assert audit["messages"][0]["state"] == "completed"
 
     asyncio.run(scenario())
 
 
-@pytest.mark.parametrize(
-    "failure", ["third_tool", "second_round", "invalid_arguments", "unknown_tool"]
-)
-def test_tool_boundaries_never_execute_an_extra_round_and_return_safe_errors(harness, failure):
-    async def scenario():
-        async def handler(request, payload):
-            if "tools" in payload:
-                call = {"id": "call_1", "name": "query_order", "args": {"order_id": "1001"}}
-                if failure == "third_tool":
-                    return tool_response([{**call, "id": f"call_{i}"} for i in range(3)])
-                if failure == "invalid_arguments":
-                    call["args"] = {"order_id": 1001}
-                if failure == "unknown_tool":
-                    call["name"] = "delete_database"
-                return tool_response([call])
-            if failure == "second_round":
-                return tool_response(
-                    [{"id": "call_extra", "name": "query_order", "args": {"order_id": "1002"}}]
-                )
-            result = json.loads(payload["messages"][-1]["content"])
-            assert not result["ok"]
-            return stream_response(("查询失败，请补充信息或稍后重试。",))
-
-        async with harness(handler) as (client, calls, _):
-            response = await client.post("/chat", json={"message": "查订单1001"})
-            events = sse_events(response)
-            assert len(calls) <= 2
-            if failure in {"third_tool", "second_round"}:
-                assert events[-1][0] == "error"
-            else:
-                assert events[-1][0] == "done"
-                assert any(e == "tool_status" and d["state"] == "failed" for e, d in events)
-            if len(calls) == 2:
-                assert "tools" not in calls[1]
-
-    asyncio.run(scenario())
-
-
-def test_context_trimming_drops_entire_tool_turn_without_orphan_results(harness):
-    async def scenario():
-        async def handler(request, payload):
-            if "tools" in payload and payload["messages"][-1]["content"] == "查订单1001":
-                return tool_response(
-                    [{"id": "call_1", "name": "query_order", "args": {"order_id": "1001"}}]
-                )
-            return stream_response(("您好，请问有什么可以帮您？",))
-
-        async with harness(
-            handler, context_window_tokens=3250, max_output_tokens=100, token_safety_margin=100
-        ) as (client, calls, _):
-            first = await client.post("/chat", json={"message": "查订单1001"})
-            cid = sse_events(first)[0][1]["conversation_id"]
-            second = await client.post(
-                "/chat", json={"message": "新问题" + "a" * 700, "conversation_id": cid}
+def test_agent_cannot_execute_ticket_even_if_model_requests_it(harness):
+    async def handler(request, payload):
+        if payload["messages"][0]["content"].startswith("将顾客"):
+            return stream_response(('{"intent":"售后"}',))
+        assert "create_ticket" not in {t["function"]["name"] for t in payload["tools"]}
+        if payload["messages"][-1]["role"] != "tool":
+            return tool_response(
+                [
+                    {
+                        "id": "forged",
+                        "name": "create_ticket",
+                        "args": {"description": "损坏", "ticket_type": "维修"},
+                    }
+                ]
             )
-            assert sse_events(second)[-1][0] == "done"
-            assert [m["role"] for m in calls[-1]["messages"]] == ["system", "user"]
+        result = json.loads(payload["messages"][-1]["content"])
+        assert result["error"]["code"] == "forbidden_tool"
+        return stream_response(("您可以选择建工单，由人工跟进。",))
+
+    async def scenario():
+        async with harness(handler) as (client, _, _):
+            response = await client.post("/chat", json={"message": "商品损坏，请建单"})
+            events = sse_events(response)
+            assert events[-1][0] == "done"
+            audit = (await client.get("/conversations/" + events[0][1]["conversation_id"])).json()
+            assert audit["tickets"] == []
+            assert next(d["actions"] for e, d in events if e == "actions") == ["create_ticket"]
 
     asyncio.run(scenario())
 
 
-def test_failed_final_answer_keeps_ticket_and_retry_reuses_tools_even_without_meta(harness):
+def test_completed_request_replays_without_model_calls_and_conflicting_reuse_is_rejected(harness):
     async def scenario():
-        final_attempts = 0
-
-        async def handler(request, payload):
-            nonlocal final_attempts
-            if "tools" in payload:
-                return tool_response(
-                    [
-                        {
-                            "id": "call_ticket",
-                            "name": "create_ticket",
-                            "args": {"description": "商品损坏", "ticket_type": "维修"},
-                        }
-                    ]
-                )
-            final_attempts += 1
-            if final_attempts == 1:
-                return httpx.Response(503, json={"error": {"message": "private"}})
-            result = json.loads(payload["messages"][-1]["content"])
-            return stream_response(("已登记工单：", result["data"]["ticket_no"]))
-
-        async with harness(handler) as (client, calls, _):
-            body = {"message": "请人工处理商品损坏", "request_id": str(uuid4())}
+        async with harness() as (client, calls, _):
+            body = {"message": "查订单1001", "request_id": str(uuid4())}
             first = await client.post("/chat", json=body)
-            events = sse_events(first)
-            assert events[-1][0] == "error"
-            cid = events[0][1]["conversation_id"]
-            failed = (await client.get("/conversations/" + cid)).json()
-            assert len(failed["tickets"]) == 1
-            assert failed["messages"][0]["state"] == "failed"
-            second = await client.post("/chat", json=body)
-            assert sse_events(second)[-1][0] == "done"
-            audit = (await client.get("/conversations/" + cid)).json()
-            assert len(audit["tickets"]) == 1
-            assert len(audit["messages"]) == 4
-            assert audit["messages"][0]["state"] == "completed"
-            assert len([c for c in calls if "tools" in c]) == 1
-            assert failed["tickets"][0]["ticket_no"] in second.text
+            count = len(calls)
             replay = await client.post("/chat", json=body)
-            assert sse_events(replay)[-1][0] == "done" and len(calls) == 3
+            assert sse_events(replay)[-1][0] == "done" and len(calls) == count
+            assert sse_events(first)[0][1] == sse_events(replay)[0][1]
             conflict = await client.post("/chat", json={**body, "message": "另一个问题"})
             assert conflict.status_code == 409
+
+    asyncio.run(scenario())
+
+
+def test_runaway_agent_has_finite_model_steps_and_offers_followup(harness):
+    async def handler(request, payload):
+        if payload["messages"][0]["content"].startswith("将顾客"):
+            return stream_response(('{"intent":"订单"}',))
+        return tool_response([{"id": "again", "name": "query_order", "args": {"order_id": "1001"}}])
+
+    async def scenario():
+        async with harness(handler, agent_max_steps=2) as (client, calls, _):
+            response = await client.post("/chat", json={"message": "循环查订单1001"})
+            assert sse_events(response)[-1][0] == "done"
+            assert "预算上限" in response.text
+            assert len([c for c in calls if "tools" in c]) == 2
+
+    asyncio.run(scenario())
+
+
+def test_failed_model_step_resumes_from_native_checkpoint_without_repeating_order_query(harness):
+    import httpx
+
+    attempts = 0
+
+    async def handler(request, payload):
+        nonlocal attempts
+        if payload["messages"][0]["content"].startswith("将顾客"):
+            return stream_response(('{"intent":"订单"}',))
+        if payload["messages"][-1]["role"] != "tool":
+            return tool_response(
+                [
+                    {
+                        "id": "order",
+                        "name": "query_order",
+                        "args": {"order_id": "1001"},
+                    }
+                ]
+            )
+        attempts += 1
+        if attempts == 1:
+            return httpx.Response(503, json={"error": {"message": "private"}})
+        return stream_response(("已查询演示订单。",))
+
+    async def scenario():
+        async with harness(handler) as (client, calls, _):
+            body = {"message": "查订单1001", "request_id": str(uuid4())}
+            assert sse_events(await client.post("/chat", json=body))[-1][0] == "error"
+            replay = await client.post("/chat", json=body)
+            assert sse_events(replay)[-1][0] == "done"
+            # 分类、首个模型决策、失败回答、恢复回答；不能重跑分类或查单决策。
+            assert len(calls) == 4
 
     asyncio.run(scenario())

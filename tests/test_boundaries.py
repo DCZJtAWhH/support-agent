@@ -49,6 +49,8 @@ def test_model_configuration_is_loaded_from_utf8_dotenv(monkeypatch, tmp_path):
             assert str(request.url) == "https://dotenv.invalid/v1/chat/completions"
             assert request.headers["authorization"] == "Bearer local-test-key"
             calls.append(json.loads(request.content))
+            if calls[-1]["messages"][0]["content"].startswith("将顾客"):
+                return stream_response(('{"intent":"订单"}',))
             return stream_response()
 
         async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as upstream:
@@ -57,7 +59,7 @@ def test_model_configuration_is_loaded_from_utf8_dotenv(monkeypatch, tmp_path):
                 async with httpx.AsyncClient(
                     transport=httpx.ASGITransport(app), base_url="http://app.test"
                 ) as client:
-                    response = await client.post("/chat", json={"message": "你好"})
+                    response = await client.post("/chat", json={"message": "查询订单"})
                     assert sse_events(response)[-1][0] == "done"
                     assert calls[0]["model"] == "配置模型"
 

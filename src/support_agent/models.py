@@ -39,7 +39,7 @@ class Conversation(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     # 顾客标识，本章固定使用演示用户 demo-user，不代表已完成身份认证。
     user_id: Mapped[str] = mapped_column(String(64), default="demo-user")
-    # 会话处理状态：active 对话中，waiting_human 待人工处理。
+    # 会话处理状态：active 对话中；旧版 waiting_human 值保留，新建工单不再转接会话。
     status: Mapped[str] = mapped_column(String(32), default="active")
     # 会话创建时间，按 UTC 存储。
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
@@ -58,9 +58,9 @@ class Message(Base):
     conversation_id: Mapped[str] = mapped_column(ForeignKey("conversations.id"), index=True)
     # 对话轮次请求标识，使用 UUID 字符串；同轮失败重试复用该值。
     request_id: Mapped[str] = mapped_column(String(36), index=True)
-    # 轮次内消息位置：0 用户输入，1 工具申请，2/3 工具结果，4 最终回答。
+    # 新版位置：0 用户，1 Workflow 快照，2起每步预留10位保存工具链，1000000最终回答。
     position: Mapped[int] = mapped_column(Integer)
-    # 消息角色：user 顾客，assistant 模型客服，tool 工具。
+    # 消息角色：user 顾客，assistant 模型客服，tool 工具，workflow 路由与建议审计。
     role: Mapped[str] = mapped_column(String(16))
     # 消息文本；工具结果为 JSON 文本，失败回答可能不完整。
     content: Mapped[str] = mapped_column(Text, default="")

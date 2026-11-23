@@ -87,7 +87,7 @@ def build_tools(
 
     @tool(args_schema=TicketInput)
     async def create_ticket(description: str, ticket_type: str) -> dict:
-        """仅在用户明确要求人工处理或创建工单时登记人工工单；FAQ 未命中不自动建单。"""
+        """仅供用户显式确认后的接口登记人工工单，建单不代表转人工或问题解决。"""
         return await repo.create_ticket(conversation_id, request_id, description, ticket_type)
 
     return [query_order, query_product, query_logistics, query_faq, create_ticket]

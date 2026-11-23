@@ -60,7 +60,7 @@ export async function readChatStream(response, onEvent) {
 
   /** 校验事件顺序和字段，流内 error 立即中止，未知事件留给后续协议扩展。 */
   function acceptEvent(event, data) {
-    if (!["meta", "tool_status", "sources", "token", "done", "error"].includes(event)) return;
+    if (!["meta", "tool_status", "sources", "actions", "token", "done", "error"].includes(event)) return;
     if (done || !data || typeof data !== "object") throw new Error("回复格式异常，请重试本轮。");
     if (event === "error") throw new Error(data.message || "本轮回复失败，请重试。");
     if (event === "meta") {
@@ -82,6 +82,11 @@ export async function readChatStream(response, onEvent) {
           !Number.isSafeInteger(source.citation) || source.citation < 1 ||
           typeof source.section_path !== "string" || typeof source.text !== "string";
       })) throw new Error("引用来源格式异常，请重试本轮。");
+    } else if (event === "actions") {
+      if (!Array.isArray(data.actions) || data.actions.some(function invalidAction(action) {
+        // 仅接收两个无副作用建议，动作执行必须来自独立点击。
+        return !["handoff", "create_ticket"].includes(action);
+      })) throw new Error("可选操作格式异常，请重试本轮。");
     } else if (event === "token") {
       if (typeof data.text !== "string") throw new Error("回复格式异常，请重试本轮。");
       reply += data.text;

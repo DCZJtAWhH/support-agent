@@ -67,7 +67,7 @@ def test_ticket_retry_returns_original_and_conversation_survives_restart(tmp_pat
             second = await repo.create_ticket(conversation_id, request_id, "商品损坏", "维修")
             assert second == first
             audit = await repo.read_conversation(conversation_id)
-            assert audit["status"] == "waiting_human"
+            assert audit["status"] == "active"
             assert len(audit["tickets"]) == 1
             assert audit["messages"][0]["content"] == "请人工处理商品损坏"
             assert await repo.resolve_request(request_id) == (conversation_id, "请人工处理商品损坏")
