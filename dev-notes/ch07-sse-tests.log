@@ -1,0 +1,61 @@
+✔ decodes split UTF-8 and SSE boundaries with "\n" (37.7663ms)
+
+✔ decodes split UTF-8 and SSE boundaries with "\r\n" (1.4212ms)
+
+✔ decodes split UTF-8 and SSE boundaries with "\r" (0.7333ms)
+
+✔ parses merged events, comments and multiline data (0.3417ms)
+
+✔ delivers first token before the stream ends (2.4881ms)
+
+✔ rejects EOF without done and releases the reader (0.7534ms)
+
+✔ rejects unterminated done event and releases the reader (1.2149ms)
+
+✔ rejects empty reply and releases the reader (0.3829ms)
+
+✔ rejects token before meta and releases the reader (0.3838ms)
+
+✔ rejects mismatched conversation and releases the reader (0.5894ms)
+
+✔ rejects invalid JSON and releases the reader (0.2837ms)
+
+✔ rejects invalid token and releases the reader (0.2193ms)
+
+✔ rejects duplicate meta and releases the reader (0.3922ms)
+
+✔ rejects events after done and releases the reader (0.3775ms)
+
+✔ rejects upstream error and releases the reader (1.1564ms)
+
+✔ reports HTTP 404 as an error (1.0779ms)
+
+✔ reports HTTP 409 as an error (0.145ms)
+
+✔ reports HTTP 413 as an error (0.0977ms)
+
+✔ reports HTTP 422 as an error (0.0648ms)
+
+✔ reports HTTP 500 as an error (0.111ms)
+
+✔ rejects non-SSE responses (0.1026ms)
+
+✔ aborted transport rejects an incomplete turn (0.1921ms)
+
+✔ actions remain separate and are delivered before completion (0.262ms)
+
+ℹ tests 23
+
+ℹ suites 0
+
+ℹ pass 23
+
+ℹ fail 0
+
+ℹ cancelled 0
+
+ℹ skipped 0
+
+ℹ todo 0
+
+ℹ duration_ms 150.2547

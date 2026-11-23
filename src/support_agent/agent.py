@@ -29,11 +29,14 @@ def suggested_actions(text):
     return actions
 
 
-async def model_step(model, registry, messages, *, input_budget=7000, output_budget=1024):
+async def model_step(
+    model, registry, messages, *, input_budget=7000, output_budget=1024, chars_per_token=1.0
+):
     """流式执行一次模型决策，最后返回完整消息及保守 token 估算；不执行工具。"""
     tools = agent_tools(registry)
     schema_cost = len(json.dumps([convert_to_openai_tool(t) for t in tools], ensure_ascii=False))
-    input_tokens = int(count_tokens_approximately(messages, chars_per_token=1.0)) + schema_cost
+    input_tokens = int(count_tokens_approximately(messages, chars_per_token=chars_per_token))
+    input_tokens += int(schema_cost / chars_per_token) + 1
     if input_tokens > input_budget:
         yield {"event": "limit"}
         return

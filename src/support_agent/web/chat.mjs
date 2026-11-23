@@ -11,9 +11,115 @@ const notice = document.querySelector("#notice");
 const retry = document.querySelector("#retry");
 const welcome = document.querySelector("#welcome");
 const newConversation = document.querySelector("#new-conversation");
+const conversationList = document.querySelector("#conversation-list");
 let conversationId = null;
 let activeRequest = null;
 let failedTurn = null;
+let loadingConversation = false;
+let selectionRevision = 0;
+let listRevision = 0;
+
+/** 刷新当前用户的会话目录；请求失败保持现状，不向聊天区显示错误。 */
+async function refreshConversations() {
+  const revision = ++listRevision;
+  try {
+    const response = await fetch("/api/conversations");
+    if (!response.ok) return;
+    const rows = await response.json();
+    if (revision !== listRevision || !Array.isArray(rows)) return;
+    const fragment = document.createDocumentFragment();
+    for (const row of rows) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.conversationId = row.id;
+      button.className = "conversation-item";
+      const preview = document.createElement("span");
+      preview.textContent = row.preview || "新对话";
+      button.append(preview);
+      if (row.has_summary) {
+        const badge = document.createElement("small");
+        badge.className = "summary-badge";
+        badge.textContent = "已摘要";
+        button.append(badge);
+      }
+      fragment.append(button);
+    }
+    conversationList.replaceChildren(fragment);
+    updateControls();
+  } catch {
+    // 侧栏是辅助入口，网络失败不能影响发送或正在显示的回复。
+  }
+}
+
+/** 仅在成功回载且选择仍有效时切换会话；迟到的历史不会覆盖新对话。 */
+async function selectConversation(id) {
+  if (activeRequest) return;
+  const revision = ++selectionRevision;
+  loadingConversation = true;
+  updateControls();
+  try {
+    const response = await fetch(`/api/conversations/${encodeURIComponent(id)}/messages`);
+    if (!response.ok) return;
+    const history = await response.json();
+    if (revision !== selectionRevision || !Array.isArray(history)) return;
+    resetConversation();
+    conversationId = id;
+    welcome.hidden = history.length > 0;
+    for (const row of history) {
+      if (!['user', 'assistant'].includes(row.role)) continue;
+      const item = addMessage(row.role, row.content);
+      if (row.state === "failed") {
+        item.article.classList.add("failed");
+        const note = document.createElement("p");
+        note.className = "message-state";
+        note.textContent = "本轮未完成";
+        item.content.append(note);
+      }
+    }
+    document.querySelector("#conversation-title").textContent = history.find(function firstQuestion(row) {
+      // 标题仅作首问预览，气泡仍显示完整原文。
+      return row.role === "user";
+    })?.content || "购物与售后咨询";
+    document.querySelector("#session-label").textContent = "当前对话";
+    status.textContent = "您可以继续追问，前面的内容会接着聊";
+    setSidebarOpen(false);
+    updateControls();
+    followConversation(true);
+  } catch {
+    // 回载失败保留当前聊天，不显示全局错误或创建新请求。
+  } finally {
+    if (revision === selectionRevision) {
+      loadingConversation = false;
+      updateControls();
+    }
+  }
+}
+
+/** 控制移动端历史抽屉及遮罩，保持展开状态可由辅助技术读取。 */
+function setSidebarOpen(open) {
+  document.body.classList.toggle("sidebar-open", open);
+  document.querySelector("#conversation-toggle").setAttribute("aria-expanded", String(open));
+  document.querySelector("#sidebar-backdrop").hidden = !open;
+}
+
+/** 通过事件委托切换目录内的会话。 */
+function handleConversationClick(event) {
+  const button = event.target.closest("[data-conversation-id]");
+  if (button) void selectConversation(button.dataset.conversationId);
+}
+
+/** 在移动端打开或关闭历史目录。 */
+function toggleSidebar() {
+  setSidebarOpen(!document.body.classList.contains("sidebar-open"));
+}
+
+/** 按 Escape 收起历史目录并将键盘焦点返回打开按钮。 */
+function handleSidebarEscape(event) {
+  if (event.key === "Escape" && document.body.classList.contains("sidebar-open")) {
+    setSidebarOpen(false);
+    document.querySelector("#conversation-toggle").focus();
+  }
+}
 
 /** 在原客服气泡内显示点选订单，保留原请求标识以恢复暂停的子流程。 */
 function addOrderPicker(assistant, orders, message, requestId, sourceConversationId) {
@@ -238,10 +344,16 @@ function followConversation(force = false) {
 
 /** 根据输入和本轮状态更新按钮；请求期间允许先编辑下一条消息。 */
 function updateControls() {
-  send.disabled = Boolean(activeRequest) || !input.value.trim();
+  input.disabled = loadingConversation;
+  send.disabled = Boolean(activeRequest) || loadingConversation || !input.value.trim();
   send.textContent = activeRequest ? "正在回复…" : "发送消息 ↗";
   retry.disabled = Boolean(activeRequest);
   retry.hidden = failedTurn?.expired || !failedTurn;
+  for (const button of conversationList.querySelectorAll("button")) {
+    button.disabled = Boolean(activeRequest);
+    if (button.dataset.conversationId === conversationId) button.setAttribute("aria-current", "true");
+    else button.removeAttribute("aria-current");
+  }
 }
 
 /** 用纯文本创建消息气泡，防止顾客或模型内容被当成 HTML 执行。 */
@@ -402,7 +514,7 @@ function createTypewriter(bubble) {
 
 /** 发送一轮对话或重试失败轮次，沿用 meta 给出的会话 ID 以衔接服务端上下文。 */
 async function sendMessage(message, previous = null, selectedOrderId = null) {
-  if (activeRequest || !message.trim()) return;
+  if (activeRequest || loadingConversation || !message.trim()) return;
   for (const card of document.querySelectorAll(".order-picker button")) card.disabled = true;
   notice.hidden = true;
   failedTurn = null;
@@ -490,13 +602,14 @@ async function sendMessage(message, previous = null, selectedOrderId = null) {
     if (activeRequest === request) {
       activeRequest = null;
       updateControls();
+      void refreshConversations();
       followConversation();
       input.focus({ preventScroll: true });
     }
   }
 }
 
-/** 同一轮点选可能紧随上次流结束，仅在服务端提交收尾的短暂互斥期自动重试。 */
+/** 连续发言或点选紧随流结束时，仅对服务端提交收尾的短暂忙状态自动重试。 */
 async function requestChat(body, signal) {
   for (let attempt = 0; ; attempt += 1) {
     const response = await fetch("/chat", {
@@ -504,7 +617,7 @@ async function requestChat(body, signal) {
       headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
       body: JSON.stringify(body), signal,
     });
-    if (!body.selected_order_id || response.status !== 409 || attempt >= 4) return response;
+    if (response.status !== 409 || attempt >= 4) return response;
     const failure = await response.clone().json();
     if (typeof failure.detail !== "string" || !failure.detail.includes("正在执行")) return response;
     await new Promise(function waitForCommit(resolve) {
@@ -533,8 +646,10 @@ function retryFailedTurn() {
   if (failedTurn && !failedTurn.expired) void sendMessage(failedTurn.message, failedTurn, failedTurn.selectedOrderId);
 }
 
-/** 中止当前请求并清空当前页面状态，之后发送不再带旧会话 ID。 */
+/** 开始独立的新会话草稿，首次发送时创建；旧会话目录及服务端原文保持可访问。 */
 function resetConversation() {
+  selectionRevision += 1;
+  loadingConversation = false;
   const request = activeRequest;
   activeRequest = null;
   request?.controller.abort();
@@ -550,6 +665,7 @@ function resetConversation() {
   document.querySelector("#session-label").textContent = "新对话";
   scroller.scrollTop = 0;
   updateControls();
+  setSidebarOpen(false);
   input.focus({ preventScroll: true });
 }
 
@@ -564,6 +680,12 @@ input.addEventListener("input", updateControls);
 input.addEventListener("keydown", handleKeydown);
 retry.addEventListener("click", retryFailedTurn);
 newConversation.addEventListener("click", resetConversation);
+document.querySelector("#mobile-new").addEventListener("click", resetConversation);
+conversationList.addEventListener("click", handleConversationClick);
+document.querySelector("#conversation-toggle").addEventListener("click", toggleSidebar);
+document.querySelector("#sidebar-backdrop").addEventListener("click", toggleSidebar);
+document.addEventListener("keydown", handleSidebarEscape);
 welcome.addEventListener("click", handleSuggestion);
 updateControls();
 setupKnowledgeUpload();
+void refreshConversations();
