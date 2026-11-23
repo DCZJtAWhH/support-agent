@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-23",
+  "backend": {
+    "command": ".venv/Scripts/python.exe -m pytest -q --tb=short",
+    "passed": 124,
+    "failed": 0
+  },
+  "sse": {
+    "command": "node --test tests/web/stream.test.mjs",
+    "passed": 23,
+    "failed": 0
+  },
+  "prompt_evaluation": {
+    "command": "python scripts/eval_router.py",
+    "model": "deepseek-v4-pro",
+    "passed": 26,
+    "total": 26,
+    "report": "dev-notes/ch06-router-eval-final.json"
+  },
+  "workflow_evaluation": {
+    "command": "python scripts/eval_workflow.py --base-url http://127.0.0.1:8006",
+    "passed": 13,
+    "total": 13,
+    "report": "dev-notes/ch06-workflow-eval.json"
+  },
+  "browser": {
+    "command": "python scripts/check_ch06_browser.py --base-url http://127.0.0.1:8006",
+    "widths": [1440, 390, 320],
+    "passed": true,
+    "page_errors": [],
+    "desktop_transient_busy_retried": true,
+    "report": "dev-notes/ch06-browser-results.json"
+  },
+  "ruff": "passed",
+  "git_diff_check": "passed",
+  "modified_src_python_chinese_docstrings": "passed",
+  "modified_src_javascript_chinese_comments": "manually checked",
+  "limitations": [
+    "订单、商品及物流仍为演示数据，订单选择器与查询共用同一稳定演示订单源。",
+    "退款表单保存待核实申请，不执行资金退款。"
+  ]
+}

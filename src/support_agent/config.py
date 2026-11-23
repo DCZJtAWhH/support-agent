@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     knowledge_top_k: int = Field(default=3, ge=1, le=20)
     knowledge_min_score: float = Field(default=0.4, ge=-1, le=1)
     checkpoint_path: str = "data/ch05-checkpoints.sqlite"
+    intent_min_confidence: float = Field(default=0.65, ge=0, le=1)
+    router_model: str = Field(default="deepseek-v4-pro", min_length=1)
     agent_max_steps: int = Field(default=6, ge=1, le=20)
     agent_token_budget: int = Field(default=50000, gt=0)
 

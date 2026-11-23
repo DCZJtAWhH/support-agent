@@ -6,7 +6,13 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 
 from support_agent.database import Database
-from support_agent.models import Conversation, LowConfidenceQuestion, Message, Ticket
+from support_agent.models import (
+    Conversation,
+    LowConfidenceQuestion,
+    Message,
+    RefundApplication,
+    Ticket,
+)
 
 
 class ChatRepository:
@@ -15,11 +21,20 @@ class ChatRepository:
         self.database = database
         self.retriever = retriever
 
-    async def query_faq(self, keyword: str, *, category=None) -> list[dict]:
-        """用完整本轮问题检索；指定品类时将条件传入两路召回前的过滤。"""
+    async def query_faq(self, keyword: str, *, category=None, prepared=False) -> list[dict]:
+        """用完整问题检索；Workflow 已归一的问题跳过旧的同义词扩展。"""
         if self.retriever is None:
             raise RuntimeError("知识检索尚未配置，请先建库。")
-        return await self.retriever.search(keyword, **({"category": category} if category else {}))
+        options = {"category": category} if category else {}
+        if prepared:
+            options["prepared"] = {"normalized": keyword, "retrieval_text": keyword}
+        return await self.retriever.search(keyword, **options)
+
+    async def query_policies(self, question, queries, *, category=None) -> list[dict]:
+        """将即时扩写的全部查询交给检索侧合并，强制只使用政策或手册条款。"""
+        if self.retriever is None:
+            raise RuntimeError("政策检索尚未配置，请先建库。")
+        return await self.retriever.search_many(question, queries, category=category)
 
     async def record_low_confidence(
         self, conversation_id, request_id, question, entry_point, reason
@@ -122,6 +137,11 @@ class ChatRepository:
                 .where(Ticket.conversation_id == conversation_id)
                 .order_by(Ticket.created_at)
             )
+            refunds = await session.scalars(
+                select(RefundApplication)
+                .where(RefundApplication.conversation_id == conversation_id)
+                .order_by(RefundApplication.created_at)
+            )
             return {
                 "id": conversation.id,
                 "user_id": conversation.user_id,
@@ -129,7 +149,55 @@ class ChatRepository:
                 "created_at": conversation.created_at.isoformat(),
                 "messages": [self.message_data(row) for row in messages],
                 "tickets": [self.ticket_data(row) for row in tickets],
+                "refunds": [self.refund_data(row) for row in refunds],
             }
+
+    @staticmethod
+    def refund_data(row):
+        """返回可重放的申请凭据，不承诺退款已经执行。"""
+        return {
+            "application_no": row.application_no,
+            "order_id": row.order_id,
+            "reason": row.reason,
+            "status": row.status,
+            "created_at": row.created_at.isoformat(),
+            "simulated": True,
+        }
+
+    async def create_refund(self, conversation_id, request_id, order_id, reason):
+        """按原请求唯一保存用户选择的原因，重复点击返回原单，变更内容明确拒绝。"""
+        try:
+            async with self.database.sessions.begin() as session:
+                row = await session.get(RefundApplication, request_id)
+                if row is None:
+                    row = RefundApplication(
+                        request_id=request_id,
+                        application_no="R" + uuid4().hex,
+                        conversation_id=conversation_id,
+                        order_id=order_id,
+                        reason=reason,
+                    )
+                    session.add(row)
+                    await session.flush()
+                if (row.conversation_id, row.order_id, row.reason) != (
+                    conversation_id,
+                    order_id,
+                    reason,
+                ):
+                    raise ValueError("该轮次已提交退款申请，不能更改订单或原因。")
+                return self.refund_data(row)
+        except IntegrityError:
+            async with self.database.sessions() as session:
+                row = await session.get(RefundApplication, request_id)
+                if row is None:
+                    raise
+                if (row.conversation_id, row.order_id, row.reason) != (
+                    conversation_id,
+                    order_id,
+                    reason,
+                ):
+                    raise ValueError("该轮次已提交不同的退款申请。") from None
+                return self.refund_data(row)
 
     @staticmethod
     def message_data(row: Message) -> dict:

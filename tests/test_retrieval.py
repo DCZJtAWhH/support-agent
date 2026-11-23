@@ -10,6 +10,58 @@ from support_agent.knowledge_store import KnowledgeStore, synchronize
 from support_agent.vectors import BGEEmbeddings, MilvusVectors
 
 
+def test_core_queries_merge_once_and_require_policy_evidence():
+    from support_agent.retrieval import HybridRetriever
+
+    async def scenario():
+        db = Database("sqlite+aiosqlite:///:memory:")
+        await db.initialize()
+        store = KnowledgeStore(db)
+        ids = await store.replace_source(
+            "policy",
+            [
+                KnowledgeDraft("售后", ["退款期限"], "签收7天内", content_type="policy"),
+                KnowledgeDraft("售后", ["退货流程"], "提交申请", content_type="policy"),
+                KnowledgeDraft("售后", ["客服问答"], "口头答复", content_type="faq"),
+            ],
+        )
+        rows = {}
+
+        class EmbeddingsAPI:
+            async def embed(self, texts):
+                return [[1.0, 0.0] for _ in texts]
+
+        class VectorAPI:
+            async def upsert(self, data):
+                rows.update({r["id"]: r for r in data})
+
+            async def retrieve(self, vector, text, **kwargs):
+                keys = ids[:1] if text == "BX-500能退吗" else ids[1:]
+                return [(k, 0.03, rows[k]["content_hash"]) for k in keys]
+
+        class RerankAPI:
+            async def rank(self, question, texts, top_n):
+                assert len(texts) == 2  # FAQ 不得冒充政策；重复查询不得重复候选。
+                return [(1, 0.96), (0, 0.92)]
+
+        vectors = VectorAPI()
+        try:
+            await synchronize(store, EmbeddingsAPI(), vectors)
+            retriever = HybridRetriever(store, EmbeddingsAPI(), vectors, RerankAPI())
+            matches = await retriever.search_many(
+                "BX-500能退吗",
+                ["退款期限", "退货流程", "退款期限"],
+                category="售后",
+            )
+            assert [m["chunk_id"] for m in matches] == [ids[1], ids[0]]
+            assert all(m["content_type"] == "policy" for m in matches)
+            assert len(await store.active()) == 3  # 查询不产生新的入库副本。
+        finally:
+            await db.close()
+
+    asyncio.run(scenario())
+
+
 def test_hybrid_retrieves_model_with_prefilter_reranks_and_exposes_source():
     from support_agent.retrieval import HybridRetriever
     from support_agent.vectors import BGEReranker

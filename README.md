@@ -1,6 +1,35 @@
-# 电商智能客服 · Workflow 与 ReAct Agent
+# 电商智能客服 · 正式分流器与 Workflow
 
-FastAPI + SQLAlchemy + MySQL + LangChain + LangGraph。第五章用确定性 Workflow 编排分流、混合检索与前置置信闸，核心业务节点运行 ReAct 工具循环，State 使用内置 checkpointer 持久化。复用前几章工具和检索器，原生聊天页提供独立的转人工、建工单选项。订单工具和人工接入仍为演示；指代消解先透传，不升级上下文策略。
+FastAPI + SQLAlchemy + MySQL + LangChain + LangGraph。同一会话的问题理解同时处理指代与口语改写，完整问题原样透传；八选一意图（七类业务/社交意图加其他）以严格 JSON 返回 intent/confidence。退款退货与售后统一走确定性订单→政策子流程，主力 Agent 负责依据订单和政策判断及澄清。继续复用原有混合检索、置信闸和持久化检查点。
+
+## 第六章演示
+
+沿用已有 `.env`、MySQL、Milvus 与知识索引，无新增运行组件。`ROUTER_MODEL` 默认 `deepseek-v4-pro`，使用现有聊天上游的同一地址与密钥；其他提供方需指定其支持的高能力模型。`OPENAI_MODEL` 仍控制主力 Agent。不启用小模型降级或跨会话记忆。
+
+```powershell
+uv sync --locked
+uv run --locked uvicorn support_agent.app:create_app --factory --app-dir src --host 127.0.0.1 --port 8006 --workers 1 --log-config deploy/logging.json
+```
+
+打开 http://127.0.0.1:8006/ ：
+
+1. 输入 `这个能退吗`：聊天气泡展示理解结果并弹出订单卡片；不猜订单号、不提前检索政策。
+2. 点选 `1001 · BX-500 保温杯`：恢复原请求，先核实订单，再即时扩写2–4条政策查询，多路召回去重后统一精排；知识库不拆存副本。主力 Agent 根据订单和引用条款判断，信息不足时澄清商品状态。
+3. 在退款申请表选择固定原因，点击提交：保存待核实的演示申请，不执行资金操作，不承诺退款批准。
+4. 依次输入 `先不退了，这一单的物流到哪了`、`它还能退吗`、`先不退了，它的物流到哪了`：观察本轮指代和意图随诉求切换。
+5. 新建对话后输入 `BX-500容量是多少`（普通 FAQ 单查询）或 `月亮能申请保价吗`（其他兜底）。
+
+```powershell
+uv run --locked pytest -q
+node --test tests/web/stream.test.mjs
+uv run --locked python scripts/eval_router.py
+uv run --locked python scripts/eval_workflow.py --base-url http://127.0.0.1:8006
+uv run --locked python scripts/check_ch06_browser.py --base-url http://127.0.0.1:8006
+```
+
+真实 Prompt 标注集为 [evals/router.jsonl](evals/router.jsonl)，最终26/26通过，保留[失败基线](dev-notes/ch06-router-eval-baseline.json)及[最终结果](dev-notes/ch06-router-eval-final.json)。[Workflow端到端评估](dev-notes/ch06-workflow-eval.json)13/13通过。[浏览器报告](dev-notes/ch06-browser-results.json)覆盖1440/390/320宽度的订单点选续跑和退款表单，以及桌面多轮切换与短暂忙状态自动恢复。后端124项、SSE解析23项通过，见[验证汇总](dev-notes/ch06-verification.json)。过程持续记录于 [dev-notes/ch06.md](dev-notes/ch06.md)，计划见 [docs/ch06-plan.md](docs/ch06-plan.md)。
+
+`POST /chat` 新增可选 `selected_order_id`，只能和原 `conversation_id`、`request_id`、原问题一起回填；缺订单时请求状态为 waiting，原生 interrupt 保存执行位置，点选用 Command 恢复。无效、过期或更换已确认订单返回409；完成请求幂等重放。`POST /actions/refund` 接受 `{conversation_id, request_id, reason}`，服务端从该轮快照取订单，不接收任意订单、金额或自由原因；同一请求重复提交返回同一申请，改原因返回409。新表 `refund_applications` 在启动时自动建立，历史数据保留。当前订单源仍是演示：1001普通杯、1002电子商品、1003定制商品；选择器和订单工具共享稳定数据，尚未接真实交易系统。
 
 ## 第五章演示
 
@@ -15,11 +44,11 @@ uv run --locked uvicorn support_agent.app:create_app --factory --app-dir src --h
 
 打开 http://127.0.0.1:8005/ ，依次尝试：
 
-- `退货政策是什么`：`resolve → classify → route → retrieve → confidence → prepare_agent → agent → log`。证据弱则进入 `fallback`，记录现有低置信问题池，不调用 Agent。
+- `退货政策是什么`：第六章会先展示订单选择器；点选后经过 `load_order → retrieve → confidence → prepare_agent → agent → log`。证据弱则进入 `fallback`，记录现有低置信问题池，不调用 Agent。
 - `订单 1001 的物流到哪了`：业务路径直接进入 Agent，自主调用 `query_logistics`，说明为演示数据。
 - `请先查询订单1001的状态和金额，得到结果后再查询这笔订单的物流位置，两个查询都需要，最后一起告诉我。`：观察订单→物流两次工具节点，以及三次 Agent 模型节点。
 - `我要投诉`：固定安抚回复及两个按钮；转人工仅前端显示“已转接人工客服”和小猫问候；建工单弹出确认，确认后才写 tickets；取消确认或不点击不执行。
-- `你好`：白名单直接固定话术，零模型调用。其他消息由最简 Prompt 输出七类 JSON；模型判为闲聊后仍返回固定话术。
+- `你好`：白名单直接固定话术，零模型调用。其他消息经联合问题理解与八选一意图 Prompt；模型判为闲聊后仍返回固定话术。
 
 ```powershell
 uv run --locked pytest -q
@@ -71,7 +100,7 @@ MySQL 连接地址必须通过 `DATABASE_URL` 环境变量或 `.env` 提供，�
 - `邮费是多少`：即使库中用“运费”表述，也能召回满99元免运费、未满8元、偏远地区人工确认的说明。
 - `商品损坏了，请帮我创建人工工单`：Agent 建议建单，只有点击并确认“建工单”后才写入并返回工单号。
 
-`query_order`、`query_product`、`query_logistics` 随机生成并标记 `simulated=true`。`query_faq` 的 `keyword` 仍校验本轮原文片段及1～32字，但检索使用完整本轮问题，避免型号和否定条件被截掉。返回 `{keyword, category, matches}`，matches 保留 question/answer/category 并增加 chunk_id、章节、来源链接、原文摘要和相关分。历史问法可合并在同一块，同义词扩展只发生在查询侧。`create_ticket` 每次请求最多创建一张工单。
+`query_order` 使用与选择器一致的固定演示订单，`query_product`、`query_logistics` 随机生成，均标记 `simulated=true`。`query_faq` 的 `keyword` 仍校验本轮原文片段及1～32字，但检索使用完整本轮问题，避免型号和否定条件被截掉。返回 `{keyword, category, matches}`，matches 保留 question/answer/category 并增加 chunk_id、章节、来源链接、原文摘要和相关分。历史问法可合并在同一块，同义词扩展只发生在查询侧。`create_ticket` 每次请求最多创建一张工单。
 
 当前调用顺序见第五章：固定分流→知识类预检索与前置闸→ReAct 多步工具循环→流式回答→日志。第四章的生成后结构化自评仍用于离线 RAG 评估器，在线聊天已改为生成前阈值闸，不等待答完再判断。工具参数严格校验；默认单次超时30秒，超时和数据库瞬时故障额外重试一次；模型本身不自动重试。
 

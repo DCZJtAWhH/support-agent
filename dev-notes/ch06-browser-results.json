@@ -1,0 +1,107 @@
+{
+  "cases": [
+    {
+      "width": 1440,
+      "conversation_id": "b351d75e-3c8c-42db-b690-c9a78acb023d",
+      "picker_then_resume": true,
+      "refund": {
+        "application_no": "R3340b4795cef4e2492360c08f8da2361",
+        "order_id": "1001",
+        "reason": "不想要了",
+        "status": "pending",
+        "created_at": "2026-11-23T07:24:43",
+        "simulated": true
+      },
+      "transient_busy_retried": true,
+      "multi_turn": [
+        {
+          "intent": "退款退货",
+          "resolved_question": "这个能退吗",
+          "trace": [
+            "resolve",
+            "classify",
+            "route",
+            "select_order",
+            "load_order",
+            "retrieve",
+            "confidence",
+            "prepare_agent",
+            "agent",
+            "log"
+          ]
+        },
+        {
+          "intent": "物流",
+          "resolved_question": "订单1001的物流到哪了",
+          "trace": [
+            "resolve",
+            "classify",
+            "route",
+            "prepare_agent",
+            "agent",
+            "tools",
+            "agent",
+            "log"
+          ]
+        },
+        {
+          "intent": "退款退货",
+          "resolved_question": "订单1001还能退吗",
+          "trace": [
+            "resolve",
+            "classify",
+            "route",
+            "select_order",
+            "load_order",
+            "retrieve",
+            "confidence",
+            "prepare_agent",
+            "agent",
+            "log"
+          ]
+        },
+        {
+          "intent": "物流",
+          "resolved_question": "订单1001的物流到哪了",
+          "trace": [
+            "resolve",
+            "classify",
+            "route",
+            "prepare_agent",
+            "agent",
+            "tools",
+            "agent",
+            "log"
+          ]
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "conversation_id": "d223d704-39f1-4119-a9c6-d9c18607fa7f",
+      "picker_then_resume": true,
+      "refund": {
+        "application_no": "R95a0a09520154529b7d82d4f25a3d9f7",
+        "order_id": "1001",
+        "reason": "不想要了",
+        "status": "pending",
+        "created_at": "2026-11-23T07:27:04",
+        "simulated": true
+      }
+    },
+    {
+      "width": 320,
+      "conversation_id": "93062108-30cd-4603-8790-9ddb39fdea85",
+      "picker_then_resume": true,
+      "refund": {
+        "application_no": "R787874205820480ca40afa450609c39c",
+        "order_id": "1001",
+        "reason": "不想要了",
+        "status": "pending",
+        "created_at": "2026-11-23T07:27:28",
+        "simulated": true
+      }
+    }
+  ],
+  "page_errors": []
+}

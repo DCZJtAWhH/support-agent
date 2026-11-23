@@ -1,4 +1,4 @@
-"""定义常见问题、客服会话、消息流水与人工工单四张业务表。"""
+"""定义常见问题、客服会话、消息流水、工单、退款申请及低置信问题业务表。"""
 
 from datetime import UTC, datetime
 
@@ -107,4 +107,17 @@ class LowConfidenceQuestion(Base):
     conversation_id: Mapped[str] = mapped_column(ForeignKey("conversations.id"), index=True)
     entry_point: Mapped[str] = mapped_column(String(64))
     reason: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class RefundApplication(Base):
+    """保存用户显式提交的退款申请；pending 仅表示待核实，不代表已退款。"""
+
+    __tablename__ = "refund_applications"
+    request_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    application_no: Mapped[str] = mapped_column(String(40), unique=True)
+    conversation_id: Mapped[str] = mapped_column(ForeignKey("conversations.id"), index=True)
+    order_id: Mapped[str] = mapped_column(String(64))
+    reason: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(16), default="pending")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)

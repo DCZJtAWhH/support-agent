@@ -36,6 +36,7 @@ from support_agent.schemas import (
     AfterSalesRequest,
     ChatRequest,
     ExtractionRequest,
+    RefundSubmission,
     TicketConfirmation,
 )
 from support_agent.vectors import BGEEmbeddings, BGEReranker, MilvusVectors
@@ -203,6 +204,11 @@ def create_app(
     async def confirm_ticket(body: TicketConfirmation):
         """用户点击并确认建工单后，调用既有工具并返回幂等工单结果。"""
         return await app.state.chat.confirm_ticket(body)
+
+    @app.post("/actions/refund")
+    async def submit_refund(body: RefundSubmission):
+        """接收用户在固定原因表单中的显式提交，返回待核实的申请凭据。"""
+        return await app.state.chat.submit_refund(body)
 
     @app.get("/conversations/{conversation_id}")
     async def conversation_history(conversation_id: UUID):

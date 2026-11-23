@@ -1,6 +1,7 @@
-"""连接 HTTP 流与持久化 Workflow，管理请求幂等、会话互斥和显式建单。"""
+"""连接 HTTP 流与持久化 Workflow，管理请求幂等、点选续跑及显式提交。"""
 
 import json
+import logging
 from contextlib import aclosing
 from uuid import uuid4
 
@@ -11,9 +12,12 @@ from langchain_core.utils.function_calling import convert_to_openai_tool
 from support_agent.agent import agent_tools
 from support_agent.context import ContextBudgetExceeded, fit_messages
 from support_agent.errors import model_error
+from support_agent.schemas import REFUND_REASONS
 from support_agent.streaming import ChatStreamResponse
 from support_agent.tools import ToolRegistry, build_tools
 from support_agent.workflow import AGENT_PROMPT, FINAL_POSITION, SupportWorkflow
+
+logger = logging.getLogger(__name__)
 
 
 def sse(event: str, **data) -> str:
@@ -68,6 +72,23 @@ class ChatService:
                 (m for m in turn if m["position"] == FINAL_POSITION and m["state"] == "completed"),
                 None,
             )
+            if body.selected_order_id:
+                if not original:
+                    raise HTTPException(409, "请先发起问题，再从订单卡片中选择。")
+                snapshot = await self.workflow.graph.aget_state(
+                    {"configurable": {"thread_id": cid}}
+                )
+                if final:
+                    if metadata.get("order_id") != body.selected_order_id:
+                        raise HTTPException(409, "已完成请求不能更换订单。")
+                elif snapshot.values.get("request_id") != rid:
+                    raise HTTPException(409, "该订单选择已过期，请重新描述问题。")
+                elif snapshot.interrupts:
+                    allowed = {o["order_id"] for o in snapshot.interrupts[0].value["orders"]}
+                    if body.selected_order_id not in allowed:
+                        raise HTTPException(409, "请选择本轮列表中的订单。")
+                elif snapshot.values.get("order_id") != body.selected_order_id:
+                    raise HTTPException(409, "该请求不能更换订单。")
             registry = ToolRegistry(build_tools(self.repo, cid, rid, body.message))
             schema_cost = len(
                 json.dumps(
@@ -103,9 +124,20 @@ class ChatService:
             parts = []
             try:
                 if final:
+                    if metadata.get("resolved_question"):
+                        yield sse(
+                            "understanding",
+                            question=metadata["resolved_question"],
+                            intent=metadata["intent"],
+                            confidence=metadata["confidence"],
+                        )
                     yield sse("sources", sources=metadata.get("sources", []))
                     yield sse("token", text=final["content"])
                     yield sse("actions", actions=metadata.get("actions", []))
+                    if metadata.get("refund_available"):
+                        yield sse(
+                            "refund_form", order_id=metadata["order_id"], reasons=REFUND_REASONS
+                        )
                 else:
                     async with aclosing(
                         self.workflow.stream(
@@ -114,6 +146,7 @@ class ChatService:
                             body.message,
                             category=body.category,
                             initial_history=completed_history((audit or {}).get("messages", [])),
+                            selected_order_id=body.selected_order_id,
                         )
                     ) as events:
                         async for event in events:
@@ -125,6 +158,7 @@ class ChatService:
                 successful = True
                 yield sse("done", conversation_id=cid, request_id=rid)
             except Exception as exc:
+                logger.exception("聊天流程失败 request=%s", rid)
                 await self.repo.save_message(
                     cid, rid, FINAL_POSITION, "assistant", "".join(parts), state="failed"
                 )
@@ -133,8 +167,8 @@ class ChatService:
         async def commit():
             """最后一帧完整发送后提交图历史与轮次状态，建议选项此后才可确认。"""
             if successful:
-                await self.workflow.commit(cid, rid)
-                await self.repo.set_request_state(rid, "completed")
+                completed = await self.workflow.commit(cid, rid)
+                await self.repo.set_request_state(rid, "completed" if completed else "waiting")
 
         async def close():
             """断流标记失败但保留审计；无论数据库操作结果如何都释放会话锁。"""
@@ -143,13 +177,35 @@ class ChatService:
                 user = next(
                     m for m in current["messages"] if m["request_id"] == rid and m["position"] == 0
                 )
-                if user["state"] != "completed":
+                if user["state"] not in {"completed", "waiting"}:
                     await self.repo.set_request_state(rid, "failed")
             finally:
                 self.busy.discard(cid)
                 self.requests.discard(rid)
 
         return ChatStreamResponse(stream(), commit, close)
+
+    async def submit_refund(self, body):
+        """校验完成轮次与服务端订单快照后幂等保存退款申请，不执行资金操作。"""
+        cid, rid = str(body.conversation_id), str(body.request_id)
+        original = await self.repo.resolve_request(rid)
+        if not original or original[0] != cid:
+            raise HTTPException(409, "请求不属于该会话。")
+        if cid in self.busy:
+            raise HTTPException(409, "请等待本轮回复完成。")
+        self.busy.add(cid)
+        try:
+            audit = await self.repo.read_conversation(cid)
+            turn = [m for m in audit["messages"] if m["request_id"] == rid]
+            user = next(m for m in turn if m["position"] == 0)
+            metadata = next((json.loads(m["content"]) for m in turn if m["role"] == "workflow"), {})
+            if user["state"] != "completed" or not metadata.get("refund_available"):
+                raise HTTPException(409, "请先完成该订单的政策核对。")
+            return await self.repo.create_refund(cid, rid, metadata["order_id"], body.reason)
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        finally:
+            self.busy.discard(cid)
 
     async def confirm_ticket(self, body):
         """仅显式点击才能调用第二章建单工具，校验原轮次的归属、完成和建议权限。"""

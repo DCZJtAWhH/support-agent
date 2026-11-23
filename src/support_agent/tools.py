@@ -8,6 +8,7 @@ from langchain_core.tools import BaseTool, tool
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationError
 from sqlalchemy.exc import OperationalError
 
+from support_agent.orders import get_order
 from support_agent.repositories import ChatRepository
 
 Identifier = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=64)]
@@ -45,14 +46,11 @@ def build_tools(
 
     @tool(args_schema=OrderInput)
     async def query_order(order_id: str) -> dict:
-        """按订单号查询订单概况。返回随机演示数据，不访问真实电商系统。"""
-        return {
-            "order_id": order_id,
-            "status": random.choice(["已支付", "已发货", "已签收"]),
-            "total": random.choice([99, 199, 299]),
-            "currency": "CNY",
-            "simulated": True,
-        }
+        """按明确编号读取与选择器一致的演示订单，不访问真实电商系统。"""
+        order = get_order(order_id)
+        if order is None:
+            raise ToolArgumentsError("未找到该演示订单，请重新选择订单。")
+        return order
 
     @tool(args_schema=ProductInput)
     async def query_product(product_id: str) -> dict:

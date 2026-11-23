@@ -18,10 +18,19 @@ class IntentModel:
         self.intent = intent
         self.calls = []
 
+    def bind(self, **kwargs):
+        return self
+
     async def astream(self, messages):
         self.calls.append(messages)
+        if "问题理解器" in messages[0].content:
+            result = {"question": messages[-1].content}
+        elif "查询扩写器" in messages[0].content:
+            result = {"queries": ["退货条件", "退货期限"]}
+        else:
+            result = {"intent": self.intent, "confidence": 0.99}
         yield AIMessageChunk(
-            content=json.dumps({"intent": self.intent}, ensure_ascii=False),
+            content=json.dumps(result, ensure_ascii=False),
             response_metadata={"finish_reason": "stop"},
         )
 
@@ -56,9 +65,9 @@ def test_complaint_offers_two_independent_actions_without_creating_ticket():
     asyncio.run(scenario())
 
 
-def test_strong_knowledge_enters_agent_with_evidence_and_can_query_order():
+def test_core_workflow_loads_order_before_policy_and_agent_only_judges():
     class SearchAPI:
-        async def search(self, question, **kwargs):
+        async def search_many(self, question, queries, **kwargs):
             return [
                 {
                     "chunk_id": 1,
@@ -75,29 +84,16 @@ def test_strong_knowledge_enters_agent_with_evidence_and_can_query_order():
             return self
 
         async def astream(self, messages):
-            if messages[0].content.startswith("将顾客"):
+            if not messages[0].content.startswith("你是本店"):
                 async for chunk in super().astream(messages):
                     yield chunk
             else:
                 assert "签收后7天" in messages[0].content
-                if messages[-1].type != "tool":
-                    yield AIMessageChunk(
-                        content="",
-                        tool_call_chunks=[
-                            {
-                                "name": "query_order",
-                                "args": '{"order_id":"1001"}',
-                                "id": "order",
-                                "index": 0,
-                            }
-                        ],
-                        response_metadata={"finish_reason": "tool_calls"},
-                    )
-                else:
-                    yield AIMessageChunk(
-                        content="演示订单已查询；签收后7天可申请退货。[1]",
-                        response_metadata={"finish_reason": "stop"},
-                    )
+                assert '"order_id": "1001"' in messages[0].content
+                yield AIMessageChunk(
+                    content="演示订单已查询；签收后7天可申请退货。[1]",
+                    response_metadata={"finish_reason": "stop"},
+                )
 
     async def scenario():
         database = Database("sqlite+aiosqlite:///:memory:")
@@ -109,7 +105,8 @@ def test_strong_knowledge_enters_agent_with_evidence_and_can_query_order():
             workflow = SupportWorkflow(RefundModel("退款退货"), repo, settings(), saver)
             events = [e async for e in workflow.stream(cid, rid, "订单1001可退货吗")]
             nodes = [e["node"] for e in events if e["event"] == "workflow"]
-            assert nodes.index("retrieve") < nodes.index("confidence") < nodes.index("agent")
+            assert nodes.index("load_order") < nodes.index("retrieve") < nodes.index("agent")
+            assert "tools" not in nodes
             assert any(e.get("name") == "query_order" for e in events)
             assert not await repo.low_confidence_questions()
         await database.close()
@@ -139,14 +136,14 @@ def test_file_checkpointer_restores_history_after_workflow_is_reopened(tmp_path)
     asyncio.run(scenario())
 
 
-@pytest.mark.parametrize("intent", ["物流", "订单", "售后"])
+@pytest.mark.parametrize("intent", ["物流", "订单"])
 def test_business_intents_skip_retrieval_and_agent_can_take_multiple_steps(intent):
     class BusinessModel(IntentModel, ScriptedModel):
         def bind_tools(self, tools):
             return ScriptedModel.bind_tools(self, tools)
 
         async def astream(self, messages):
-            if messages[0].content.startswith("将顾客"):
+            if not messages[0].content.startswith("你是本店"):
                 async for chunk in IntentModel.astream(self, messages):
                     yield chunk
             else:
@@ -173,12 +170,14 @@ def test_business_intents_skip_retrieval_and_agent_can_take_multiple_steps(inten
     asyncio.run(scenario())
 
 
-@pytest.mark.parametrize("intent", ["商品咨询", "退款退货"])
+@pytest.mark.parametrize("intent", ["商品咨询", "退款退货", "售后"])
 def test_knowledge_always_retrieves_and_weak_evidence_refuses_before_agent(intent):
     class WeakRetriever:
         async def search(self, question, **kwargs):
-            assert question == "退货政策是什么"
             return [{"chunk_id": 1, "answer": "不相关", "score": 0.01}]
+
+        async def search_many(self, question, queries, **kwargs):
+            return await self.search(question)
 
     async def scenario():
         database = Database("sqlite+aiosqlite:///:memory:")
@@ -189,9 +188,10 @@ def test_knowledge_always_retrieves_and_weak_evidence_refuses_before_agent(inten
         model = IntentModel(intent)
         async with AsyncSqliteSaver.from_conn_string(":memory:") as saver:
             workflow = SupportWorkflow(model, repo, settings(), saver)
-            events = [e async for e in workflow.stream(cid, rid, "退货政策是什么")]
+            question = "退货政策是什么" if intent == "商品咨询" else "订单1001能退吗"
+            events = [e async for e in workflow.stream(cid, rid, question)]
             nodes = [e["node"] for e in events if e["event"] == "workflow"]
-            assert nodes == [
+            expected = [
                 "resolve",
                 "classify",
                 "route",
@@ -200,7 +200,10 @@ def test_knowledge_always_retrieves_and_weak_evidence_refuses_before_agent(inten
                 "fallback",
                 "log",
             ]
-            assert len(model.calls) == 1
+            if intent != "商品咨询":
+                expected[3:3] = ["select_order", "load_order"]
+            assert nodes == expected
+            assert len(model.calls) == (2 if intent == "商品咨询" else 3)
             assert "可靠依据" in "".join(e["text"] for e in events if e["event"] == "token")
             assert len(await repo.low_confidence_questions()) == 1
         await database.close()

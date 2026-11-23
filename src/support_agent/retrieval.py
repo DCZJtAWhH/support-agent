@@ -49,6 +49,26 @@ class HybridRetriever:
         self.store, self.embeddings, self.vectors = store, embeddings, vectors
         self.reranker, self.understanding, self.min_score = reranker, understanding, min_score
 
+    async def search_many(self, question, queries, *, category=None) -> list[dict]:
+        """多查询召回政策原文，按块与版本去重后统一精排，不创建入库副本。"""
+        merged = {}
+        for query in dict.fromkeys([question, *queries]):
+            matches = await self.search(
+                query, category=category, strategy="hybrid",
+                prepared={"normalized": query, "retrieval_text": query},
+            )
+            for match in matches:
+                if match["content_type"] in {"policy", "table"}:
+                    merged[(match["chunk_id"], match["content_hash"])] = match
+        candidates = list(merged.values())
+        if not candidates:
+            return []
+        ranked = await self.reranker.rank(question, [m["text"] for m in candidates], top_n=10)
+        return [
+            {**candidates[index], "score": score}
+            for index, score in ranked if score >= self.min_score
+        ]
+
     async def search(
         self,
         question: str,
@@ -98,6 +118,7 @@ class HybridRetriever:
                     "source_ref": row.source_ref,
                     "section_path": row.section_path or row.questions,
                     "content_hash": row.content_hash,
+                    "content_type": row.content_type or "policy",
                     "score": score,
                     "source_url": f"/knowledge/chunks/{key}",
                 }

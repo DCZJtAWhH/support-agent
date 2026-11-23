@@ -38,7 +38,8 @@ def test_model_configuration_is_loaded_from_utf8_dotenv(monkeypatch, tmp_path):
     for key in ("OPENAI_BASE_URL", "OPENAI_MODEL", "OPENAI_API_KEY"):
         monkeypatch.delenv(key, raising=False)
     (tmp_path / ".env").write_text(
-        "OPENAI_BASE_URL=https://dotenv.invalid/v1\nOPENAI_MODEL=配置模型\nOPENAI_API_KEY=local-test-key\n",
+        "OPENAI_BASE_URL=https://dotenv.invalid/v1\nOPENAI_MODEL=配置模型\n"
+        "ROUTER_MODEL=配置分流模型\nOPENAI_API_KEY=local-test-key\n",
         encoding="utf-8",
     )
 
@@ -49,8 +50,10 @@ def test_model_configuration_is_loaded_from_utf8_dotenv(monkeypatch, tmp_path):
             assert str(request.url) == "https://dotenv.invalid/v1/chat/completions"
             assert request.headers["authorization"] == "Bearer local-test-key"
             calls.append(json.loads(request.content))
+            if "问题理解器" in calls[-1]["messages"][0]["content"]:
+                return stream_response(('{"question":"查询订单"}',))
             if calls[-1]["messages"][0]["content"].startswith("将顾客"):
-                return stream_response(('{"intent":"订单"}',))
+                return stream_response(('{"intent":"订单","confidence":0.99}',))
             return stream_response()
 
         async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as upstream:
@@ -61,7 +64,8 @@ def test_model_configuration_is_loaded_from_utf8_dotenv(monkeypatch, tmp_path):
                 ) as client:
                     response = await client.post("/chat", json={"message": "查询订单"})
                     assert sse_events(response)[-1][0] == "done"
-                    assert calls[0]["model"] == "配置模型"
+                    assert calls[0]["model"] == "配置分流模型"
+                    assert calls[-1]["model"] == "配置模型"
 
     asyncio.run(scenario())
 

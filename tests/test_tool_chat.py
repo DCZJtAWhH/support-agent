@@ -8,7 +8,7 @@ from conftest import sse_events, stream_response, tool_response
 def test_simple_logistics_converges_after_one_tool_and_audits_observation(harness):
     async def handler(request, payload):
         if payload["messages"][0]["content"].startswith("将顾客"):
-            return stream_response(('{"intent":"物流"}',))
+            return stream_response(('{"intent":"物流","confidence":0.99}',))
         if payload["messages"][-1]["role"] != "tool":
             return tool_response(
                 [{"id": "logistics", "name": "query_logistics", "args": {"order_id": "1001"}}]
@@ -37,7 +37,7 @@ def test_simple_logistics_converges_after_one_tool_and_audits_observation(harnes
 def test_agent_cannot_execute_ticket_even_if_model_requests_it(harness):
     async def handler(request, payload):
         if payload["messages"][0]["content"].startswith("将顾客"):
-            return stream_response(('{"intent":"售后"}',))
+            return stream_response(('{"intent":"订单","confidence":0.99}',))
         assert "create_ticket" not in {t["function"]["name"] for t in payload["tools"]}
         if payload["messages"][-1]["role"] != "tool":
             return tool_response(
@@ -55,7 +55,7 @@ def test_agent_cannot_execute_ticket_even_if_model_requests_it(harness):
 
     async def scenario():
         async with harness(handler) as (client, _, _):
-            response = await client.post("/chat", json={"message": "商品损坏，请建单"})
+            response = await client.post("/chat", json={"message": "查询订单1001"})
             events = sse_events(response)
             assert events[-1][0] == "done"
             audit = (await client.get("/conversations/" + events[0][1]["conversation_id"])).json()
@@ -83,7 +83,7 @@ def test_completed_request_replays_without_model_calls_and_conflicting_reuse_is_
 def test_runaway_agent_has_finite_model_steps_and_offers_followup(harness):
     async def handler(request, payload):
         if payload["messages"][0]["content"].startswith("将顾客"):
-            return stream_response(('{"intent":"订单"}',))
+            return stream_response(('{"intent":"订单","confidence":0.99}',))
         return tool_response([{"id": "again", "name": "query_order", "args": {"order_id": "1001"}}])
 
     async def scenario():
@@ -104,7 +104,7 @@ def test_failed_model_step_resumes_from_native_checkpoint_without_repeating_orde
     async def handler(request, payload):
         nonlocal attempts
         if payload["messages"][0]["content"].startswith("将顾客"):
-            return stream_response(('{"intent":"订单"}',))
+            return stream_response(('{"intent":"订单","confidence":0.99}',))
         if payload["messages"][-1]["role"] != "tool":
             return tool_response(
                 [
@@ -126,7 +126,7 @@ def test_failed_model_step_resumes_from_native_checkpoint_without_repeating_orde
             assert sse_events(await client.post("/chat", json=body))[-1][0] == "error"
             replay = await client.post("/chat", json=body)
             assert sse_events(replay)[-1][0] == "done"
-            # 分类、首个模型决策、失败回答、恢复回答；不能重跑分类或查单决策。
-            assert len(calls) == 4
+            # 理解、分类、首个决策、失败回答、恢复回答；不能重跑理解、分类或查单决策。
+            assert len(calls) == 5
 
     asyncio.run(scenario())
