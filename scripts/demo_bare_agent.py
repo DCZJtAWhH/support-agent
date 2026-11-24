@@ -13,7 +13,7 @@ from langchain_openai import ChatOpenAI  # noqa: E402
 
 from support_agent.agent import run_bare_agent  # noqa: E402
 from support_agent.config import Settings  # noqa: E402
-from support_agent.tools import ToolRegistry, build_tools  # noqa: E402
+from support_agent.tool_catalog import ToolCatalog  # noqa: E402
 
 
 class OfflineModel:
@@ -49,7 +49,7 @@ class OfflineModel:
 
 
 async def main():
-    """运行可选择真实上游或离线脚本的裸循环，仅使用第二章已有只读工具。"""
+    """运行原始循环；离线仅替换模型，物流使用第八章独立 MCP Server。"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--offline", action="store_true")
     parser.add_argument("--question", default="先查订单1001，得到结果后再查物流")
@@ -74,7 +74,16 @@ async def main():
             else None,
         )
     )
-    registry = ToolRegistry(build_tools(None, "bare-demo", "bare-demo", args.question))
+    catalog = ToolCatalog(
+        servers={
+            "logistics": {"transport": "streamable_http", "url": "http://127.0.0.1:8101/mcp"},
+        },
+        policy_path="config/tool-permissions.json",
+    )
+    await catalog.refresh()
+    if catalog.discovery_errors:
+        raise SystemExit("请先启动物流 MCP：python -m support_agent.mcp_servers.logistics")
+    registry = catalog.bind(None, "bare-demo", "bare-demo", args.question)
     messages = [
         SystemMessage("你是客服，缺信息就追问。按用户要求分步查工具，结果是随机演示数据。"),
         HumanMessage(args.question),

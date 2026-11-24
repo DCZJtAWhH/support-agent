@@ -11,6 +11,8 @@ from openai import (
 )
 from pydantic import ValidationError
 
+from support_agent.model_budget import BudgetExceeded
+
 
 class ModelResponseError(ValueError):
     """上游返回了不适用于本次请求的内容。"""
@@ -23,6 +25,14 @@ def model_error(
 
     structured_output_method 用于识别结构化输出参数被拒绝的情况，并提供配置提示。
     """
+    cause = exc
+    while cause is not None:
+        if isinstance(cause, BudgetExceeded):
+            return {
+                "code": "budget_exceeded",
+                "message": "真实模型测试预算不足或扣费不确定，已停止调用。",
+            }
+        cause = cause.__cause__
     if isinstance(exc, APITimeoutError):
         return {"code": "upstream_timeout", "message": "模型响应超时，请稍后重试。"}
     if isinstance(exc, ModelResponseError):

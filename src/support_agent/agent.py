@@ -3,7 +3,7 @@
 import json
 from contextlib import aclosing
 
-from langchain_core.messages import AIMessage, ToolMessage
+from langchain_core.messages import ToolMessage, message_chunk_to_message
 from langchain_core.messages.utils import count_tokens_approximately
 from langchain_core.utils.function_calling import convert_to_openai_tool
 
@@ -15,8 +15,8 @@ STOP_REPLY = (
 
 
 def agent_tools(registry):
-    """只授予现有只读业务工具；检索由图强制执行，建单仅由用户确认接口执行。"""
-    return [t for name, t in registry.tools.items() if name not in {"create_ticket", "query_faq"}]
+    """统一向模型公开内置与 MCP 工具；检索由图执行，写权限始终由执行引擎把关。"""
+    return [t for name, t in registry.tools.items() if name != "query_faq"]
 
 
 def suggested_actions(text):
@@ -68,15 +68,14 @@ async def model_step(
     usage = aggregate.usage_metadata or {}
     yield {
         "event": "decision",
-        "message": AIMessage(content=aggregate.content, tool_calls=calls),
+        "message": message_chunk_to_message(aggregate),
         # 上游每次受 max_output_tokens 约束；无 usage 时用保守输入估算与输出上限计账。
         "tokens": max(input_tokens + output_budget, usage.get("total_tokens", 0)),
     }
 
 
 async def tool_step(registry, decision):
-    """顺序执行一批只读工具并产出轨迹和观察结果；拒绝越权的建单与检索调用。"""
-    allowed = {t.name for t in agent_tools(registry)}
+    """统一将调用交给执行引擎，所有错误作为 ToolMessage 回灌并保留原调用标识。"""
     for call in decision.tool_calls:
         yield {
             "event": "tool_status",
@@ -84,10 +83,7 @@ async def tool_step(registry, decision):
             "tool_call_id": call["id"],
             "state": "running",
         }
-        if call["name"] not in allowed:
-            result = registry.failure("forbidden_tool", "此工具不能由 Agent 执行。", 0)
-        else:
-            result = await registry.execute(call["name"], call["args"])
+        result = await registry.execute(call["name"], call["args"], tool_call_id=call["id"])
         yield {
             "event": "tool_status",
             "name": call["name"],

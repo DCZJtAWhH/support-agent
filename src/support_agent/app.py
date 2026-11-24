@@ -13,7 +13,6 @@ from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from support_agent.chat import ChatService
@@ -35,6 +34,8 @@ from support_agent.knowledge_uploads import (
     UploadIndexPending,
     UploadRejected,
 )
+from support_agent.model_budget import BudgetLedger, BudgetTransport
+from support_agent.model_gateway import create_chat_model
 from support_agent.prompts import AFTER_SALES_EXTRACTION
 from support_agent.repositories import ChatRepository
 from support_agent.retrieval import HybridRetriever, QueryUnderstanding
@@ -73,28 +74,19 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app):
         """启动模型、持久化和语义检索服务，退出时释放数据库及模型与向量客户端。"""
+        transport = None
+        if config.model_test_budget_path:
+            app.state.model_budget = BudgetLedger(config.model_test_budget_path)
+            transport = BudgetTransport(httpx.AsyncHTTPTransport(retries=0), app.state.model_budget)
         with httpx.Client() as sync_client:
-            async with httpx.AsyncClient() as owned_client, AsyncExitStack() as resources:
-                app.state.model = ChatOpenAI(
-                    model=config.openai_model,
-                    base_url=config.openai_base_url,
-                    api_key=config.openai_api_key.get_secret_value(),
-                    http_client=sync_client,
-                    http_async_client=upstream_client or owned_client,
-                    timeout=config.model_timeout_seconds,
-                    max_tokens=(
-                        config.max_output_tokens
-                        if config.output_token_parameter == "max_completion_tokens"
-                        else None
-                    ),
-                    extra_body=(
-                        {"max_tokens": config.max_output_tokens}
-                        if config.output_token_parameter == "max_tokens"
-                        else None
-                    ),
-                    max_retries=0,
-                    stream_usage=False,
-                    use_responses_api=False,
+            async with (
+                httpx.AsyncClient(transport=transport) as owned_client,
+                AsyncExitStack() as resources,
+            ):
+                app.state.model = create_chat_model(
+                    config,
+                    upstream_client or owned_client,
+                    sync_client,
                 )
                 database = Database(config.database_url.get_secret_value())
                 vectors = MilvusVectors(config.milvus_uri, config.milvus_hybrid_collection)

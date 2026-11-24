@@ -1,0 +1,92 @@
+{
+  "complete": false,
+  "full_backend_regression": {
+    "passed": 169,
+    "failed": 0,
+    "artifact": "dev-notes/ch08-tests-final.log"
+  },
+  "latest_tool_ticket_mcp_regression": {
+    "passed": 32,
+    "failed": 0,
+    "artifact": "dev-notes/ch08-targeted-tests.log"
+  },
+  "sse_regression": {
+    "passed": 23,
+    "failed": 0
+  },
+  "browser": {
+    "passed": true,
+    "widths": [
+      1440,
+      390,
+      320
+    ],
+    "confirmation_cases": 6,
+    "errors": 0,
+    "also_checked": [
+      "真实 MCP 物流来源",
+      "原投诉按钮建单"
+    ],
+    "artifact": "dev-notes/ch08-browser-results.json"
+  },
+  "timeout_demo": {
+    "passed": true,
+    "read_retries": 1,
+    "write_retries": 0,
+    "ticket_persisted_before_response_timeout": true,
+    "artifact": "dev-notes/ch08-timeouts.json"
+  },
+  "real_prompt_evaluation_baseline": {
+    "passed": 7,
+    "total": 12,
+    "protocol_errors": 4,
+    "artifact": "dev-notes/ch08-prompt-eval-baseline.json"
+  },
+  "ruff": "passed",
+  "diff_whitespace": "passed",
+  "chinese_function_docstrings": {
+    "files": 19,
+    "functions": 148,
+    "missing_chinese_docstrings": []
+  },
+  "notes": "实现和离线验证完成；真实模型验收未完成。首次真实探测用量不完整，0.092848元为保留预留而非已确认扣费，不清空账本、不自动重试。",
+  "implementation_complete": true,
+  "real_model_acceptance_complete": false,
+  "pending_cost_reconciliation": "首次受保护的真实请求未通过用量完整性校验；账本保留全额预留并冻结，未继续真实调用",
+  "model_compatibility": {
+    "deepseek_protocol_boundary": "passed",
+    "generic_openai_protocol_boundary": "passed",
+    "vendor_fields_not_in_frontend_or_log": "passed",
+    "other_providers_live": "not_run"
+  },
+  "budget_regression": {
+    "passed": 8,
+    "including": [
+      "跨运行累计额度",
+      "超额发送前拒绝",
+      "SDK不得绕过",
+      "用量缺失冻结",
+      "SSE分片与无空格字段",
+      "思考用量不重复计费",
+      "价格过期拒绝"
+    ]
+  },
+  "cost": {
+    "limit_cny": "1.00",
+    "committed_cny": "0.092848",
+    "halted": "响应未完整消费，扣费尚未确认。",
+    "calls": [
+      {
+        "id": "536d93d264c04e95940c640d7e5c1dee",
+        "model": "deepseek-flash",
+        "reserved_cny": "0.092848",
+        "charged_cny": null,
+        "detail": {
+          "input_token_bound": 42328,
+          "max_output_tokens": 1024,
+          "basis": "官方高峰、输入全部按未命中计价的保守上界"
+        }
+      }
+    ]
+  }
+}

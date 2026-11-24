@@ -186,3 +186,18 @@ textarea::placeholder { color: #7b8983; font-size: 14px; }
 .refund-form button:disabled { opacity: .65; cursor: default; }
 .refund-result { font-size: 12px; margin: 0; color: #52675b; overflow-wrap: anywhere; }
 .order-card:focus-visible, .refund-form select:focus-visible, .refund-form button:focus-visible { outline: 3px solid #7fae91; outline-offset: 3px; }
+/* 工单预览沿用聊天页配色，长问题描述自然换行，确认和取消均保留触摸尺寸。 */
+.ticket-preview { margin-top: 18px; padding: 18px; border: 1px solid #cbd9d1; border-radius: 12px; background: #f6faf7; color: #263c30; }
+.ticket-preview strong { display: block; font-size: 16px; }
+.ticket-preview-type { margin: 10px 0 8px; font-size: 13px; color: #526558; }
+.ticket-preview-description { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
+.ticket-preview-note { margin: 12px 0 16px; font-size: 12px; color: #607065; }
+.ticket-preview-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.ticket-preview-actions button { min-height: 44px; padding: 10px 18px; border-radius: 8px; font: inherit; cursor: pointer; border: 1px solid #b6c7bb; transition: background 140ms ease, transform 140ms ease; }
+.ticket-confirm { background: #294f3b; color: white; }
+.ticket-cancel { background: white; color: #294f3b; }
+.ticket-preview-actions button:hover { transform: translateY(-1px); filter: brightness(.96); }
+.ticket-preview-actions button:active { transform: translateY(0); }
+.ticket-preview-actions button:disabled { opacity: .55; cursor: default; transform: none; }
+.ticket-preview-actions button:focus-visible { outline: 3px solid #98b6a2; outline-offset: 3px; }
+@media (max-width: 480px) { .ticket-preview { padding: 14px; } .ticket-preview-actions button { flex: 1; padding: 10px 8px; font-size: 14px; white-space: nowrap; } }

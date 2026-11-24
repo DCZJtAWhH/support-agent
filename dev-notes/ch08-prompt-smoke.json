@@ -1,0 +1,31 @@
+{
+  "model": "deepseek-flash",
+  "passed": 0,
+  "total": 1,
+  "cases": [
+    {
+      "id": "missing_problem",
+      "passed": false,
+      "error": "BudgetExceeded",
+      "error_detail": "用量缺失或超出预留上界，停止后续真实调用。"
+    }
+  ],
+  "cost": {
+    "limit_cny": "1.00",
+    "committed_cny": "0.092848",
+    "halted": "响应未完整消费，扣费尚未确认。",
+    "calls": [
+      {
+        "id": "536d93d264c04e95940c640d7e5c1dee",
+        "model": "deepseek-flash",
+        "reserved_cny": "0.092848",
+        "charged_cny": null,
+        "detail": {
+          "input_token_bound": 42328,
+          "max_output_tokens": 1024,
+          "basis": "官方高峰、输入全部按未命中计价的保守上界"
+        }
+      }
+    ]
+  }
+}

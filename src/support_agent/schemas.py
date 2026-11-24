@@ -3,7 +3,7 @@
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StringConstraints
 
 InputText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=16384)]
 REFUND_REASONS = [
@@ -22,6 +22,10 @@ class ChatRequest(BaseModel):
     message: InputText
     conversation_id: UUID | None = None
     request_id: UUID | None = None
+    ticket_confirmation: StrictBool | None = None
+    ticket_tool_call_id: Annotated[str, StringConstraints(min_length=1, max_length=128)] | None = (
+        None
+    )
     selected_order_id: (
         Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=64)] | None
     ) = None

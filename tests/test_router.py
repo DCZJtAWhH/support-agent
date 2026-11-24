@@ -332,7 +332,7 @@ def test_core_agent_cannot_switch_to_a_different_order_even_if_it_requests_a_too
                     response_metadata={"finish_reason": "tool_calls"},
                 )
             else:
-                assert json.loads(messages[-1].content)["error"]["code"] == "forbidden_tool"
+                assert json.loads(messages[-1].content)["error"]["code"] == "permission_denied"
                 yield AIMessageChunk(
                     content="仅核对演示订单1001及政策。[1]",
                     response_metadata={"finish_reason": "stop"},

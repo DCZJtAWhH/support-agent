@@ -1,0 +1,13 @@
+{
+  "model": "deepseek-flash",
+  "passed": 0,
+  "total": 1,
+  "cases": [
+    {
+      "id": "schema_repair",
+      "passed": false,
+      "error": "OpenAIInvalidRequestError",
+      "error_detail": "Error code: 400 - The `reasoning_content` in the thinking mode must be passed back to the API. (request_id: f804396c-ebd7-4afb-9199-709d5f973bbc)"
+    }
+  ]
+}

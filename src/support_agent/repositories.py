@@ -13,6 +13,7 @@ from support_agent.models import (
     Message,
     RefundApplication,
     Ticket,
+    ToolAuditLog,
 )
 
 
@@ -21,6 +22,27 @@ class ChatRepository:
         """保存会话工厂和语义检索入口，每个持久化操作使用独立短事务。"""
         self.database = database
         self.retriever = retriever
+
+    async def record_tool_audit(self, **values):
+        """以独立短事务追加调用终态；失败交由执行引擎降级，不回滚业务写入。"""
+        async with self.database.sessions.begin() as session:
+            session.add(ToolAuditLog(**values))
+
+    async def tool_audit_logs(self, conversation_id):
+        """顺序读取会话调用审计，供验收及排障；不要求会话业务记录仍然存在。"""
+        async with self.database.sessions() as session:
+            rows = await session.scalars(
+                select(ToolAuditLog)
+                .where(ToolAuditLog.conversation_id == conversation_id)
+                .order_by(ToolAuditLog.id)
+            )
+            return [
+                {
+                    **{c.name: getattr(row, c.name) for c in ToolAuditLog.__table__.columns},
+                    "created_at": row.created_at.isoformat(),
+                }
+                for row in rows
+            ]
 
     async def query_faq(self, keyword: str, *, category=None, prepared=False) -> list[dict]:
         """用完整问题检索；Workflow 已归一的问题跳过旧的同义词扩展。"""
@@ -169,6 +191,7 @@ class ChatRepository:
                 "messages": [self.message_data(row) for row in messages],
                 "tickets": [self.ticket_data(row) for row in tickets],
                 "refunds": [self.refund_data(row) for row in refunds],
+                "tool_audit_logs": await self.tool_audit_logs(conversation_id),
             }
 
     @staticmethod

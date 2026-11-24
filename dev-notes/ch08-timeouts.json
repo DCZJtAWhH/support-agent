@@ -1,0 +1,56 @@
+{
+  "read_result": {
+    "ok": false,
+    "error": {
+      "code": "timeout",
+      "category": "真故障",
+      "message": "工具执行失败，请稍后重试或联系人工。"
+    },
+    "attempts": 2
+  },
+  "write_result": {
+    "ok": false,
+    "error": {
+      "code": "timeout",
+      "category": "真故障",
+      "message": "写操作超时，执行结果尚不确定，未自动重试；请先核对工单记录，避免重复提交。"
+    },
+    "attempts": 1
+  },
+  "audit_logs": [
+    {
+      "id": 1,
+      "conversation_id": "eee07be5-bfc0-4e45-a725-0be33569d096",
+      "tool_call_id": "read-timeout",
+      "tool_name": "slow_read",
+      "source": "builtin",
+      "arguments": {},
+      "result_summary": "{\"ok\": false, \"error\": {\"code\": \"timeout\", \"category\": \"真故障\", \"message\": \"工具执行失败，请稍后重试或联系人工。\"}, \"attempts\": 2}",
+      "status": "超时",
+      "error": "工具执行失败，请稍后重试或联系人工。",
+      "retry_count": 1,
+      "duration_ms": 137,
+      "created_at": "2026-11-24T11:47:20.925146"
+    },
+    {
+      "id": 2,
+      "conversation_id": "eee07be5-bfc0-4e45-a725-0be33569d096",
+      "tool_call_id": "write-timeout",
+      "tool_name": "create_ticket",
+      "source": "builtin",
+      "arguments": {
+        "description": "演示水壶不加热",
+        "ticket_type": "维修"
+      },
+      "result_summary": "{\"ok\": false, \"error\": {\"code\": \"timeout\", \"category\": \"真故障\", \"message\": \"写操作超时，执行结果尚不确定，未自动重试；请先核对工单记录，避免重复提交。\"}, \"attempts\": 1}",
+      "status": "超时",
+      "error": "写操作超时，执行结果尚不确定，未自动重试；请先核对工单记录，避免重复提交。",
+      "retry_count": 0,
+      "duration_ms": 55,
+      "created_at": "2026-11-24T11:47:20.987194"
+    }
+  ],
+  "ticket_count_after_write_timeout": 1,
+  "passed": true,
+  "note": "全部数据来自独立临时库，演示结束后清理；超时写操作未自动重试。"
+}
