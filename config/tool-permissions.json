@@ -1,0 +1,18 @@
+{
+  "logistics": {
+    "query_logistics": {
+      "access": "read",
+      "result_fields": ["order_id", "carrier", "status", "location", "estimated_days", "timeline", "simulated"]
+    }
+  },
+  "aftersales": {
+    "query_warranty": {
+      "access": "read",
+      "result_fields": ["order_id", "status", "remaining_days", "simulated"]
+    },
+    "query_return_progress": {
+      "access": "read",
+      "result_fields": ["order_id", "status", "updated_at", "simulated"]
+    }
+  }
+}

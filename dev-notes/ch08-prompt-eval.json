@@ -1,0 +1,184 @@
+{
+  "model": "deepseek-flash",
+  "passed": 7,
+  "total": 12,
+  "cases": [
+    {
+      "id": "missing_problem",
+      "passed": true,
+      "answer": "好的，请问您遇到了什么问题呢？麻烦说明一下：\n\n1. 涉及的商品或订单号；\n2. 具体遇到的问题（如商品破损、故障、发错货等）；\n3. 您期望的处理方式（换货、维修、退货退款等）。\n\n您补充后，我再为您核对并提交工单。",
+      "calls": [],
+      "checks": {
+        "tool_choice": true,
+        "forbidden_tools": true,
+        "reply": true
+      }
+    },
+    {
+      "id": "complete_ticket",
+      "passed": true,
+      "answer": "",
+      "calls": [
+        {
+          "name": "create_ticket",
+          "args": {
+            "description": "水壶不加热，希望维修",
+            "ticket_type": "维修"
+          },
+          "id": "call_00_lnwepLaO1cNhB9Hqiu1J9080",
+          "type": "tool_call"
+        }
+      ],
+      "checks": {
+        "tool_choice": true,
+        "forbidden_tools": true,
+        "reply": true,
+        "description": true,
+        "literal_description": true
+      }
+    },
+    {
+      "id": "followup_problem",
+      "passed": true,
+      "answer": "",
+      "calls": [
+        {
+          "name": "create_ticket",
+          "args": {
+            "description": "水壶不加热，希望维修",
+            "ticket_type": "维修"
+          },
+          "id": "call_00_BX7nqbeAkwV0qkHyFsj55484",
+          "type": "tool_call"
+        }
+      ],
+      "checks": {
+        "tool_choice": true,
+        "forbidden_tools": true,
+        "reply": true,
+        "description": true,
+        "literal_description": true
+      }
+    },
+    {
+      "id": "no_write_request",
+      "passed": true,
+      "answer": "",
+      "calls": [
+        {
+          "name": "query_order",
+          "args": {
+            "order_id": "1001"
+          },
+          "id": "call_00_Usn7gkNKNEcNjPbl38dR7248",
+          "type": "tool_call"
+        }
+      ],
+      "checks": {
+        "tool_choice": true,
+        "forbidden_tools": true,
+        "reply": true
+      }
+    },
+    {
+      "id": "logistics_mcp",
+      "passed": true,
+      "answer": "",
+      "calls": [
+        {
+          "name": "query_logistics",
+          "args": {
+            "order_id": "1001"
+          },
+          "id": "call_00_1P6OExVzCWmWexvU8ADE8706",
+          "type": "tool_call"
+        }
+      ],
+      "checks": {
+        "tool_choice": true,
+        "forbidden_tools": true,
+        "reply": true
+      }
+    },
+    {
+      "id": "warranty_mcp",
+      "passed": true,
+      "answer": "",
+      "calls": [
+        {
+          "name": "query_warranty",
+          "args": {
+            "order_id": "1001"
+          },
+          "id": "call_00_rT2b2BLN9Dvxr0eSUqcj0716",
+          "type": "tool_call"
+        }
+      ],
+      "checks": {
+        "tool_choice": true,
+        "forbidden_tools": true,
+        "reply": true
+      }
+    },
+    {
+      "id": "return_progress_mcp",
+      "passed": false,
+      "answer": "",
+      "calls": [
+        {
+          "name": "query_order",
+          "args": {
+            "order_id": "1001"
+          },
+          "id": "call_00_RA0WXFOJ61VhGIOcjVcx3539",
+          "type": "tool_call"
+        }
+      ],
+      "checks": {
+        "tool_choice": false,
+        "forbidden_tools": true,
+        "reply": true
+      }
+    },
+    {
+      "id": "hot_registered_tool",
+      "passed": true,
+      "answer": "",
+      "calls": [
+        {
+          "name": "echo_support_code",
+          "args": {
+            "code": "ABC123"
+          },
+          "id": "call_00_QgdZOKQ9m0e2Yp4pXNE81804",
+          "type": "tool_call"
+        }
+      ],
+      "checks": {
+        "tool_choice": true,
+        "forbidden_tools": true,
+        "reply": true
+      }
+    },
+    {
+      "id": "schema_repair",
+      "passed": false,
+      "error": "OpenAIInvalidRequestError"
+    },
+    {
+      "id": "empty_no_repeat",
+      "passed": false,
+      "error": "OpenAIInvalidRequestError"
+    },
+    {
+      "id": "ticket_success_receipt",
+      "passed": false,
+      "error": "OpenAIInvalidRequestError"
+    },
+    {
+      "id": "ticket_cancelled",
+      "passed": false,
+      "error": "OpenAIInvalidRequestError"
+    }
+  ]
+}

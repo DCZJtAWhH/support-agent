@@ -4,6 +4,13 @@ from contextlib import asynccontextmanager
 
 import httpx
 import pytest
+from langchain_core.tools import tool
+
+
+@tool("query_logistics")
+async def mock_logistics(order_id: str) -> dict:
+    """替代外部 MCP 物流边界；真实传输与发现由独立进程集成用例验证。"""
+    return {"order_id": order_id, "location": "演示分拨中心", "status": "运输中", "simulated": True}
 
 
 @pytest.fixture(autouse=True)

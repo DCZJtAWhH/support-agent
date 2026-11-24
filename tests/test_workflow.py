@@ -3,6 +3,7 @@ import json
 from uuid import uuid4
 
 import pytest
+from conftest import mock_logistics
 from langchain_core.messages import AIMessageChunk
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from test_agent_loop import ScriptedModel
@@ -80,7 +81,7 @@ def test_core_workflow_loads_order_before_policy_and_agent_only_judges():
 
     class RefundModel(IntentModel):
         def bind_tools(self, tools):
-            assert "create_ticket" not in {t.name for t in tools}
+            assert "create_ticket" in {t.name for t in tools}
             return self
 
         async def astream(self, messages):
@@ -168,6 +169,7 @@ def test_business_intents_skip_retrieval_and_agent_can_take_multiple_steps(inten
         model.inputs = []
         async with AsyncSqliteSaver.from_conn_string(":memory:") as saver:
             workflow = SupportWorkflow(model, repo, settings(), saver)
+            workflow.catalog.entries.register(mock_logistics, source="mcp:logistics")
             events = [e async for e in workflow.stream(cid, rid, "先查订单1001再查物流")]
             nodes = [e["node"] for e in events if e["event"] == "workflow"]
             assert "retrieve" not in nodes and "confidence" not in nodes

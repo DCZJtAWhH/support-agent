@@ -2,7 +2,7 @@ import asyncio
 import json
 from uuid import uuid4
 
-from conftest import sse_events, stream_response, tool_response
+from conftest import mock_logistics, sse_events, stream_response, tool_response
 
 
 def test_simple_logistics_converges_after_one_tool_and_audits_observation(harness, caplog):
@@ -18,6 +18,7 @@ def test_simple_logistics_converges_after_one_tool_and_audits_observation(harnes
 
     async def scenario():
         async with harness(handler) as (client, calls, app):
+            app.state.chat.workflow.catalog.entries.register(mock_logistics, source="mcp:logistics")
             response = await client.post("/chat", json={"message": "订单1001的物流到哪了"})
             events = sse_events(response)
             assert events[-1][0] == "done"
@@ -48,7 +49,7 @@ def test_agent_cannot_execute_ticket_even_if_model_requests_it(harness):
     async def handler(request, payload):
         if payload["messages"][0]["content"].startswith("将顾客"):
             return stream_response(('{"intent":"订单","confidence":0.99}',))
-        assert "create_ticket" not in {t["function"]["name"] for t in payload["tools"]}
+        assert "create_ticket" in {t["function"]["name"] for t in payload["tools"]}
         if payload["messages"][-1]["role"] != "tool":
             return tool_response(
                 [
@@ -60,7 +61,7 @@ def test_agent_cannot_execute_ticket_even_if_model_requests_it(harness):
                 ]
             )
         result = json.loads(payload["messages"][-1]["content"])
-        assert result["error"]["code"] == "forbidden_tool"
+        assert result["error"]["code"] == "permission_denied"
         return stream_response(("您可以选择建工单，由人工跟进。",))
 
     async def scenario():

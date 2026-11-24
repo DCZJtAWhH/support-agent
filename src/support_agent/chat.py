@@ -14,7 +14,6 @@ from support_agent.context import ContextBudgetExceeded, estimate_tokens, fit_me
 from support_agent.errors import model_error
 from support_agent.schemas import REFUND_REASONS
 from support_agent.streaming import ChatStreamResponse
-from support_agent.tools import ToolRegistry, build_tools
 from support_agent.workflow import AGENT_PROMPT, FINAL_POSITION, SupportWorkflow
 
 logger = logging.getLogger(__name__)
@@ -97,12 +96,43 @@ class ChatService:
                 elif snapshot.values.get("request_id") != rid:
                     raise HTTPException(409, "该订单选择已过期，请重新描述问题。")
                 elif snapshot.interrupts:
-                    allowed = {o["order_id"] for o in snapshot.interrupts[0].value["orders"]}
+                    allowed = {
+                        o["order_id"] for o in snapshot.interrupts[0].value.get("orders", [])
+                    }
                     if body.selected_order_id not in allowed:
                         raise HTTPException(409, "请选择本轮列表中的订单。")
                 elif snapshot.values.get("order_id") != body.selected_order_id:
                     raise HTTPException(409, "该请求不能更换订单。")
-            registry = ToolRegistry(build_tools(self.repo, cid, rid, body.message))
+            if body.ticket_confirmation is not None:
+                if not original or body.selected_order_id:
+                    raise HTTPException(409, "请先获取本轮工单预览。")
+                snapshot = await self.workflow.graph.aget_state(
+                    {"configurable": {"thread_id": cid}}
+                )
+                if final:
+                    if (
+                        metadata.get("ticket_resolution") is not body.ticket_confirmation
+                        or metadata.get("ticket_resolution_call_id") != body.ticket_tool_call_id
+                    ):
+                        raise HTTPException(409, "已处理的工单确认不能更改。")
+                else:
+                    if snapshot.values.get("request_id") != rid:
+                        raise HTTPException(409, "该工单预览已过期。")
+                    if snapshot.interrupts:
+                        preview = snapshot.interrupts[0].value
+                        if (
+                            preview.get("kind") != "ticket"
+                            or preview.get("tool_call_id") != body.ticket_tool_call_id
+                        ):
+                            raise HTTPException(409, "请确认当前工单预览，调用标识不匹配。")
+                    elif (
+                        snapshot.values.get("ticket_resolution") is not body.ticket_confirmation
+                        or snapshot.values.get("ticket_resolution_call_id")
+                        != body.ticket_tool_call_id
+                    ):
+                        raise HTTPException(409, "该请求没有待确认的工单预览。")
+            await self.workflow.catalog.refresh()
+            registry = self.workflow.catalog.bind(self.repo, cid, rid, body.message)
             schema_cost = len(
                 json.dumps(
                     [convert_to_openai_tool(t) for t in agent_tools(registry)],
@@ -160,6 +190,7 @@ class ChatService:
                             category=body.category,
                             initial_history=completed_history((audit or {}).get("messages", [])),
                             selected_order_id=body.selected_order_id,
+                            ticket_confirmation=body.ticket_confirmation,
                         )
                     ) as events:
                         async for event in events:
@@ -236,17 +267,15 @@ class ChatService:
             metadata = next((json.loads(m["content"]) for m in turn if m["role"] == "workflow"), {})
             if user["state"] != "completed" or "create_ticket" not in metadata.get("actions", []):
                 raise HTTPException(409, "该轮次尚未完成或没有建单建议。")
-            registry = ToolRegistry(
-                build_tools(self.repo, cid, rid, original[1]),
-                timeout=self.config.tool_timeout_seconds,
-                retries=self.config.tool_max_retries,
-            )
+            registry = self.workflow.catalog.bind(self.repo, cid, rid, original[1])
             result = await registry.execute(
                 "create_ticket",
                 {
                     "description": original[1][:2000],
                     "ticket_type": "未知",
                 },
+                confirmed=True,
+                tool_call_id=f"button:{rid}",
             )
             if not result["ok"]:
                 raise HTTPException(503, result["error"]["message"])

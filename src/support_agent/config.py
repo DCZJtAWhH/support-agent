@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     openai_base_url: str
     openai_api_key: SecretStr
     openai_model: str = Field(min_length=1)
+    model_provider: Literal["auto", "openai", "deepseek"] = "auto"
+    model_test_budget_path: str | None = None
     structured_output_method: Literal["json_schema", "json_mode"] = "json_schema"
     output_token_parameter: Literal["max_completion_tokens", "max_tokens"] = "max_completion_tokens"
     model_timeout_seconds: float = Field(default=60, gt=0)
@@ -39,6 +41,8 @@ class Settings(BaseSettings):
     database_url: SecretStr
     tool_timeout_seconds: float = Field(default=30, gt=0)
     tool_max_retries: int = Field(default=1, ge=0, le=3)
+    mcp_servers: dict[str, dict] = Field(default_factory=dict)
+    mcp_policy_path: str = "config/tool-permissions.json"
     siliconflow_api_key: SecretStr = SecretStr("")
     milvus_uri: str = "http://127.0.0.1:19530"
     milvus_collection: str = "knowledge"
@@ -48,7 +52,7 @@ class Settings(BaseSettings):
     knowledge_min_score: float = Field(default=0.4, ge=-1, le=1)
     checkpoint_path: str = "data/ch05-checkpoints.sqlite"
     intent_min_confidence: float = Field(default=0.65, ge=0, le=1)
-    router_model: str = Field(default="deepseek-v4-pro", min_length=1)
+    router_model: str | None = Field(default=None, min_length=1)
     agent_max_steps: int = Field(
         default=6,
         ge=1,
@@ -59,7 +63,9 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_budget(self):
-        """确保预留输出和安全余量后仍有输入空间，否则抛出配置校验错误。"""
+        """补齐路由模型默认值，并确保预留输出和安全余量后仍有输入空间。"""
+        if self.router_model is None:
+            self.router_model = self.openai_model
         if self.input_token_budget <= 0:
             raise ValueError("CONTEXT_WINDOW_TOKENS 必须大于输出预算与安全余量之和。")
         from support_agent.context import ContextBudget

@@ -61,7 +61,7 @@ export async function readChatStream(response, onEvent) {
   /** 校验事件顺序和字段，流内 error 立即中止，未知事件留给后续协议扩展。 */
   function acceptEvent(event, data) {
     if (!["meta", "tool_status", "sources", "actions", "token", "done", "error",
-      "understanding", "order_required", "refund_form", "workflow", "retrieval_queries"].includes(event)) return;
+      "understanding", "order_required", "ticket_required", "refund_form", "workflow", "retrieval_queries"].includes(event)) return;
     if (done || !data || typeof data !== "object") throw new Error("回复格式异常，请重试本轮。");
     if (event === "error") throw new Error(data.message || "本轮回复失败，请重试。");
     if (event === "meta") {
@@ -75,6 +75,12 @@ export async function readChatStream(response, onEvent) {
       if (typeof data.question !== "string" || typeof data.intent !== "string" ||
           !Number.isFinite(data.confidence) || data.confidence < 0 || data.confidence > 1) {
         throw new Error("问题理解格式异常，请重试本轮。");
+      }
+    } else if (event === "ticket_required") {
+      if (typeof data.tool_call_id !== "string" || !data.tool_call_id ||
+          typeof data.ticket_type !== "string" || !data.ticket_type ||
+          typeof data.description !== "string" || !data.description.trim()) {
+        throw new Error("工单预览格式异常，请重试本轮。");
       }
     } else if (event === "order_required") {
       if (!Array.isArray(data.orders) || !data.orders.length || data.orders.some(function invalidOrder(order) {

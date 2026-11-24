@@ -1,5 +1,8 @@
 """管理 SQLAlchemy 异步连接与数据库初始化，不在模型生成时持有事务。"""
 
+import json
+from functools import partial
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
@@ -23,7 +26,11 @@ FAQ_SEEDS = [
 class Database:
     def __init__(self, url: str):
         """创建异步引擎；生产使用 mysql+aiomysql，测试可注入独立 SQLite 地址。"""
-        self.engine = create_async_engine(url, pool_pre_ping=True)
+        self.engine = create_async_engine(
+            url,
+            pool_pre_ping=True,
+            json_serializer=partial(json.dumps, ensure_ascii=False),
+        )
         self.sessions = async_sessionmaker(self.engine, expire_on_commit=False)
 
     async def initialize(self, *, seed: bool = False):

@@ -1,5 +1,6 @@
 import asyncio
 
+from conftest import mock_logistics
 from langchain_core.messages import AIMessageChunk, HumanMessage, ToolMessage
 
 from support_agent.agent import run_bare_agent
@@ -13,7 +14,7 @@ class ScriptedModel:
         self.inputs = []
 
     def bind_tools(self, tools):
-        assert "create_ticket" not in [t.name for t in tools]
+        assert "create_ticket" in [t.name for t in tools]
         return self
 
     async def astream(self, messages):
@@ -42,6 +43,7 @@ def test_bare_loop_uses_observations_for_multiple_tool_steps_then_streams_answer
     async def scenario():
         model = ScriptedModel()
         registry = ToolRegistry(build_tools(None, "conversation", "request", "先查订单再查物流"))
+        registry.register(mock_logistics, source="mcp:logistics", permission="read")
         events = [
             event
             async for event in run_bare_agent(

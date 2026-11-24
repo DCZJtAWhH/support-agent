@@ -154,6 +154,41 @@ function addOrderPicker(assistant, orders, message, requestId, sourceConversatio
   assistant.bubble.append(group);
 }
 
+/** 展示服务端工单预览；只回传确认和原调用标识，不接受页面修改工单内容。 */
+function addTicketPreview(assistant, preview, message, requestId, sourceConversationId) {
+  const card = document.createElement("section");
+  card.className = "ticket-preview";
+  card.setAttribute("aria-label", "工单预览");
+  const heading = document.createElement("strong");
+  heading.textContent = "请核对工单";
+  const type = document.createElement("p");
+  type.className = "ticket-preview-type";
+  type.textContent = `工单类型 · ${preview.ticket_type}`;
+  const description = document.createElement("p");
+  description.className = "ticket-preview-description";
+  description.textContent = preview.description;
+  const note = document.createElement("p");
+  note.className = "ticket-preview-note";
+  note.textContent = "确认后登记为待处理工单，由人工继续跟进。";
+  const actions = document.createElement("div");
+  actions.className = "ticket-preview-actions";
+  for (const [confirmed, label] of [[true, "确认提交"], [false, "取消"]]) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    button.className = confirmed ? "ticket-confirm" : "ticket-cancel";
+    button.addEventListener("click", function resumeTicket() {
+      // 继续原请求，由后端从 checkpoint 取工单参数；取消同样需进入引擎留下拒绝审计。
+      if (activeRequest || conversationId !== sourceConversationId) return;
+      for (const control of actions.querySelectorAll("button")) control.disabled = true;
+      void sendMessage(message, { ...assistant, requestId }, null, confirmed, preview.tool_call_id);
+    });
+    actions.append(button);
+  }
+  card.append(heading, type, description, note, actions);
+  assistant.bubble.append(card);
+}
+
 /** 用户提交时才采集固定原因，并将申请凭据显示在原聊天气泡中。 */
 function addRefundForm(assistant, data, requestId, sourceConversationId) {
   const form = document.createElement("form");
@@ -442,7 +477,7 @@ function addActions(assistant, actions, requestId, sourceConversationId) {
 /** 在客服气泡中按调用标识更新工具徽章，保留本轮已完成或失败的轨迹。 */
 function updateToolBadge(assistant, data) {
   const labels = { query_order: "查订单", query_product: "查商品", query_logistics: "查物流", query_faq: "查常见问题", create_ticket: "登记人工工单" };
-  const states = { running: "执行中", succeeded: "已完成", failed: "失败" };
+  const states = { running: "执行中", waiting: "等待确认", succeeded: "已完成", failed: "失败" };
   let badge = Array.from(assistant.tools.children).find(function matchesCall(item) {
     // 按工具调用标识复用徽章，同名工具的不同申请仍分别显示。
     return item.dataset.callId === data.tool_call_id;
@@ -513,9 +548,10 @@ function createTypewriter(bubble) {
 }
 
 /** 发送一轮对话或重试失败轮次，沿用 meta 给出的会话 ID 以衔接服务端上下文。 */
-async function sendMessage(message, previous = null, selectedOrderId = null) {
+async function sendMessage(message, previous = null, selectedOrderId = null,
+  ticketConfirmation = null, ticketCallId = null) {
   if (activeRequest || loadingConversation || !message.trim()) return;
-  for (const card of document.querySelectorAll(".order-picker button")) card.disabled = true;
+  for (const card of document.querySelectorAll(".order-picker button, .ticket-preview button")) card.disabled = true;
   notice.hidden = true;
   failedTurn = null;
   welcome.hidden = true;
@@ -531,6 +567,7 @@ async function sendMessage(message, previous = null, selectedOrderId = null) {
   let actions = [];
   let orders = null;
   let refundForm = null;
+  let ticketPreview = null;
   let sourceConversationId = conversationId;
   const request = { controller: new AbortController(), writer };
   activeRequest = request;
@@ -540,6 +577,10 @@ async function sendMessage(message, previous = null, selectedOrderId = null) {
   try {
     const body = { message, request_id: requestId };
     if (selectedOrderId) body.selected_order_id = selectedOrderId;
+    if (ticketConfirmation !== null) {
+      body.ticket_confirmation = ticketConfirmation;
+      body.ticket_tool_call_id = ticketCallId;
+    }
     if (conversationId) body.conversation_id = conversationId;
     const response = await requestChat(body, request.controller.signal);
     // 保存会话信息，将文本交给逐字渲染器。
@@ -559,6 +600,10 @@ async function sendMessage(message, previous = null, selectedOrderId = null) {
       if (event === "actions") actions = data.actions;
       if (event === "order_required") orders = data.orders;
       if (event === "refund_form") refundForm = data;
+      if (event === "ticket_required") {
+        ticketPreview = data;
+        updateToolBadge(assistant, { name: "create_ticket", tool_call_id: data.tool_call_id, state: "waiting" });
+      }
       if (event === "understanding") {
         let note = assistant.bubble.querySelector(".question-understanding");
         if (!note) {
@@ -579,9 +624,11 @@ async function sendMessage(message, previous = null, selectedOrderId = null) {
     renderCitations(assistant, sources);
     addActions(assistant, actions, requestId, sourceConversationId);
     if (orders) addOrderPicker(assistant, orders, message, requestId, sourceConversationId);
+    else if (ticketPreview) addTicketPreview(assistant, ticketPreview, message, requestId, sourceConversationId);
     else addFeedback(assistant, requestId);
     if (refundForm) addRefundForm(assistant, refundForm, requestId, sourceConversationId);
-    status.textContent = orders ? "点选订单后继续处理，也可以发送其他问题" : "您可以继续追问，前面的内容会接着聊";
+    status.textContent = ticketPreview ? "请确认提交或取消这张工单" :
+      orders ? "点选订单后继续处理，也可以发送其他问题" : "您可以继续追问，前面的内容会接着聊";
   } catch (error) {
     if (activeRequest !== request) return;
     writer.stop();
@@ -591,7 +638,8 @@ async function sendMessage(message, previous = null, selectedOrderId = null) {
     state.className = "message-state";
     state.textContent = "本轮未完成";
     assistant.content.append(state);
-    failedTurn = { message, requestId, selectedOrderId, ...assistant, expired: error.status === 404 };
+    failedTurn = { message, requestId, selectedOrderId, ticketConfirmation, ticketCallId,
+      ...assistant, expired: error.status === 404 };
     document.querySelector("#notice-text").textContent = error instanceof TypeError
       ? "无法连接客服服务，请检查网络后重试。"
       : error.message || "本轮回复失败，请稍后重试。";
@@ -643,7 +691,8 @@ function handleKeydown(event) {
 
 /** 通过新请求重试原问题，复用原顾客气泡并替换不完整的客服回复。 */
 function retryFailedTurn() {
-  if (failedTurn && !failedTurn.expired) void sendMessage(failedTurn.message, failedTurn, failedTurn.selectedOrderId);
+  if (failedTurn && !failedTurn.expired) void sendMessage(failedTurn.message, failedTurn,
+    failedTurn.selectedOrderId, failedTurn.ticketConfirmation, failedTurn.ticketCallId);
 }
 
 /** 开始独立的新会话草稿，首次发送时创建；旧会话目录及服务端原文保持可访问。 */

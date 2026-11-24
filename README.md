@@ -2,6 +2,56 @@
 
 FastAPI + SQLAlchemy + MySQL + LangChain + LangGraph。同一会话的问题理解同时处理指代与口语改写，完整问题原样透传；八选一意图（七类业务/社交意图加其他）以严格 JSON 返回 intent/confidence。退款退货与售后统一走确定性订单→政策子流程，主力 Agent 负责依据订单和政策判断及澄清。继续复用原有混合检索、置信闸和持久化检查点。
 
+## 第八章演示
+
+工具统一登记到进程级 `ToolCatalog`，按每次问题重新发现 MCP 清单；所有调用统一经过 Schema 校验、权限、超时、重试、结果整理和审计。内置 `query_logistics` 已下线，物流由独立 MCP 进程提供，售后进程提供在保与退货进度。使用官方 MCP Python SDK 1.30.0、Streamable HTTP 与 `langchain-mcp-adapters` 0.2.2 的 `MultiServerMCPClient`。不接真实物流或售后系统。
+
+模型接入统一由 `model_gateway.py` 创建。`MODEL_PROVIDER=auto` 只对官方 DeepSeek 域名选择对应协议，其他地址继续使用通用 OpenAI Chat Completions；可显式指定 `openai` 或 `deepseek`，网关地址不会仅凭模型名称被猜成 DeepSeek。DeepSeek 路径使用官方适配器并补齐当前版本发送端的协议字段回传；完整模型消息进入 checkpoint，工具引擎没有提供方分支。未设置 `ROUTER_MODEL` 时沿用配置的主力模型，避免其他提供方被默认 DeepSeek 模型名阻挡；显式设置时仍使用指定的路由模型。其他提供方需支持本项目使用的流式工具调用及所配置的 JSON 输出方式；通用路径有 HTTP 边界回归，未声称全部厂商均已真实联网验收。
+
+DeepSeek 真实测试累计上限为 **人民币1元**：真实启动脚本和标注评估脚本共用 `data/ch08-real-budget.sqlite`，重启不清零。请求在 HTTP 出口预留输入及最大输出的保守费用，正常结束按实际 usage 和官方高峰未命中价格保守结算（实际账单可能更低），思考 tokens 不重复累加。路由、改写、Agent 和后台摘要共用同一个出口，SDK 网络自动重试关闭。用量不完整、断流、未知模型/价格或非200时停止；账目不确定的预留不自动释放。价格快照须当天核对，跨日拒绝真实测试。费用闸只接受已核价的 DeepSeek 官方纯文本接口，不对其他厂商套用 DeepSeek 价格；正常业务部署可不设置 `MODEL_TEST_BUDGET_PATH`。
+
+本次受保护的真实探测在费用完整性检查时停止，完整预留 **0.092848元**，实际扣费尚未确认；账本保持冻结。不得删除账本或换路径绕过停止。报告见 [ch08-cost-report.json](dev-notes/ch08-cost-report.json)，真实模型验收仍待核账，离线回归与浏览器结果单独报告。
+
+在三个终端分别启动（均在仓库根目录）：
+
+```powershell
+uv sync --locked
+# 终端 1：物流 MCP
+$env:PYTHONPATH='src'
+uv run --locked python -m support_agent.mcp_servers.logistics --port 8101
+# 终端 2：售后 MCP
+$env:PYTHONPATH='src'
+uv run --locked python -m support_agent.mcp_servers.aftersales --port 8102
+# 终端 3：离线模型演示，实际运行 MCP、SQLite 仓储与 LangGraph
+uv run --locked python scripts/run_ch08.py --offline
+# 使用 .env 中现有真实模型、MySQL 与知识配置时，去掉 --offline
+uv run --locked python scripts/run_ch08.py
+```
+
+打开 http://127.0.0.1:8009/ 。问“查询订单1001物流轨迹”“查询订单1001是否在保”“查询订单1001的退货进度”。建单先发“帮我建个工单”，再补充“水壶不加热，希望维修”：出现工单类型和问题描述预览；点击「确认提交」后保存并告知工单号，点击「取消」不建单并留权限拒绝审计。投诉回复中的原「建工单」按钮仍沿用确认弹窗路径。离线模式用确定性模型替身演示协议，不代表真实模型质量。
+
+运行时注册可信只读工具只需 `app.state.chat.workflow.catalog.register(your_langchain_tool)`；工具必须带名称、描述及 JSON Schema 参数。下一轮模型绑定会自动包含它，不改 Agent 分支、不重启。写权限由引擎固定为仅内置 `create_ticket`，其他写工具即使登记也会拒绝。
+
+MCP 只动态发现能力，执行授权来自 [config/tool-permissions.json](config/tool-permissions.json)。按 Server 名和工具名精确授予 `read`，可以配置回答所需 `result_fields`；文件每次调用绑定时热读取。未授权工具即使被发现也拒绝，Server 的说明/annotation 不授予权限。新 MCP 工具先在本地许可对应只读名称，在 Server 中登记后只重启该 Server；客服进程下一轮便能发现和使用。不能只凭 Server 自称只读就自动授权。服务连接通过 `MCP_SERVERS` JSON 配置（见 `.env.example`）；启动脚本默认连接 8101/8102。
+
+生态概念上，工具是可执行能力，MCP 是发现和调用外部能力的协议；Skill 则封装某类任务的操作知识与流程。本章只实现工具系统与 MCP 接入，不实现 Skill 机制。
+
+`POST /chat` 的预览恢复字段是 `ticket_confirmation`（严格布尔）和 `ticket_tool_call_id`，还须复用原 `message`、`conversation_id`、`request_id`。工单内容取 checkpoint，不接受前端传入任意描述。Schema 错误、查询落空和故障通过工具观察回灌模型；只读网络故障可重试，写操作永不自动重试。写超时表示结果不确定，应先核对工单。新表见 [ch8.sql](ch8.sql)，也会在启动时自动创建；审计无外键，存储失败只降级日志，不影响业务执行。会话审计接口 `/conversations/{id}` 新增 `tool_audit_logs`。
+
+```powershell
+uv run --locked pytest -q
+node --test tests/web/stream.test.mjs
+uv run --locked python scripts/check_ch08_browser.py
+# 直接查看只读重试、写超时零重试、耗时与“超时但已写入”的审计 JSON
+uv run --locked python scripts/demo_tool_timeouts.py
+# 真实模型标注评估，仅生成决策，不执行写操作；需要两个 MCP 进程已启动
+uv run --locked python scripts/eval_ch08_tools.py
+# 可重复的“只重启 Server 新增工具”与超时/重试验收
+uv run --locked pytest tests/test_mcp_integration.py tests/test_tool_platform.py tests/test_ticket_preview.py -q
+```
+
+只读超时可在物流进程启动前设置 `$env:MCP_MOCK_DELAY_SECONDS='2'`，同时客服设置 `$env:TOOL_TIMEOUT_SECONDS='0.05'`、`$env:TOOL_MAX_RETRIES='1'`（使用真实模式配置）；演示后移除变量。工具平台测试用可控短超时同时验证只读重试和写超时零重试，不向真实业务写入。过程记录：[dev-notes/ch08.md](dev-notes/ch08.md)，标注集：[evals/ch08-tools.jsonl](evals/ch08-tools.jsonl)，浏览器报告：[dev-notes/ch08-browser-results.json](dev-notes/ch08-browser-results.json)。
+
 ## 第七章演示
 
 自动化验证统一使用离线模型 HTTP 替身，不读取模型密钥、不调用真实模型。应用的图、消息持久化、checkpoint、HTTP 与页面均走正式实现，离线数据单独放在 `data/ch07-offline/`。结构变更集中在 [ch7.sql](ch7.sql)，正常应用启动也会增量补齐两个锚点和独立摘要表，不清空原文。正常业务仍沿用原有 MySQL、Milvus 和模型配置；新 `MODEL_CONTEXT_WINDOW` / `MAX_AGENT_STEPS` 优先于旧变量名。

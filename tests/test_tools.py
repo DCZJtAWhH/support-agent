@@ -29,15 +29,13 @@ def test_business_tools_validate_literal_keyword_and_deduplicate_ticket(tmp_path
             assert (await registry.execute("query_order", {"order_id": 1001}))["ok"] is False
             assert (await registry.execute("missing", {}))["error"]["code"] == "unknown_tool"
             first = await registry.execute(
-                "create_ticket", {"description": "退货咨询", "ticket_type": "其他"}
+                "create_ticket", {"description": "退货咨询", "ticket_type": "其他"}, confirmed=True
             )
             second = await registry.execute(
-                "create_ticket", {"description": "退货咨询", "ticket_type": "其他"}
+                "create_ticket", {"description": "退货咨询", "ticket_type": "其他"}, confirmed=True
             )
             assert first["data"]["ticket_no"] == second["data"]["ticket_no"]
-            assert (await registry.execute("query_logistics", {"order_id": "1001"}))["data"][
-                "simulated"
-            ]
+            assert "query_logistics" not in registry.tools  # 物流只由外部 MCP Server 提供。
         finally:
             await db.close()
 
