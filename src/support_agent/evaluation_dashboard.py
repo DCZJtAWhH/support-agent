@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import logging
 import os
 import re
 import sys
@@ -11,6 +12,7 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException
 
+from support_agent.eval_runs import EvaluationRuns
 from support_agent.evaluation import summarize
 from support_agent.knowledge_store import digest
 from support_agent.retrieval import STRATEGIES
@@ -30,7 +32,11 @@ def write_json(path: Path, value: dict):
     """原子替换UTF-8状态文件，防止页面读取到半份JSON。"""
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")
+    temporary.write_text(
+        json.dumps(value, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+        newline="\n",
+    )
     temporary.replace(path)
 
 
@@ -55,6 +61,7 @@ class EvaluationDashboard:
         self.lock = asyncio.Lock()
         self.job, self.task = None, None
         self.initialized = False
+        self.scheduler = None
 
     async def _initialize(self):
         """首次访问时恢复最近任务记录，不因构造测试应用而读写真实运行状态。"""
@@ -150,7 +157,7 @@ class EvaluationDashboard:
             "job": job,
         }
 
-    async def start(self):
+    async def start(self, trigger_type="manual"):
         """在单工作进程启动真实CLI评估，重复申请返回409且保留正在运行的任务。"""
         await self._initialize()
         async with self.lock:
@@ -171,10 +178,27 @@ class EvaluationDashboard:
                 "message": "正在准备题目与模型，评估会调用真实模型服务。",
                 "corpus_hash": corpus["hash"],
                 "dataset_hash": dataset["hash"],
+                "trigger_type": trigger_type,
             }
             await self._save_job()
             self.task = asyncio.create_task(self._execute())
             return {"job": dict(self.job)}
+
+    def start_scheduler(self, interval):
+        """按配置间隔运行既有评估流水线，首次等一个周期，零值表示禁用。"""
+        if interval > 0 and self.scheduler is None:
+            self.scheduler = asyncio.create_task(self._periodic(interval))
+
+    async def _periodic(self, interval):
+        """定期启动完整评估，已有运行则跳过本次，其他错误脱敏记录后下轮重试。"""
+        while True:
+            await asyncio.sleep(interval)
+            try:
+                await self.start(trigger_type="scheduled")
+            except HTTPException as exc:
+                logging.getLogger(__name__).warning("定期评估未启动，状态码=%s", exc.status_code)
+            except Exception as exc:
+                logging.getLogger(__name__).error("定期评估启动失败，类型=%s", type(exc).__name__)
 
     async def _execute(self):
         """执行自身子进程并消费真实结果行，成功后原子发布新的报告指针。"""
@@ -201,6 +225,9 @@ class EvaluationDashboard:
             budget_exceeded = False
             while line := await process.stdout.readline():
                 decoded = line.decode("utf-8", errors="replace").strip()
+                # 仅写本地诊断文件；网页继续使用脱敏状态，不暴露提供方错误正文。
+                with (output.parent / "process.log").open("a", encoding="utf-8") as diagnostic:
+                    diagnostic.write(decoded + "\n")
                 budget_exceeded = budget_exceeded or "ContextBudgetExceeded" in decoded
                 match = re.fullmatch(
                     r"(.+?) / (dense|bm25|hybrid|hybrid_rerank): (answered|refused)",
@@ -239,6 +266,11 @@ class EvaluationDashboard:
                     status="failed", message="评估期间标注集发生变化，本次结果未发布，请重新运行。"
                 )
                 return
+            await EvaluationRuns(self.store.database).record(
+                self.job["id"],
+                self.job.get("trigger_type", "manual"),
+                report,
+            )
             await asyncio.to_thread(
                 write_json, self.runs_directory / "latest.json", {"id": self.job["id"]}
             )
@@ -264,6 +296,9 @@ class EvaluationDashboard:
 
     async def close(self):
         """停止自身评估任务和子进程，避免服务重启后仍消耗模型请求。"""
+        if self.scheduler is not None:
+            self.scheduler.cancel()
+            await asyncio.gather(self.scheduler, return_exceptions=True)
         if self.task is not None and not self.task.done():
             self.task.cancel()
             await asyncio.gather(self.task, return_exceptions=True)

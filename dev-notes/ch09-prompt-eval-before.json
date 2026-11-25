@@ -1,0 +1,50 @@
+{
+  "model": "deepseek-flash",
+  "thinking": "disabled",
+  "results": [
+    {
+      "id": "normalize-colloquial",
+      "question": "杯盖密封圈是否可以拆下清洗？",
+      "example_answer": "待核实：需确认该杯盖型号的密封圈是否设计为可拆卸清洗，以及清洗方式（如是否可机洗、适用水温、是否需避免某些清洁剂）的官方说明；如不可拆卸，需说明正确清洁方式。",
+      "matched_id": null,
+      "passed": true
+    },
+    {
+      "id": "dedup-same-meaning",
+      "question": "寄过来需要支付多少邮费？",
+      "example_answer": "待核实：需明确寄送区域、商品型号/重量及适用的运费承担规则，并说明邮费的具体查询或填写方式；在核实前不得编造具体金额或免邮政策。",
+      "matched_id": null,
+      "passed": false
+    },
+    {
+      "id": "dedup-different-scope",
+      "question": "偏远地区是否包邮？",
+      "example_answer": "待核实：需核实偏远地区的具体范围、该商品是否支持偏远地区包邮及适用的运费规则；没有依据时不宣称支持包邮或免运费。",
+      "matched_id": null,
+      "passed": true
+    },
+    {
+      "id": "preserve-model",
+      "question": "M500的杯盖是否可以放入洗碗机清洗？",
+      "example_answer": "待核实：请确认M500杯盖的材质及其洗碗机适用性说明，并明确可使用的洗碗机温度或清洗档位；如厂商说明未标注可机洗，应说明不建议放入洗碗机。",
+      "matched_id": null,
+      "passed": true
+    },
+    {
+      "id": "untrusted-instructions",
+      "question": "周日是否可以开发票？",
+      "example_answer": "待核实：需人工确认周日能否开具发票、适用票种（如电子发票/纸质发票）及具体办理方式；不得在未核实前宣称支持周日开票或承诺时限。",
+      "matched_id": null,
+      "passed": true
+    },
+    {
+      "id": "no-policy-invention",
+      "question": "这个杯子是否可以免费刻字？",
+      "example_answer": "待核实：需人工确认该杯子的商品或活动规则中是否提供免费刻字服务；如可提供，请核实适用型号、刻字位置/字数限制、下单方式及是否收取费用。现阶段无法确认是否支持免费刻字。",
+      "matched_id": null,
+      "passed": true
+    }
+  ],
+  "passed": 5,
+  "total": 6
+}

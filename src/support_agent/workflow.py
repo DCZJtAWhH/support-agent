@@ -13,6 +13,7 @@ from langgraph.graph.message import add_messages
 from langgraph.types import Command, interrupt
 
 from support_agent.agent import STOP_REPLY, agent_tools, model_step, suggested_actions, tool_step
+from support_agent.confidence import EvidencePolicy
 from support_agent.context import (
     ContextBudget,
     ContextBudgetExceeded,
@@ -22,7 +23,15 @@ from support_agent.context import (
     project_history,
     routing_history,
 )
-from support_agent.grounding import REFUSAL, numbered_sources, prompt_evidence
+from support_agent.grounding import (
+    REFUSAL,
+    SELF_ASSESS_PROMPT,
+    EvidenceSelfAssessment,
+    numbered_sources,
+    prompt_evidence,
+    refusal_with_effects,
+)
+from support_agent.observability import RequestTracing, UsageRecorder, record_intent, traced_node
 from support_agent.orders import explicit_order_ids, get_order, list_orders
 from support_agent.routing import RouterLanguage
 from support_agent.schemas import REFUND_REASONS
@@ -108,6 +117,9 @@ class SupportState(TypedDict, total=False):
     tokens: int
     next_history: list
     evidence_ok: bool
+    evidence_confidence: float
+    evidence_assessment: dict
+    retrieval_snapshot: list | None
     order_id: str | None
     order: dict | None
     queries: list[str]
@@ -118,9 +130,11 @@ class SupportState(TypedDict, total=False):
 
 
 class SupportWorkflow:
-    def __init__(self, model, repo, config, checkpointer):
+    def __init__(self, model, repo, config, checkpointer, *, trace_client=None):
         """绑定现有模型与仓储，编译以会话 ID 为线程标识的持久化图。"""
         self.model, self.repo, self.config = model, repo, config
+        self.evidence_policy = EvidencePolicy.load(config.evidence_calibration_path)
+        self.tracing = RequestTracing(config, client=trace_client)
         self.language = RouterLanguage(model.bind(model=config.router_model), config)
         self.summaries = SummaryManager(model, repo, config)
         self.catalog = ToolCatalog(
@@ -148,7 +162,7 @@ class SupportWorkflow:
             "stop": self.stop,
             "log": self.log,
         }.items():
-            builder.add_node(name, node)
+            builder.add_node(name, traced_node(node, self.tracing))
         builder.add_edge(START, "resolve")
         builder.add_edge("resolve", "classify")
         builder.add_edge("classify", "route")
@@ -181,7 +195,12 @@ class SupportWorkflow:
         builder.add_edge("social", "log")
         builder.add_edge("other", "log")
         builder.add_edge("log", END)
-        self.graph = builder.compile(checkpointer=checkpointer)
+        callbacks = [UsageRecorder(repo.database)]
+        if self.tracing.callback:
+            callbacks.append(self.tracing.callback)
+        self.graph = builder.compile(checkpointer=checkpointer).with_config(
+            {"callbacks": callbacks}
+        )
 
     @staticmethod
     def mark(state, node):
@@ -271,6 +290,14 @@ class SupportWorkflow:
                 if t.name != "create_ticket"
             ],
         )
+        await record_intent(
+            self.repo.database,
+            state["conversation_id"],
+            state["request_id"],
+            decision.intent,
+            self.tracing.trace_id(state["request_id"]),
+        )
+        self.tracing.set_intent(decision.intent)
         get_stream_writer()(
             {
                 "event": "understanding",
@@ -326,7 +353,18 @@ class SupportWorkflow:
             matches = await self.repo.query_policies(question, queries, category=state["category"])
         else:
             matches = await self.repo.query_faq(question, category=state["category"], prepared=True)
-        return {"sources": numbered_sources(matches), "queries": queries, "trace": trace}
+        sources = numbered_sources(matches)[:10]
+        await self.repo.record_retrieval_snapshot(
+            state["conversation_id"],
+            state["request_id"],
+            sources,
+        )
+        return {
+            "sources": sources,
+            "retrieval_snapshot": sources,
+            "queries": queries,
+            "trace": trace,
+        }
 
     async def select_order(self, state):
         """优先采用原话唯一订单；历史订单须与理解结果一致，否则暂停让用户点选。"""
@@ -406,20 +444,31 @@ class SupportWorkflow:
         }
 
     async def confidence(self, state):
-        """在任何回答 token 前以精排分做最简置信闸，只保留达到阈值的来源。"""
+        """知识检索后、Agent 前运行标注集校准的多信号证据闸，原始快照独立保存。"""
         trace = self.mark(state, "confidence")
+        assessment = self.evidence_policy.assess(state["sources"])
         sources = numbered_sources(
-            [s for s in state["sources"] if s.get("score", -1) >= self.config.rerank_min_score]
+            [
+                s
+                for s in state["sources"]
+                if s.get("score", -1) >= self.evidence_policy.artifact["relevance_floor"]
+            ]
         )
-        if not sources:
+        if not assessment["accepted"]:
             await self.repo.record_low_confidence(
                 state["conversation_id"],
                 state["request_id"],
                 state["question"],
                 "workflow_gate",
-                "未检索到达到精排阈值的可靠证据",
+                "证据置信度不足：" + json.dumps(assessment, ensure_ascii=False),
             )
-        return {"evidence_ok": bool(sources), "sources": sources, "trace": trace}
+        return {
+            "evidence_ok": assessment["accepted"],
+            "sources": sources,
+            "evidence_confidence": assessment["evidence_confidence"],
+            "evidence_assessment": assessment,
+            "trace": trace,
+        }
 
     async def fallback(self, state):
         """证据弱时直接兜底，不进入 Agent，也不等待生成后再做自评。"""
@@ -509,7 +558,7 @@ class SupportWorkflow:
         }
 
     async def agent(self, state):
-        """执行一次 ReAct 模型决策，边生成边发送文本，绝不事后拦截整个答案。"""
+        """执行 ReAct 决策；知识回答暂存到生成自评通过，业务数据回答保持流式。"""
         trace = self.mark(state, "agent")
         if (
             state["steps"] >= self.config.agent_max_steps
@@ -546,6 +595,7 @@ class SupportWorkflow:
                 ensure_ascii=False,
             ),
         )
+        buffered = []
         async for event in model_step(
             self.model,
             registry,
@@ -557,7 +607,10 @@ class SupportWorkflow:
             if event["event"] == "decision":
                 decision, tokens = event["message"], event["tokens"]
             elif event["event"] == "token":
-                get_stream_writer()(event)
+                if state["sources"]:
+                    buffered.append(event)
+                else:
+                    get_stream_writer()(event)
         if decision is None or len(decision.tool_calls) > 4:
             return {"answer": STOP_REPLY, "trace": trace}
         decision.id = f"{state['request_id']}:decision:{state['steps']}"
@@ -567,9 +620,44 @@ class SupportWorkflow:
             "request_id": state["request_id"],
         }
         if not decision.tool_calls:
+            answer = decision.content
+            final_sources = state["sources"]
+            evidence_ok = state.get("evidence_ok", False)
+            if state["sources"]:
+                assessed = await self.language.ask(
+                    EvidenceSelfAssessment,
+                    SELF_ASSESS_PROMPT,
+                    json.dumps(
+                        {
+                            "question": state["resolved_question"],
+                            "answer": answer,
+                            "sources": prompt_evidence(state["sources"]),
+                        },
+                        ensure_ascii=False,
+                    ),
+                )
+                if not assessed.sufficient:
+                    await self.repo.record_low_confidence(
+                        state["conversation_id"],
+                        state["request_id"],
+                        state["question"],
+                        "generation",
+                        "生成自评证据不足：" + assessed.reason,
+                    )
+                    verified = [
+                        json.loads(m.content) for m in state["react_messages"] if m.type == "tool"
+                    ]
+                    answer = refusal_with_effects(verified)
+                    final_sources, evidence_ok = [], False
+                    buffered = [{"event": "token", "text": answer}]
+                    get_stream_writer()({"event": "sources", "sources": []})
+                for event in buffered:
+                    get_stream_writer()(event)
             return {
-                "answer": decision.content,
-                "actions": suggested_actions(decision.content),
+                "answer": answer,
+                "sources": final_sources,
+                "evidence_ok": evidence_ok,
+                "actions": suggested_actions(answer),
                 "react_messages": [*state["react_messages"], decision],
                 "trace": trace,
                 "steps": state["steps"] + 1,
@@ -660,6 +748,9 @@ class SupportWorkflow:
                 "queries",
                 "steps",
                 "tokens",
+                "retrieval_snapshot",
+                "evidence_confidence",
+                "evidence_assessment",
                 "ticket_resolution",
                 "ticket_resolution_call_id",
             )
@@ -742,12 +833,21 @@ class SupportWorkflow:
             "order_id": None,
             "order": None,
             "queries": [],
+            "intent": "未识别",
             "evidence_ok": False,
+            "evidence_confidence": 0,
+            "evidence_assessment": {},
+            "retrieval_snapshot": None,
             "tool_cursor": 0,
             "ticket_resolution": ticket_confirmation,
             "ticket_resolution_call_id": None,
         }
-        config = {"configurable": {"thread_id": conversation_id}, "recursion_limit": 100}
+        config = {
+            "configurable": {"thread_id": conversation_id},
+            "recursion_limit": 100,
+            "metadata": {"request_id": request_id, "conversation_id": conversation_id},
+        }
+        await record_intent(self.repo.database, conversation_id, request_id, "未识别")
         snapshot = await self.graph.aget_state(config)
         audit = await self.repo.read_conversation(conversation_id)
         row = next(
@@ -801,9 +901,25 @@ class SupportWorkflow:
                 )
             if snapshot.values.get("sources"):
                 yield {"event": "sources", "sources": snapshot.values["sources"]}
-        async with aclosing(self.graph.astream(inputs, config, stream_mode="custom")) as stream:
-            async for event in stream:
-                yield event
+        with self.tracing.request(conversation_id, request_id, question):
+            if inputs is None or isinstance(inputs, Command):
+                self.tracing.set_intent(snapshot.values.get("intent", "未识别"))
+                await record_intent(
+                    self.repo.database,
+                    conversation_id,
+                    request_id,
+                    snapshot.values.get("intent", "未识别"),
+                )
+            async with aclosing(self.graph.astream(inputs, config, stream_mode="custom")) as stream:
+                async for event in stream:
+                    yield event
+            result = await self.graph.aget_state(config)
+            self.tracing.finish(
+                {
+                    "answer": result.values.get("answer"),
+                    "evidence_confidence": result.values.get("evidence_confidence"),
+                }
+            )
         snapshot = await self.graph.aget_state(config)
         if snapshot.interrupts:
             preview = snapshot.interrupts[0].value

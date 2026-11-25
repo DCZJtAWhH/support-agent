@@ -26,6 +26,8 @@ class IntentModel:
         self.calls.append(messages)
         if "问题理解器" in messages[0].content:
             result = {"question": messages[-1].content}
+        elif "生成证据自评" in messages[0].content:
+            result = {"sufficient": True, "reason": "测试证据支持回答"}
         elif "查询扩写器" in messages[0].content:
             result = {"queries": ["退货条件", "退货期限"]}
         else:

@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "dataset_hash": "0f19532734fea9ef536bb2471cb83b2ecf9fc9bb453425ab68a609b0c5bcfec5",
+  "sample_count": 20,
+  "metadata": {
+    "report": "dev-notes/rag-evaluations/0177ff8d-0589-46f1-a506-77112f5bd58f/report.json",
+    "report_hash": "566770fa043f9b038a2d37eed3047c38e056074da4e897a17bf1262ea81cc601",
+    "embedding": "BAAI/bge-m3",
+    "reranker": "BAAI/bge-reranker-v2-m3",
+    "corpus_hash": "b1a997f5d2e9d2543979177c8876008e49944a4be2b695f4fa78f17081ebf263",
+    "note": "复用 ch04 真实召回；语料变更后应重新评估并校准。"
+  },
+  "validation": "开发集校准，非独立留出评估",
+  "objective": "先最小化可回答题误拦，再最小化平衡错误率；模糊高相关题由生成自评处理",
+  "weights": [
+    0.8,
+    0.1,
+    0.1
+  ],
+  "relevance_floor": 0.4229156970977783,
+  "threshold": 0.2228314444603465,
+  "balanced_accuracy": 0.9166666666666666,
+  "false_accept_ids": [
+    "dishwasher-ambiguous"
+  ],
+  "false_reject_ids": []
+}

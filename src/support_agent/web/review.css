@@ -1,0 +1,33 @@
+textarea { font: inherit; font-size: 16px; width: 100%; min-height: 128px; padding: 12px; color: var(--ink); border: 1px solid #cfdcd4; border-radius: 7px; resize: vertical; }
+textarea:focus-visible { outline: 3px solid #308e7b; outline-offset: 3px; }
+.intro, .section-heading p { font-size: 14px; }
+.review-row { border-top: 1px solid var(--line); padding: 20px 0; }
+.review-row:last-child { padding-bottom: 0; }
+.review-row summary { display: flex; gap: 16px; justify-content: space-between; font-size: 16px; line-height: 1.7; color: var(--ink); }
+.review-row summary strong { font-weight: 600; }
+.review-row summary span { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.review-row[open] summary { margin-bottom: 16px; }
+.review-row p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
+.review-row h3 { margin: 20px 0 8px; font-size: 15px; }
+.sample { color: var(--muted); font-size: 14px; margin-bottom: 0; }
+.review-actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+.review-row label { margin-top: 16px; font-size: 14px; }
+.origins { margin: 16px 0; padding: 0; list-style: none; }
+.origin { border-left: 3px solid #bdd1c5; padding: 0 16px; margin: 24px 0; }
+.origin > p:first-child { font-size: 16px; font-weight: 550; }
+.origin .meta { font-size: 12px; color: var(--muted); }
+.snapshot { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 8px; }
+.snapshot summary { font-size: 14px; color: var(--green); margin: 0; }
+.snapshot pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 14px; line-height: 1.9; }
+.empty { color: var(--muted); line-height: 1.8; padding: 16px 0; }
+.cost-row { display: grid; grid-template-columns: minmax(70px, 1fr) minmax(100px, 3fr) auto; gap: 16px; align-items: center; padding: 14px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.cost-row meter { width: 100%; height: 12px; accent-color: var(--green); }
+.cost-row small { color: var(--muted); display: block; margin-top: 4px; }
+.trend-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+.trend-legend i { display: inline-block; width: 16px; height: 3px; margin-right: 6px; vertical-align: middle; }
+.trend-svg { width: 100%; height: auto; display: block; max-height: 260px; margin-bottom: 24px; }
+.trend-svg text { font: 12px system-ui; fill: #64726e; }
+#run-list table { min-width: 620px; }
+.decline { color: #a4442d; font-weight: 650; }
+@media (prefers-reduced-motion: no-preference) { .page-heading { animation: appear .3s ease-out both; } @keyframes appear { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } } }
+@media (max-width: 640px) { .brand small { display: none; } .nav { gap: 12px; flex-wrap: wrap; } .nav nav { gap: 16px; } .review-row summary { display: block; } .review-row summary span { display: block; margin-top: 8px; } .cost-row { gap: 8px; grid-template-columns: 76px 1fr; } .cost-row > div:last-child { grid-column: 2; } .review-actions button { flex: 1; } }

@@ -37,6 +37,8 @@ class RouterModel:
             result = {"intent": self.intent, "confidence": self.confidence}
         elif "查询扩写器" in prompt:
             result = {"queries": ["退货条件", "退货期限", "退款例外"]}
+        elif "生成证据自评" in prompt:
+            result = {"sufficient": True, "reason": "测试证据支持回答"}
         else:
             yield AIMessageChunk(
                 content="这是演示订单，请结合签收时间核对退货条件。[1]",
@@ -152,6 +154,8 @@ def test_chat_selection_is_bound_to_original_turn_and_replay_does_not_rerun(harn
             result = {"intent": "退款退货", "confidence": 0.98}
         elif "查询扩写器" in prompt:
             result = {"queries": ["退货期限", "退款条件"]}
+        elif "生成证据自评" in prompt:
+            result = {"sufficient": True, "reason": "测试证据支持回答"}
         else:
             return stream_response(("演示订单签收3天，商品完好时可以申请退货。[1]",))
         return stream_response((json.dumps(result, ensure_ascii=False),))
@@ -203,6 +207,8 @@ def test_refund_submission_requires_completed_policy_turn_and_fixed_reason(harne
             result = {"intent": "退款退货", "confidence": 0.99}
         elif "查询扩写器" in prompt:
             result = {"queries": ["退货条件", "退货期限"]}
+        elif "生成证据自评" in prompt:
+            result = {"sufficient": True, "reason": "测试证据支持回答"}
         else:
             return stream_response(("演示订单签收3天，商品完好时可申请退货。[1]",))
         return stream_response((json.dumps(result, ensure_ascii=False),))

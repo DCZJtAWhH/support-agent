@@ -1,6 +1,7 @@
 """从已审核客服导出分批抽取问答，先暂存，再对完整知识集合去重发布。"""
 
 import json
+import logging
 import math
 import re
 import unicodedata
@@ -71,7 +72,7 @@ class KnowledgeLLM:
         self.model = create_chat_model(config, client, sync_client)
 
     async def ask(self, schema, prompt: str, payload: dict):
-        """请求完整的结构化 JSON，校验解析与结束原因；失败不提交批次检查点。"""
+        """请求并校验完整 JSON；格式错误最多重试两次，不切换模型或结构化协议。"""
         schema_text = json.dumps(schema.model_json_schema(), ensure_ascii=False)
         messages = fit_messages(
             SystemMessage(prompt + "\nJSON Schema：" + schema_text),
@@ -86,14 +87,22 @@ class KnowledgeLLM:
             include_raw=True,
             **options,
         )
-        result = await structured.ainvoke(messages)
-        if (
-            result["parsing_error"]
-            or result["parsed"] is None
-            or result["raw"].response_metadata.get("finish_reason") != "stop"
-        ):
-            raise ValueError("知识模型未返回完整且符合约束的 JSON；未记录成功检查点，请重跑。")
-        return result["parsed"]
+        for attempt in range(3):
+            result = await structured.ainvoke(messages)
+            if (
+                not result["parsing_error"]
+                and result["parsed"] is not None
+                and result["raw"].response_metadata.get("finish_reason") == "stop"
+            ):
+                return result["parsed"]
+            logging.getLogger(__name__).warning(
+                "结构化输出无效 schema=%s attempt=%s finish=%s error_type=%s",
+                schema.__name__,
+                attempt + 1,
+                result["raw"].response_metadata.get("finish_reason"),
+                type(result["parsing_error"]).__name__,
+            )
+        raise ValueError("知识模型未返回完整且符合约束的 JSON；未记录成功检查点，请重跑。")
 
     async def extract(self, records: list[dict]) -> ExtractionResult:
         """抽取一批已过滤对话，以批内编号关联真实问法。"""

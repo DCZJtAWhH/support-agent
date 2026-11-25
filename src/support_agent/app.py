@@ -1,5 +1,6 @@
 """组装客服对话与售后信息提取接口，管理模型客户端和持久化聊天服务。"""
 
+import asyncio
 import json
 import logging
 import warnings
@@ -26,6 +27,7 @@ from support_agent.context import (
 from support_agent.database import Database
 from support_agent.errors import ModelResponseError, model_error
 from support_agent.evaluation_dashboard import EvaluationDashboard
+from support_agent.flywheel import FlywheelService
 from support_agent.knowledge_mining import KnowledgeLLM
 from support_agent.knowledge_store import KnowledgeStore
 from support_agent.knowledge_uploads import (
@@ -34,6 +36,7 @@ from support_agent.knowledge_uploads import (
     UploadIndexPending,
     UploadRejected,
 )
+from support_agent.management import router as management_router
 from support_agent.model_budget import BudgetLedger, BudgetTransport
 from support_agent.model_gateway import create_chat_model
 from support_agent.prompts import AFTER_SALES_EXTRACTION
@@ -73,7 +76,7 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app):
-        """启动模型、持久化和语义检索服务，退出时释放数据库及模型与向量客户端。"""
+        """启动模型、存储、飞轮与定期评估，退出时取消任务并释放数据库及向量客户端。"""
         transport = None
         if config.model_test_budget_path:
             app.state.model_budget = BudgetLedger(config.model_test_budget_path)
@@ -120,16 +123,33 @@ def create_app(
                         config,
                         checkpointer=checkpointer,
                     )
+                    app.state.flywheel = FlywheelService(
+                        app.state.repository,
+                        language,
+                        store=app.state.knowledge_store,
+                        embeddings=retriever.embeddings,
+                        vectors=vectors,
+                        workflow=app.state.chat.workflow,
+                    )
+                    app.state.flywheel.start_worker(config.flywheel_interval_seconds)
+                    app.state.evaluations.start_scheduler(config.eval_interval_seconds)
                     yield
                 finally:
+                    if hasattr(app.state, "flywheel"):
+                        await app.state.flywheel.close()
                     if hasattr(app.state, "chat"):
                         await app.state.chat.workflow.summaries.close()
                     if hasattr(app.state, "evaluations"):
                         await app.state.evaluations.close()
+                    if hasattr(app.state, "chat") and app.state.chat.workflow.tracing.client:
+                        await asyncio.to_thread(
+                            app.state.chat.workflow.tracing.client.flush,
+                        )
                     await vectors.close()
                     await database.close()
 
     app = FastAPI(title="电商智能客服", lifespan=lifespan)
+    app.include_router(management_router)
     web_directory = Path(__file__).with_name("web")
     app.mount("/static", StaticFiles(directory=web_directory), name="static")
 

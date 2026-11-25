@@ -124,6 +124,82 @@ class LowConfidenceQuestion(Base):
     conversation_id: Mapped[str] = mapped_column(ForeignKey("conversations.id"), index=True)
     entry_point: Mapped[str] = mapped_column(String(64))
     reason: Mapped[str] = mapped_column(Text)
+    retrieval_snapshot: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    matched_review_id: Mapped[int | None] = mapped_column(
+        ForeignKey("review_queue.id"), nullable=True, index=True
+    )
+    entry_points: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class TurnRetrieval(Base):
+    """按轮次保存过滤前的召回快照；存在但为空表示检索过却未召回。"""
+
+    __tablename__ = "turn_retrievals"
+    request_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    conversation_id: Mapped[str] = mapped_column(ForeignKey("conversations.id"), index=True)
+    snapshot: Mapped[list] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class ReviewQueue(Base):
+    """一行代表一个去重知识缺口，核准答案由人工填写后按稳定来源发布。"""
+
+    __tablename__ = "review_queue"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    normalized_question: Mapped[str] = mapped_column(Text)
+    example_answer: Mapped[str] = mapped_column(Text)
+    occurrence_count: Mapped[int] = mapped_column(Integer, default=1)
+    status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
+    approved_answer: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class AnswerFeedback(Base):
+    """按轮次持久化满意度选择，重复点击返回原选择，不重复落池。"""
+
+    __tablename__ = "answer_feedback"
+    request_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    conversation_id: Mapped[str] = mapped_column(ForeignKey("conversations.id"), index=True)
+    value: Mapped[str] = mapped_column(String(8))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class RequestIntent(Base):
+    """保存请求的最终意图，识别前失败的调用仍可按未识别归集用量。"""
+
+    __tablename__ = "request_intents"
+    request_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    conversation_id: Mapped[str] = mapped_column(String(36), index=True)
+    intent: Mapped[str] = mapped_column(String(32), default="未识别")
+    trace_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class ModelUsage(Base):
+    """逐模型调用记录提供方真实用量，未知用量单独标记，不用估算值冒充。"""
+
+    __tablename__ = "model_usage"
+    run_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    request_id: Mapped[str] = mapped_column(String(36), index=True)
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    usage_known: Mapped[bool] = mapped_column(default=False)
+    duration_ms: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class EvalRun(Base):
+    """一行记录一轮真实评估的触发方式、题数、指标与时间及数据版本。"""
+
+    __tablename__ = "eval_runs"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    run_id: Mapped[str] = mapped_column(String(64), unique=True)
+    trigger_type: Mapped[str] = mapped_column(String(16))
+    dataset_count: Mapped[int] = mapped_column(Integer)
+    metrics: Mapped[dict] = mapped_column(JSON)
+    dataset_hash: Mapped[str] = mapped_column(String(64), default="")
+    corpus_hash: Mapped[str] = mapped_column(String(64), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
 

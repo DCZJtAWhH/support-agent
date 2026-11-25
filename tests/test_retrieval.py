@@ -152,6 +152,28 @@ def test_query_rewrite_cannot_change_explicit_model_or_quantity():
     asyncio.run(scenario())
 
 
+def test_query_rewrite_retries_when_a_negated_model_is_lost():
+    from support_agent.retrieval import QueryUnderstanding
+
+    class LanguageAPI:
+        def __init__(self):
+            self.calls = 0
+
+        async def ask(self, schema, prompt, payload):
+            self.calls += 1
+            if self.calls == 1:
+                return schema(normalized="BX-500能放洗碗机吗", synonyms=[])
+            return schema(normalized="不讨论BX-750；BX-500能放洗碗机吗", synonyms=["机洗"])
+
+    async def scenario():
+        result = await QueryUnderstanding(LanguageAPI()).prepare(
+            "别说BX-750，我问BX-500能放洗碗机吗"
+        )
+        assert result["normalized"] == "不讨论BX-750；BX-500能放洗碗机吗"
+
+    asyncio.run(scenario())
+
+
 def test_hybrid_never_returns_stale_pending_or_inactive_original():
     from support_agent.retrieval import HybridRetriever
     from support_agent.vectors import BGEReranker

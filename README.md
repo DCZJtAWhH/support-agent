@@ -426,3 +426,48 @@ uv run --locked python scripts/check_evaluation_browser.py --base-url http://127
 ```
 
 实施计划为 `docs/plans/0005-rag-evaluation-ui.md`，过程继续记录在 `dev-notes/ch04.md`。
+# 第九章：链路观测与知识改进
+
+复用本地 Langfuse v4、MySQL 和 Milvus。`.env` 填写 `LANGFUSE_PUBLIC_KEY`、
+`LANGFUSE_SECRET_KEY`，地址默认 `http://127.0.0.1:3000`。链路仅发送到该自托管地址。
+
+```powershell
+uv sync --locked
+uv run --locked python scripts/run_ch09.py
+```
+
+打开聊天页 <http://127.0.0.1:8010/>，后台 <http://127.0.0.1:8010/reviews>。
+该启动命令显式使用当前模型的非思考模式；提供方和模型保持 `.env` 配置。
+通用启动入口仍保留原模式，只有设置 `MODEL_THINKING` 时才覆盖提供方默认值。
+默认每 10 秒整理未归并问题，每 24 小时运行一次完整 ch04 评估；对应配置
+`FLYWHEEL_INTERVAL_SECONDS`、`EVAL_INTERVAL_SECONDS` 设为 `0` 可以关闭自动运行。
+使用一个应用工作进程，符合此前客服与知识任务的部署约定。
+
+问题池按轮次幂等，三个入口为 `workflow_gate`、`generation`、`feedback`；
+同轮多入口保留在 `entry_points`，不会把一次问题计数多次。检索完成就保存阈值前 Top10
+原文、分数与来源；空数组表示检索过但没有结果，`null` 表示无检索记录。反馈按原请求
+回捞持久快照，并兼容旧审计和对应轮次 checkpoint。标准化只产生待核实示例答案，审核
+必须另填核准答案；通过后复用 MySQL pending → Milvus upsert → done，失败可用原答案重试。
+审核页同时展示按意图汇总的真实 token 与评估指标历史；缺 usage 不冒充零费用。
+
+```powershell
+# 手动处理问题池、查看按意图用量
+Invoke-RestMethod -Method Post http://127.0.0.1:8010/api/flywheel/process
+Invoke-RestMethod http://127.0.0.1:8010/api/costs
+# 运行完整20题×4策略评估；等待 completed 后再次触发即为第二轮
+Invoke-RestMethod -Method Post http://127.0.0.1:8010/api/evaluations/run
+Invoke-RestMethod http://127.0.0.1:8010/api/evaluations/status
+Invoke-RestMethod http://127.0.0.1:8010/api/evaluations/runs
+# 也可用等待脚本连续执行两轮；已有运行的一轮会被复用
+uv run --locked python scripts/run_ch09_evaluations.py --rounds 2
+# 复核真实链路与 Prompt 样例
+uv run --locked python scripts/check_ch09_trace.py
+uv run --locked python scripts/eval_flywheel.py
+```
+
+证据闸的三个信号是精排 Top1、有效证据数量、Top1/Top2 分差；权重、有效分下限和接受阈值
+均由 ch04 标注集真实精排记录校准，产物为 `config/evidence-confidence.json`。它不是概率，
+也不替代生成自评。重新生成：`uv run --locked python scripts/calibrate_evidence.py --report <真实评估报告>`。
+开发集校准不能冒充独立留出评估，语料更新后应重新评估并校准。
+
+开发记录：[dev-notes/ch09.md](dev-notes/ch09.md)。

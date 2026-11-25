@@ -1,6 +1,7 @@
 """从环境变量或 .env 加载模型及数据库配置，并校验上下文预算。"""
 
 import logging
+from pathlib import Path
 from typing import Literal
 
 from pydantic import AliasChoices, Field, SecretStr, model_validator
@@ -16,7 +17,12 @@ class Settings(BaseSettings):
     openai_api_key: SecretStr
     openai_model: str = Field(min_length=1)
     model_provider: Literal["auto", "openai", "deepseek"] = "auto"
+    model_thinking: Literal["enabled", "disabled"] | None = None
     model_test_budget_path: str | None = None
+    langfuse_enabled: bool = True
+    langfuse_public_key: SecretStr = SecretStr("")
+    langfuse_secret_key: SecretStr = SecretStr("")
+    langfuse_base_url: str = "http://127.0.0.1:3000"
     structured_output_method: Literal["json_schema", "json_mode"] = "json_schema"
     output_token_parameter: Literal["max_completion_tokens", "max_tokens"] = "max_completion_tokens"
     model_timeout_seconds: float = Field(default=60, gt=0)
@@ -48,6 +54,12 @@ class Settings(BaseSettings):
     milvus_collection: str = "knowledge"
     milvus_hybrid_collection: str = "knowledge_hybrid_v1"
     rerank_min_score: float = Field(default=0.05, ge=0, le=1)
+    evidence_calibration_path: str = str(
+        Path(__file__).resolve().parents[2] / "config/evidence-confidence.json"
+    )
+    flywheel_interval_seconds: float = Field(default=10, ge=0)
+    eval_interval_seconds: float = Field(default=86400, ge=0)
+    eval_max_output_tokens: int = Field(default=4096, ge=1024)
     knowledge_top_k: int = Field(default=3, ge=1, le=20)
     knowledge_min_score: float = Field(default=0.4, ge=-1, le=1)
     checkpoint_path: str = "data/ch05-checkpoints.sqlite"
