@@ -97,6 +97,8 @@ def test_strong_evidence_streams_through_agent_with_projected_prompt_and_snapsho
     async def handler(request, payload):
         if payload["messages"][0]["content"].startswith("将顾客"):
             return stream_response(('{"intent":"商品咨询","confidence":0.99}',))
+        if "生成证据自评" in payload["messages"][0]["content"]:
+            return stream_response(('{"sufficient":true,"reason":"测试证据支持回答"}',))
         assert "tools" in payload and payload["stream"]
         evidence = json.loads(payload["messages"][-1]["content"].split("\n", 1)[1])["evidence"]
         assert "政策正文" not in payload["messages"][0]["content"]

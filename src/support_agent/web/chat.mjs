@@ -51,7 +51,7 @@ async function refreshConversations() {
   }
 }
 
-/** 仅在成功回载且选择仍有效时切换会话；迟到的历史不会覆盖新对话。 */
+/** 有效回载后切换会话并恢复已完成轮次的反馈入口；迟到历史不会覆盖新对话。 */
 async function selectConversation(id) {
   if (activeRequest) return;
   const revision = ++selectionRevision;
@@ -74,6 +74,9 @@ async function selectConversation(id) {
         note.className = "message-state";
         note.textContent = "本轮未完成";
         item.content.append(note);
+      }
+      if (row.role === "assistant" && row.state === "completed" && row.position === 1000000) {
+        addFeedback(item, row.request_id);
       }
     }
     document.querySelector("#conversation-title").textContent = history.find(function firstQuestion(row) {
@@ -323,12 +326,14 @@ function renderCitations(assistant, sources) {
   assistant.reply.append(document.createTextNode(text.slice(offset)));
 }
 
-/** 为完整回答提供一次性满意度反馈；按请求标识仅在当前浏览器本地采集。 */
+/** 为完整回答采集反馈；后端确认后才锁定，使用稳定轮次标识防止错轮入池。 */
 function addFeedback(assistant, requestId) {
   const key = `support-agent:feedback:${requestId}`;
+  const feedbackConversationId = conversationId;
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(key)); } catch { /* 存储不可用时仍允许本次页面采集。 */ }
-  let choice = ["up", "down"].includes(saved?.value) ? saved.value : null;
+  let choice = saved?.server_confirmed && ["up", "down"].includes(saved?.value) ? saved.value : null;
+  let sending = false;
   const group = document.createElement("div");
   group.className = "answer-feedback";
   group.setAttribute("role", "group");
@@ -340,11 +345,11 @@ function addFeedback(assistant, requestId) {
   /** 一次选定后锁定两项，重试同一回答也恢复已采集状态。 */
   function updateFeedback() {
     for (const button of buttons) {
-      button.disabled = Boolean(choice);
+      button.disabled = Boolean(choice) || sending;
       button.classList.toggle("selected", button.dataset.value === choice);
       button.setAttribute("aria-pressed", String(button.dataset.value === choice));
     }
-    state.textContent = choice ? "已反馈" : "回答有帮助吗";
+    state.textContent = sending ? "正在提交反馈…" : choice ? "已反馈" : "回答有帮助吗";
   }
 
   for (const [value, icon, label] of [["up", "👍", "满意"], ["down", "👎", "不满意"]]) {
@@ -353,14 +358,31 @@ function addFeedback(assistant, requestId) {
     button.dataset.value = value;
     button.textContent = icon;
     button.setAttribute("aria-label", label);
-    button.addEventListener("click", function chooseFeedback() {
-      // 本次选择不可撤销；后续数据飞轮可从这些本地记录导出。
-      if (choice) return;
-      choice = value;
-      const record = { request_id: requestId, conversation_id: conversationId, value,
-        created_at: new Date().toISOString() };
-      try { localStorage.setItem(key, JSON.stringify(record)); } catch { /* 本轮内存锁定仍有效。 */ }
+    button.addEventListener("click", async function chooseFeedback() {
+      // 失败保留重试入口；异步期间切换会话也不改变反馈归属。
+      if (choice || sending) return;
+      sending = true;
       updateFeedback();
+      try {
+        const response = await fetch("/api/feedback", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ request_id: requestId, conversation_id: feedbackConversationId, value }),
+        });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(typeof error.detail === "string" ? error.detail : "反馈提交失败，请重试。");
+        }
+        choice = value;
+        const record = { request_id: requestId, conversation_id: feedbackConversationId, value,
+          server_confirmed: true, created_at: new Date().toISOString() };
+        try { localStorage.setItem(key, JSON.stringify(record)); } catch { /* 后端已经保存。 */ }
+      } catch (error) {
+        state.textContent = error.message;
+      } finally {
+        sending = false;
+        if (choice) updateFeedback();
+        else for (const option of buttons) option.disabled = false;
+      }
     });
     buttons.push(button);
     group.append(button);

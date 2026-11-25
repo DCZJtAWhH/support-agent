@@ -1,0 +1,136 @@
+[
+  {
+    "id": 1,
+    "run_id": "5fb9ea04-cbf2-46e8-862a-c5005190c3d8",
+    "trigger_type": "manual",
+    "dataset_count": 20,
+    "metrics": {
+      "bm25": {
+        "mrr": 0.7916666666666667,
+        "count": 20,
+        "recall@1": 0.6071428571428571,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "recall@50": 1.0,
+        "claim_count": 61,
+        "faithfulness": 1.0,
+        "answered_count": 11,
+        "answerable_count": 14,
+        "refusal_accuracy": 0.75,
+        "answer_rate_on_answerable": 0.7142857142857143
+      },
+      "dense": {
+        "mrr": 0.9285714285714286,
+        "count": 20,
+        "recall@1": 0.8214285714285714,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "recall@50": 1.0,
+        "claim_count": 58,
+        "faithfulness": 0.9655172413793104,
+        "answered_count": 11,
+        "answerable_count": 14,
+        "refusal_accuracy": 0.75,
+        "answer_rate_on_answerable": 0.7142857142857143
+      },
+      "hybrid": {
+        "mrr": 0.9285714285714286,
+        "count": 20,
+        "recall@1": 0.8214285714285714,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "recall@50": 1.0,
+        "claim_count": 95,
+        "faithfulness": 0.9789473684210528,
+        "answered_count": 14,
+        "answerable_count": 14,
+        "refusal_accuracy": 0.9,
+        "answer_rate_on_answerable": 0.9285714285714286
+      },
+      "hybrid_rerank": {
+        "mrr": 0.9285714285714286,
+        "count": 20,
+        "recall@1": 0.8214285714285714,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "recall@50": 1.0,
+        "claim_count": 47,
+        "faithfulness": 1.0,
+        "answered_count": 10,
+        "answerable_count": 14,
+        "refusal_accuracy": 0.8,
+        "answer_rate_on_answerable": 0.7142857142857143
+      }
+    },
+    "dataset_hash": "0f19532734fea9ef536bb2471cb83b2ecf9fc9bb453425ab68a609b0c5bcfec5",
+    "corpus_hash": "b1a997f5d2e9d2543979177c8876008e49944a4be2b695f4fa78f17081ebf263",
+    "created_at": "2026-11-25T11:57:15"
+  },
+  {
+    "id": 2,
+    "run_id": "0177ff8d-0589-46f1-a506-77112f5bd58f",
+    "trigger_type": "manual",
+    "dataset_count": 20,
+    "metrics": {
+      "bm25": {
+        "mrr": 0.869047619047619,
+        "count": 20,
+        "recall@1": 0.75,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "recall@50": 1.0,
+        "claim_count": 82,
+        "faithfulness": 0.9878048780487804,
+        "answered_count": 12,
+        "answerable_count": 14,
+        "refusal_accuracy": 0.8,
+        "answer_rate_on_answerable": 0.7857142857142857
+      },
+      "dense": {
+        "mrr": 0.9285714285714286,
+        "count": 20,
+        "recall@1": 0.8214285714285714,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "recall@50": 1.0,
+        "claim_count": 87,
+        "faithfulness": 0.9885057471264368,
+        "answered_count": 13,
+        "answerable_count": 14,
+        "refusal_accuracy": 0.85,
+        "answer_rate_on_answerable": 0.8571428571428571
+      },
+      "hybrid": {
+        "mrr": 0.9642857142857144,
+        "count": 20,
+        "recall@1": 0.8928571428571429,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "recall@50": 1.0,
+        "claim_count": 70,
+        "faithfulness": 0.9714285714285714,
+        "answered_count": 12,
+        "answerable_count": 14,
+        "refusal_accuracy": 0.8,
+        "answer_rate_on_answerable": 0.7857142857142857
+      },
+      "hybrid_rerank": {
+        "mrr": 0.9285714285714286,
+        "count": 20,
+        "recall@1": 0.8214285714285714,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "recall@50": 1.0,
+        "claim_count": 66,
+        "faithfulness": 0.9696969696969696,
+        "answered_count": 13,
+        "answerable_count": 14,
+        "refusal_accuracy": 0.95,
+        "answer_rate_on_answerable": 0.9285714285714286
+      }
+    },
+    "dataset_hash": "0f19532734fea9ef536bb2471cb83b2ecf9fc9bb453425ab68a609b0c5bcfec5",
+    "corpus_hash": "b1a997f5d2e9d2543979177c8876008e49944a4be2b695f4fa78f17081ebf263",
+    "created_at": "2026-11-25T11:59:24"
+  }
+]

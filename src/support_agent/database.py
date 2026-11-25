@@ -3,10 +3,24 @@
 import json
 from functools import partial
 
-from sqlalchemy import select
+from sqlalchemy import inspect, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.schema import CreateColumn
 
-from support_agent.models import FAQ, Base
+from support_agent.models import FAQ, Base, LowConfidenceQuestion
+
+
+def migrate_flywheel_schema(connection):
+    """只增补问题池缺失列及索引，兼容既有 MySQL 与测试 SQLite 数据。"""
+    table = LowConfidenceQuestion.__table__
+    existing = {c["name"] for c in inspect(connection).get_columns(table.name)}
+    for column in table.columns:
+        if column.name not in existing:
+            definition = str(CreateColumn(column).compile(dialect=connection.dialect))
+            connection.exec_driver_sql(f"ALTER TABLE {table.name} ADD COLUMN {definition}")
+    for index in table.indexes:
+        index.create(connection, checkfirst=True)
+
 
 FAQ_SEEDS = [
     (
@@ -34,7 +48,7 @@ class Database:
         self.sessions = async_sessionmaker(self.engine, expire_on_commit=False)
 
     async def initialize(self, *, seed: bool = False):
-        """建立业务表并增量补齐既有知识表，按需初始化 FAQ 演示数据。"""
+        """建立业务表并增量补齐知识、会话与问题池旧表，按需初始化 FAQ 演示数据。"""
         from support_agent.knowledge_store import migrate_knowledge_schema
         from support_agent.summaries import migrate_context_schema
 
@@ -42,6 +56,7 @@ class Database:
             await connection.run_sync(Base.metadata.create_all)
             await connection.run_sync(migrate_knowledge_schema)
             await connection.run_sync(migrate_context_schema)
+            await connection.run_sync(migrate_flywheel_schema)
         if seed:
             async with self.sessions.begin() as session:
                 for question, answer, category in FAQ_SEEDS:

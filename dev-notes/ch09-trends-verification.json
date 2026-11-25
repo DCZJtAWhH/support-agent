@@ -1,0 +1,10 @@
+{
+  "real_runs": 2,
+  "metrics_match_api": true,
+  "responsive_widths": [
+    1440,
+    390,
+    320
+  ],
+  "page_errors": []
+}

@@ -42,4 +42,6 @@ def create_chat_model(config, async_client=None, sync_client=None):
         options["extra_body"] = {"max_tokens": config.max_output_tokens}
     else:
         options["max_tokens"] = config.max_output_tokens
+    if config.model_thinking is not None:
+        options.setdefault("extra_body", {})["thinking"] = {"type": config.model_thinking}
     return model_class(**options)

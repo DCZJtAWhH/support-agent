@@ -46,6 +46,7 @@ def source_label(row):
 async def live_evaluation(args):
     """对同一语料、归一问题和标签执行四策略，逐样本保存实际输出与评委判据。"""
     config = Settings()
+    config = config.model_copy(update={"max_output_tokens": config.eval_max_output_tokens})
     database = Database(config.database_url.get_secret_value())
     vectors = MilvusVectors(config.milvus_uri, config.milvus_hybrid_collection)
     rows = []
@@ -152,6 +153,8 @@ async def live_evaluation(args):
             metadata={
                 "created_at": datetime.now(UTC).isoformat(),
                 "model": config.openai_model,
+                "max_output_tokens": config.max_output_tokens,
+                "thinking": config.model_thinking,
                 "embedding": "BAAI/bge-m3",
                 "reranker": "BAAI/bge-reranker-v2-m3",
                 "collection": config.milvus_hybrid_collection,
