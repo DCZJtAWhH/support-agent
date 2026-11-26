@@ -1,0 +1,138 @@
+shipping-direct / dense: answered
+shipping-direct / bm25: answered
+shipping-direct / hybrid: answered
+shipping-direct / hybrid_rerank: answered
+shipping-colloquial / dense: refused
+shipping-colloquial / bm25: refused
+shipping-colloquial / hybrid: answered
+shipping-colloquial / hybrid_rerank: answered
+shipping-synonym / dense: answered
+shipping-synonym / bm25: answered
+shipping-synonym / hybrid: refused
+shipping-synonym / hybrid_rerank: answered
+shipping-conditions / dense: answered
+shipping-conditions / bm25: answered
+shipping-conditions / hybrid: answered
+shipping-conditions / hybrid_rerank: answered
+return-direct / dense: answered
+return-direct / bm25: refused
+return-direct / hybrid: answered
+return-direct / hybrid_rerank: answered
+return-colloquial / dense: refused
+return-colloquial / bm25: refused
+return-colloquial / hybrid: refused
+return-colloquial / hybrid_rerank: refused
+dishwasher-ambiguous / dense: answered
+dishwasher-ambiguous / bm25: answered
+dishwasher-ambiguous / hybrid: answered
+dishwasher-ambiguous / hybrid_rerank: refused
+seal-clean / dense: answered
+seal-clean / bm25: answered
+seal-clean / hybrid: answered
+seal-clean / hybrid_rerank: answered
+model-500 / dense: answered
+model-500 / bm25: answered
+model-500 / hybrid: answered
+model-500 / hybrid_rerank: answered
+model-750 / dense: answered
+model-750 / bm25: answered
+model-750 / hybrid: answered
+model-750 / hybrid_rerank: answered
+model-negative / dense: answered
+model-negative / bm25: answered
+model-negative / hybrid: answered
+model-negative / hybrid_rerank: answered
+model-bag / dense: answered
+model-bag / bm25: answered
+model-bag / hybrid: refused
+model-bag / hybrid_rerank: answered
+category-match / dense: answered
+category-match / bm25: answered
+category-match / hybrid: answered
+category-match / hybrid_rerank: answered
+category-exclude / dense: refused
+category-exclude / bm25: refused
+category-exclude / hybrid: refused
+category-exclude / hybrid_rerank: refused
+two-models / dense: answered
+two-models / bm25: answered
+two-models / hybrid: answered
+two-models / hybrid_rerank: answered
+unknown-subsidy / dense: refused
+unknown-subsidy / bm25: refused
+unknown-subsidy / hybrid: refused
+unknown-subsidy / hybrid_rerank: refused
+unknown-model / dense: refused
+unknown-model / bm25: refused
+unknown-model / hybrid: refused
+unknown-model / hybrid_rerank: refused
+partial-evidence / dense: refused
+partial-evidence / bm25: refused
+partial-evidence / hybrid: refused
+partial-evidence / hybrid_rerank: refused
+no-promise / dense: answered
+no-promise / bm25: answered
+no-promise / hybrid: answered
+no-promise / hybrid_rerank: answered
+injection / dense: refused
+injection / bm25: refused
+injection / hybrid: refused
+injection / hybrid_rerank: refused
+{
+"dense": {
+"count": 20,
+"answerable_count": 14,
+"recall@1": 0.8214285714285714,
+"recall@5": 1.0,
+"recall@10": 1.0,
+"recall@50": 1.0,
+"mrr": 0.9285714285714286,
+"faithfulness": 0.9885057471264368,
+"claim_count": 87,
+"answered_count": 13,
+"refusal_accuracy": 0.85,
+"answer_rate_on_answerable": 0.8571428571428571
+},
+"bm25": {
+"count": 20,
+"answerable_count": 14,
+"recall@1": 0.75,
+"recall@5": 1.0,
+"recall@10": 1.0,
+"recall@50": 1.0,
+"mrr": 0.869047619047619,
+"faithfulness": 0.9878048780487805,
+"claim_count": 82,
+"answered_count": 12,
+"refusal_accuracy": 0.8,
+"answer_rate_on_answerable": 0.7857142857142857
+},
+"hybrid": {
+"count": 20,
+"answerable_count": 14,
+"recall@1": 0.8928571428571429,
+"recall@5": 1.0,
+"recall@10": 1.0,
+"recall@50": 1.0,
+"mrr": 0.9642857142857143,
+"faithfulness": 0.9714285714285714,
+"claim_count": 70,
+"answered_count": 12,
+"refusal_accuracy": 0.8,
+"answer_rate_on_answerable": 0.7857142857142857
+},
+"hybrid_rerank": {
+"count": 20,
+"answerable_count": 14,
+"recall@1": 0.8214285714285714,
+"recall@5": 1.0,
+"recall@10": 1.0,
+"recall@50": 1.0,
+"mrr": 0.9285714285714286,
+"faithfulness": 0.9696969696969697,
+"claim_count": 66,
+"answered_count": 13,
+"refusal_accuracy": 0.95,
+"answer_rate_on_answerable": 0.9285714285714286
+}
+}

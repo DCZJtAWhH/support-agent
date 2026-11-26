@@ -1,0 +1,36 @@
+event: meta
+data: {"conversation_id": "35c2158e-b3ef-4e57-b77c-1721bc3168a7", "request_id": "8a64212e-dc58-4031-9130-a35d06e958d8"}
+
+event: workflow
+data: {"node": "resolve"}
+
+event: understanding
+data: {"question": "CH09演示杯支持激光刻字服务吗", "intent": "商品咨询", "confidence": 0.95}
+
+event: workflow
+data: {"node": "classify"}
+
+event: workflow
+data: {"node": "route"}
+
+event: workflow
+data: {"node": "retrieve"}
+
+event: workflow
+data: {"node": "confidence"}
+
+event: token
+data: {"text": "当前知识库没有足够的可靠依据，无法确认这个问题的答案。请联系人工客服核实。"}
+
+event: workflow
+data: {"node": "fallback"}
+
+event: workflow
+data: {"node": "log"}
+
+event: actions
+data: {"actions": ["handoff", "create_ticket"]}
+
+event: done
+data: {"conversation_id": "35c2158e-b3ef-4e57-b77c-1721bc3168a7", "request_id": "8a64212e-dc58-4031-9130-a35d06e958d8"}
+
