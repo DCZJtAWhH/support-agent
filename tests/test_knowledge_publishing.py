@@ -35,3 +35,21 @@ def test_publication_retries_keep_original_content_and_identity_after_restart():
             await database.close()
 
     asyncio.run(scenario())
+
+
+def test_publication_identity_distinguishes_question_and_answer_field_boundaries():
+    async def scenario():
+        database = Database("sqlite+aiosqlite:///:memory:")
+        await database.initialize()
+        store = KnowledgeStore(database)
+        publisher = KnowledgePublisher(store, Embeddings(), Vectors())
+        try:
+            await publisher.publish_answer("review:88", "Q\n答案：A", "B")
+            with pytest.raises(ValueError, match="不同"):
+                await publisher.publish_answer("review:88", "Q", "A\n答案：B")
+            original = (await store.active())[0]
+            assert original.questions == "Q\n答案：A" and original.answer == "B"
+        finally:
+            await database.close()
+
+    asyncio.run(scenario())

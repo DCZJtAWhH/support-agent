@@ -68,7 +68,7 @@ class KnowledgeStore:
                     select(KnowledgeChunk).where(KnowledgeChunk.source_key == key).with_for_update()
                 )
                 if row is not None:
-                    self.check_publication(row, source, content_hash)
+                    self.check_publication(row, source, draft)
                     return row.id
                 row = KnowledgeChunk(
                     source_key=key,
@@ -94,13 +94,29 @@ class KnowledgeStore:
                 )
                 if row is None:
                     raise
-                self.check_publication(row, source, content_hash)
+                self.check_publication(row, source, draft)
                 return row.id
 
     @staticmethod
-    def check_publication(row: KnowledgeChunk, source: str, content_hash: str):
+    def check_publication(row: KnowledgeChunk, source: str, draft: KnowledgeDraft):
         """拒绝稳定发布身份上的不同核准输入，不影响普通知识来源的更新语义。"""
-        if row.source_ref != source or row.content_hash != content_hash or not row.is_active:
+        if not row.is_active or (
+            row.source_ref,
+            row.category,
+            row.questions,
+            row.answer,
+            row.section_path,
+            row.content_type,
+            row.is_key_clause,
+        ) != (
+            source,
+            draft.category,
+            "\n".join(draft.questions),
+            draft.answer,
+            draft.section_path,
+            draft.content_type,
+            draft.is_key_clause,
+        ):
             raise ValueError("该发布标识已用于不同的核准内容。")
 
     async def replace_source(self, source: str, drafts: list[KnowledgeDraft]) -> list[int]:
