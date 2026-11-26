@@ -10,8 +10,8 @@ class KnowledgePublisher:
         self.store, self.embeddings, self.vectors = store, embeddings, vectors
 
     async def publish_answer(self, source, question, answer):
-        """保存人工核准内容并同步；同来源同内容可安全重试并复用知识主键。"""
-        await self.store.replace_source(
-            source, [KnowledgeDraft("客服知识", [question], answer, question)]
+        """按原发布身份保存并同步；相同内容可重试，不同内容明确报冲突。"""
+        await self.store.save_publication(
+            source, KnowledgeDraft("客服知识", [question], answer, question)
         )
         await synchronize(self.store, self.embeddings, self.vectors, source_ref=source)

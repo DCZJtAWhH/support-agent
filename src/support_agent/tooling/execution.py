@@ -115,6 +115,7 @@ class ToolRegistry:
         """注册唯一命名的工具，配置单次超时和最多额外重试次数。"""
         self.write_policy = write_policy
         self.tools = {}
+        self.schemas = {}
         self.sources = {}
         self.permissions = {}
         self.result_fields = {}
@@ -140,6 +141,7 @@ class ToolRegistry:
         )
         validator_for(schema).check_schema(schema)
         self.tools[item.name] = item
+        self.schemas[item.name] = schema
         self.sources[item.name] = source
         self.permissions[item.name] = (
             "write" if self.write_policy and item.name == self.write_policy.name else permission
@@ -155,13 +157,9 @@ class ToolRegistry:
 
     def validation_error(self, name, arguments):
         """严格按照工具声明的 JSON Schema 校验并返回字段路径，合法时返回空值。"""
-        selected = self.tools.get(name)
-        if selected is None:
+        schema = self.schemas.get(name)
+        if schema is None:
             return None
-        schema = selected.args_schema
-        schema = (
-            schema if isinstance(schema, dict) else selected.get_input_schema().model_json_schema()
-        )
         errors = list(validator_for(schema)(schema).iter_errors(arguments))
         if errors:
             detail = "; ".join(

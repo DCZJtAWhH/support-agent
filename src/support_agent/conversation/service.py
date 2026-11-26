@@ -18,6 +18,13 @@ class ConversationHistory:
         self.repo, self.config = conversation, config
         self.summaries = SummaryManager(model, conversation, config)
         budget = ContextBudget.from_settings(config)
+        if budget.history < config.steady_round_tokens:
+            logger.warning(
+                "上下文预算不足：历史预算=%s，连一轮稳态=%s 都装不下；"
+                "请联调窗口、输入、输出及工具峰值",
+                budget.history,
+                config.steady_round_tokens,
+            )
         logger.info(
             "context budget window=%s history=%s layer1=%s layer2=%s "
             "fixed=%s peak=%s chars_per_token=%s",

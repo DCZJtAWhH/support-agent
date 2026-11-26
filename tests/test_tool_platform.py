@@ -5,6 +5,37 @@ from langchain_core.tools import tool
 from module_support import tool_registry as ToolRegistry
 
 
+def test_registered_pydantic_v1_tool_executes_and_records_audit():
+    from langchain_core.tools import StructuredTool
+    from pydantic.v1 import BaseModel
+
+    from support_agent.platform.database import Database
+    from support_agent.tooling import ToolAuditStore
+    from support_agent.tooling import ToolRegistry as PublicRegistry
+
+    class LegacyInput(BaseModel):
+        value: str
+
+    async def lookup(value: str):
+        """模拟使用 Pydantic v1 参数结构的外部只读工具。"""
+        return {"value": value}
+
+    async def scenario():
+        database = Database("sqlite+aiosqlite:///:memory:")
+        await database.initialize()
+        audit = ToolAuditStore(database)
+        try:
+            item = StructuredTool.from_function(coroutine=lookup, args_schema=LegacyInput)
+            registry = PublicRegistry([item], repo=audit, conversation_id="legacy-schema")
+            result = await registry.execute("lookup", {"value": "已查询"}, tool_call_id="v1")
+            assert result["ok"] and result["data"] == {"value": "已查询"}
+            assert (await audit.tool_audit_logs("legacy-schema"))[0]["status"] == "成功"
+        finally:
+            await database.close()
+
+    asyncio.run(scenario())
+
+
 @tool(
     args_schema={
         "type": "object",

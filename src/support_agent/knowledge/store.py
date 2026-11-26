@@ -3,6 +3,7 @@
 import hashlib
 
 from sqlalchemy import inspect, select, true, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.schema import CreateColumn
 
 from support_agent.knowledge.chunks import KnowledgeDraft
@@ -51,6 +52,56 @@ class KnowledgeStore:
     def __init__(self, database: Database):
         """绑定数据库；所有网络向量调用均在数据库事务外进行。"""
         self.database = database
+
+    async def save_publication(self, source: str, draft: KnowledgeDraft) -> int:
+        """首次发布保存稳定来源；重试核对原输入，内容冲突不覆盖 pending 或已发布原文。
+
+        只提交本模块短事务；向量同步由调用方在事务结束后执行。
+        """
+        if not source or len(source) > 255:
+            raise ValueError("知识发布来源标识无效。")
+        key = digest(f"{source}:0")
+        content_hash = digest(draft.embedding_text())
+        try:
+            async with self.database.sessions.begin() as session:
+                row = await session.scalar(
+                    select(KnowledgeChunk).where(KnowledgeChunk.source_key == key).with_for_update()
+                )
+                if row is not None:
+                    self.check_publication(row, source, content_hash)
+                    return row.id
+                row = KnowledgeChunk(
+                    source_key=key,
+                    source_ref=source,
+                    category=draft.category,
+                    questions="\n".join(draft.questions),
+                    answer=draft.answer,
+                    section_path=draft.section_path,
+                    content_type=draft.content_type,
+                    is_key_clause=draft.is_key_clause,
+                    content_hash=content_hash,
+                    is_active=True,
+                    vectorize_status="pending",
+                )
+                session.add(row)
+                await session.flush()
+                return row.id
+        except IntegrityError:
+            # 首次发布并发相撞时只回读同一来源，不能用另一个身份重新写入。
+            async with self.database.sessions() as session:
+                row = await session.scalar(
+                    select(KnowledgeChunk).where(KnowledgeChunk.source_key == key)
+                )
+                if row is None:
+                    raise
+                self.check_publication(row, source, content_hash)
+                return row.id
+
+    @staticmethod
+    def check_publication(row: KnowledgeChunk, source: str, content_hash: str):
+        """拒绝稳定发布身份上的不同核准输入，不影响普通知识来源的更新语义。"""
+        if row.source_ref != source or row.content_hash != content_hash or not row.is_active:
+            raise ValueError("该发布标识已用于不同的核准内容。")
 
     async def replace_source(self, source: str, drafts: list[KnowledgeDraft]) -> list[int]:
         """按来源和块序号幂等替换，内容变化转 pending，移除的块失效并待删除向量。"""

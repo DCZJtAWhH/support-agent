@@ -1,6 +1,5 @@
 """从环境变量或 .env 加载模型及数据库配置，并校验上下文预算。"""
 
-import logging
 from pathlib import Path
 from typing import Literal
 
@@ -80,16 +79,6 @@ class Settings(BaseSettings):
             self.router_model = self.openai_model
         if self.input_token_budget <= 0:
             raise ValueError("CONTEXT_WINDOW_TOKENS 必须大于输出预算与安全余量之和。")
-        from support_agent.platform.context import ContextBudget
-
-        budget = ContextBudget.from_settings(self)
-        if budget.history < self.steady_round_tokens:
-            logging.getLogger(__name__).warning(
-                "上下文预算不足：历史预算=%s，连一轮稳态=%s 都装不下；"
-                "请联调窗口、输入、输出及工具峰值",
-                budget.history,
-                self.steady_round_tokens,
-            )
         return self
 
     @property

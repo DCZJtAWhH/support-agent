@@ -11,7 +11,40 @@ from langchain_core.messages import (
 )
 from langchain_core.messages.utils import trim_messages
 
-from support_agent.platform.context import ContextBudget, estimate_tokens
+from support_agent.platform.context import estimate_tokens
+
+
+@dataclass(frozen=True)
+class ContextBudget:
+    """保存从模型窗口扣除固定开销及单轮峰值后得到的分层历史预算。"""
+
+    history: int
+    layer1: int
+    layer2: int
+    fixed: int
+    peak: int
+
+    @classmethod
+    def from_settings(cls, config):
+        """按同一 token 口径倒推历史额度；每步工具结果预算是整批结果的合计上限。"""
+        fixed = (
+            config.system_tools_tokens
+            + config.rerank_top_k * config.evidence_tokens_per_result
+            + config.summary_injection_tokens
+            + config.max_output_tokens
+            + config.token_safety_margin
+        )
+        peak = config.max_user_input_tokens + (config.agent_max_steps - 1) * (
+            config.max_output_tokens + config.tool_result_max_tokens
+        )
+        history = max(
+            0,
+            min(
+                config.history_target_rounds * config.steady_round_tokens,
+                config.context_window_tokens - fixed - peak,
+            ),
+        )
+        return cls(history, int(history * 0.7), int(history * 0.3), fixed, peak)
 
 
 def turn_id(message) -> int:

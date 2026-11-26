@@ -11,10 +11,10 @@ MAX_UPLOAD_CHUNKS = 200
 
 
 class UploadRejected(ValueError):
-    def __init__(self, message: str, status_code: int = 422):
-        """携带可公开的校验提示与 HTTP 状态，保证拒绝发生在原文写入之前。"""
+    def __init__(self, message: str, reason: str = "invalid_content"):
+        """携带可公开的校验原因，保证拒绝发生在原文写入之前，入口负责协议转换。"""
         super().__init__(message)
-        self.status_code = status_code
+        self.reason = reason
 
 
 class UploadIndexPending(RuntimeError):
@@ -35,7 +35,7 @@ def parse_upload(filename: str, content: bytes):
     if PurePath(filename).suffix.lower() not in {".md", ".markdown", ".txt"}:
         raise UploadRejected("文件格式不支持，请上传 Markdown（.md/.markdown）或 TXT 文件。")
     if len(content) > MAX_UPLOAD_BYTES:
-        raise UploadRejected("每个文件最大为 1 MiB，请拆分后上传。", 413)
+        raise UploadRejected("每个文件最大为 1 MiB，请拆分后上传。", "too_large")
     try:
         text = content.decode("utf-8-sig")
     except UnicodeDecodeError as exc:

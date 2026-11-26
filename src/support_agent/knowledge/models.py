@@ -1,3 +1,5 @@
+"""知识模块独立维护旧 FAQ、权威知识、候选问答和抽取批次表。"""
+
 from datetime import datetime
 
 from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, Integer, String, Text
@@ -20,9 +22,6 @@ class FAQ(Base):
     answer: Mapped[str] = mapped_column(Text)
     # 常见问题分类，例如售后、配送。
     category: Mapped[str] = mapped_column(String(50))
-
-
-"""映射既有知识与暂存表，并补充 demo 所需的来源身份和批次检查点。"""
 
 
 ID_TYPE = BigInteger().with_variant(Integer, "sqlite").with_variant(BIGINT(unsigned=True), "mysql")

@@ -33,7 +33,7 @@ def mount_routes(app, web_directory):
             content = await file.read(MAX_UPLOAD_BYTES + 1)
             return await app.state.knowledge_uploads.import_document(file.filename or "", content)
         except UploadRejected as exc:
-            raise HTTPException(exc.status_code, detail=str(exc)) from exc
+            raise HTTPException(413 if exc.reason == "too_large" else 422, detail=str(exc)) from exc
         except UploadIndexPending as exc:
             return JSONResponse(status_code=503, content={"detail": exc.result})
         finally:

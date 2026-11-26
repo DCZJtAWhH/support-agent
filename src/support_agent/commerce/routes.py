@@ -22,6 +22,7 @@ def mount_routes(app, web_directory):
             raise HTTPException(
                 502,
                 detail=model_error(
-                    exc, structured_output_method=app.state.chat.config.structured_output_method
+                    exc,
+                    structured_output_method=app.state.extraction.config.structured_output_method,
                 ),
             ) from exc
