@@ -3,7 +3,7 @@ import asyncio
 from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage, ToolMessage
 from test_session_context import config
 
-from support_agent.routing import RouterLanguage
+from support_agent.dialogue.routing import RouterLanguage
 
 
 def test_json_router_receives_historical_tools_as_data_without_reentering_tool_protocol():

@@ -6,11 +6,11 @@ from uuid import uuid4
 import pytest
 from langchain_core.messages import AIMessageChunk
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+from module_support import TestServices as ChatRepository
+from module_support import workflow as SupportWorkflow
 from test_session_context import config
 
-from support_agent.database import Database
-from support_agent.repositories import ChatRepository
-from support_agent.workflow import SupportWorkflow
+from support_agent.platform.database import Database
 
 
 class ConversationModel:

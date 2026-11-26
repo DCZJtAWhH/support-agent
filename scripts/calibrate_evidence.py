@@ -8,8 +8,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from support_agent.confidence import calibrate  # noqa: E402
-from support_agent.knowledge_store import digest  # noqa: E402
+from support_agent.knowledge.confidence import calibrate  # noqa: E402
+from support_agent.knowledge.store import digest  # noqa: E402
 
 
 def main():

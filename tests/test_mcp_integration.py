@@ -9,7 +9,7 @@ from contextlib import contextmanager
 
 import httpx
 
-from support_agent.tool_catalog import ToolCatalog
+from support_agent.tooling.catalog import ToolCatalog
 
 
 def free_port():
@@ -88,7 +88,7 @@ def test_two_processes_discovery_call_and_server_only_restart(tmp_path):
 
     async def query_original():
         await catalog.refresh()
-        registry = catalog.bind(None, "conversation", "request", "物流查询")
+        registry = catalog.bind("conversation", "request", "物流查询")
         for name in ["query_logistics", "query_warranty", "query_return_progress"]:
             result = await registry.execute(name, {"order_id": "1001"})
             assert result["ok"], result
@@ -102,7 +102,7 @@ def test_two_processes_discovery_call_and_server_only_restart(tmp_path):
 
         async def unavailable_server_is_isolated():
             await catalog.refresh()
-            registry = catalog.bind(None, "c", "r", "查询")
+            registry = catalog.bind("c", "r", "查询")
             assert "query_logistics" not in registry.tools
             assert "logistics" in catalog.discovery_errors
             assert (await registry.execute("query_warranty", {"order_id": "1001"}))["ok"]
@@ -122,11 +122,11 @@ server.run(transport="streamable-http")
 
         async def query_new():
             await catalog.refresh()
-            registry = catalog.bind(None, "conversation", "next", "配送时间段")
+            registry = catalog.bind("conversation", "next", "配送时间段")
             result = await registry.execute("query_delivery_window", {"order_id": "1001"})
             assert result["ok"] and result["data"]["window"] == "明天下午"
             policy.write_text("{}", encoding="utf-8")
-            denied = await catalog.bind(None, "c", "r", "").execute(
+            denied = await catalog.bind("c", "r", "").execute(
                 "query_delivery_window",
                 {"order_id": "1001"},
             )

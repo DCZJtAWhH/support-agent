@@ -1,9 +1,9 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
 
-from support_agent.database import Database
-from support_agent.knowledge_jobs import import_documents, seconds_until_next_run
-from support_agent.knowledge_store import KnowledgeStore
+from support_agent.knowledge.jobs import import_documents, seconds_until_next_run
+from support_agent.knowledge.store import KnowledgeStore
+from support_agent.platform.database import Database
 
 
 def test_document_scan_updates_same_source_and_deactivates_removed_files(tmp_path):

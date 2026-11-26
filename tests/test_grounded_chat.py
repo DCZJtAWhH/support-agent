@@ -7,9 +7,9 @@ from conftest import sse_events, stream_response
 
 
 def test_grounded_generation_keeps_ten_full_sources_in_budget_and_preserves_snapshots():
-    from support_agent.config import Settings
-    from support_agent.grounding import GroundedAnswerer
-    from support_agent.knowledge_mining import KnowledgeLLM
+    from support_agent.knowledge.grounding import GroundedAnswerer
+    from support_agent.knowledge.mining import KnowledgeLLM
+    from support_agent.platform.config import Settings
 
     async def scenario():
         matches = [

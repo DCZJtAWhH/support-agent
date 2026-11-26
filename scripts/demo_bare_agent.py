@@ -11,9 +11,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from langchain_core.messages import AIMessageChunk, HumanMessage, SystemMessage  # noqa: E402
 from langchain_openai import ChatOpenAI  # noqa: E402
 
-from support_agent.agent import run_bare_agent  # noqa: E402
-from support_agent.config import Settings  # noqa: E402
-from support_agent.tool_catalog import ToolCatalog  # noqa: E402
+from support_agent.bootstrap import create_catalog  # noqa: E402
+from support_agent.dialogue.agent import run_bare_agent  # noqa: E402
+from support_agent.platform.config import Settings  # noqa: E402
 
 
 class OfflineModel:
@@ -74,7 +74,7 @@ async def main():
             else None,
         )
     )
-    catalog = ToolCatalog(
+    catalog = create_catalog(
         servers={
             "logistics": {"transport": "streamable_http", "url": "http://127.0.0.1:8101/mcp"},
         },
@@ -83,7 +83,7 @@ async def main():
     await catalog.refresh()
     if catalog.discovery_errors:
         raise SystemExit("请先启动物流 MCP：python -m support_agent.mcp_servers.logistics")
-    registry = catalog.bind(None, "bare-demo", "bare-demo", args.question)
+    registry = catalog.bind("bare-demo", "bare-demo", args.question)
     messages = [
         SystemMessage("你是客服，缺信息就追问。按用户要求分步查工具，结果是随机演示数据。"),
         HumanMessage(args.question),

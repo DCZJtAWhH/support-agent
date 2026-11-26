@@ -104,7 +104,7 @@ def test_invalid_upload_never_changes_authoritative_knowledge(
 
 
 def test_upload_only_indexes_its_own_source_and_updates_same_name(harness):
-    from support_agent.knowledge_chunks import KnowledgeDraft
+    from support_agent.knowledge.chunks import KnowledgeDraft
 
     async def scenario():
         async with upload_harness(harness) as (client, app):

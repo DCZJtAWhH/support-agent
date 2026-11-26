@@ -61,10 +61,9 @@ def test_workflow_emits_nested_langfuse_nodes_prompts_usage_and_intent(harness):
 
     from langfuse import Langfuse
     from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+    from module_support import workflow as SupportWorkflow
     from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
     from pydantic import SecretStr
-
-    from support_agent.workflow import SupportWorkflow
 
     async def scenario():
         exporter = InMemorySpanExporter()

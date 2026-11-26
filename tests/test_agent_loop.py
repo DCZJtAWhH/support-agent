@@ -2,9 +2,10 @@ import asyncio
 
 from conftest import mock_logistics
 from langchain_core.messages import AIMessageChunk, HumanMessage, ToolMessage
+from module_support import build_tools
+from module_support import tool_registry as ToolRegistry
 
-from support_agent.agent import run_bare_agent
-from support_agent.tools import ToolRegistry, build_tools
+from support_agent.dialogue.agent import run_bare_agent
 
 
 class ScriptedModel:

@@ -9,9 +9,9 @@ from pathlib import Path
 import httpx
 from langchain_core.messages import AIMessage, HumanMessage
 
-from support_agent.config import Settings
-from support_agent.knowledge_mining import KnowledgeLLM
-from support_agent.routing import RouterLanguage
+from support_agent.dialogue.routing import RouterLanguage  # noqa: E402
+from support_agent.knowledge.mining import KnowledgeLLM  # noqa: E402
+from support_agent.platform.config import Settings  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 

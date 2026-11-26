@@ -13,7 +13,7 @@ def test_conversations_are_newest_first_and_reload_verbatim_for_continuation(har
             second_cid = sse_events(second)[0][1]["conversation_id"]
             repo = app.state.repository
             # 外部用户会话不允许通过只读接口访问或续聊。
-            from support_agent.models import Conversation
+            from support_agent.conversation.models import Conversation
 
             private = str(uuid4())
             async with repo.database.sessions.begin() as session:

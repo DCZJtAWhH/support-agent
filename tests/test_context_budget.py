@@ -1,6 +1,6 @@
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
-from support_agent.context import fit_messages
+from support_agent.platform.context import fit_messages
 
 
 def test_trimming_removes_a_whole_old_tool_turn_without_orphaning_observations():

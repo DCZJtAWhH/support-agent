@@ -10,7 +10,7 @@ from langfuse import Langfuse
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from support_agent.config import Settings  # noqa: E402
+from support_agent.platform.config import Settings  # noqa: E402
 
 
 async def main():

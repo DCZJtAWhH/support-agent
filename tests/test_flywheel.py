@@ -1,7 +1,8 @@
 import asyncio
 
-from support_agent.database import Database
-from support_agent.repositories import ChatRepository
+from module_support import TestServices as ChatRepository
+
+from support_agent.platform.database import Database
 
 
 def test_problem_pool_preserves_retrieval_snapshot_and_request_idempotency():
@@ -122,9 +123,9 @@ class Vectors:
 def test_approval_publishes_only_human_answer_and_retry_recovers_pending_index():
     async def scenario():
         import pytest
+        from module_support import flywheel as FlywheelService
 
-        from support_agent.flywheel import FlywheelService
-        from support_agent.knowledge_store import KnowledgeStore
+        from support_agent.knowledge.store import KnowledgeStore
 
         db = Database("sqlite+aiosqlite:///:memory:")
         await db.initialize()
@@ -162,7 +163,7 @@ def test_approval_publishes_only_human_answer_and_retry_recovers_pending_index()
 
 def test_semantic_duplicates_become_one_review_with_all_original_questions():
     async def scenario():
-        from support_agent.flywheel import FlywheelService
+        from module_support import flywheel as FlywheelService
 
         db = Database("sqlite+aiosqlite:///:memory:")
         await db.initialize()
@@ -195,7 +196,7 @@ def test_semantic_duplicates_become_one_review_with_all_original_questions():
 
 def test_problem_pool_is_automatically_processed_and_model_failure_is_retried(tmp_path):
     async def scenario():
-        from support_agent.flywheel import FlywheelService
+        from module_support import flywheel as FlywheelService
 
         class FlakyLanguage(FlywheelLanguage):
             def __init__(self):
@@ -235,9 +236,9 @@ def test_flywheel_language_retries_invalid_json_without_changing_schema_or_provi
 
     import httpx
 
-    from support_agent.config import Settings
-    from support_agent.flywheel import NormalizedGap
-    from support_agent.knowledge_mining import KnowledgeLLM
+    from support_agent.improvement.service import NormalizedGap
+    from support_agent.knowledge.mining import KnowledgeLLM
+    from support_agent.platform.config import Settings
 
     async def scenario():
         calls = []

@@ -4,14 +4,14 @@ import json
 import httpx
 import pytest
 
-from support_agent.database import Database
-from support_agent.knowledge_chunks import KnowledgeDraft
-from support_agent.knowledge_store import KnowledgeStore, synchronize
-from support_agent.vectors import BGEEmbeddings, MilvusVectors
+from support_agent.knowledge.chunks import KnowledgeDraft
+from support_agent.knowledge.store import KnowledgeStore, synchronize
+from support_agent.knowledge.vectors import BGEEmbeddings, MilvusVectors
+from support_agent.platform.database import Database
 
 
 def test_core_queries_merge_once_and_require_policy_evidence():
-    from support_agent.retrieval import HybridRetriever
+    from support_agent.knowledge.retrieval import HybridRetriever
 
     async def scenario():
         db = Database("sqlite+aiosqlite:///:memory:")
@@ -63,8 +63,8 @@ def test_core_queries_merge_once_and_require_policy_evidence():
 
 
 def test_hybrid_retrieves_model_with_prefilter_reranks_and_exposes_source():
-    from support_agent.retrieval import HybridRetriever
-    from support_agent.vectors import BGEReranker
+    from support_agent.knowledge.retrieval import HybridRetriever
+    from support_agent.knowledge.vectors import BGEReranker
 
     async def scenario():
         db = Database("sqlite+aiosqlite:///:memory:")
@@ -121,7 +121,7 @@ def test_hybrid_retrieves_model_with_prefilter_reranks_and_exposes_source():
 
 
 def test_query_understanding_preserves_model_numbers_and_only_expands_at_search():
-    from support_agent.retrieval import QueryUnderstanding
+    from support_agent.knowledge.retrieval import QueryUnderstanding
 
     class LanguageAPI:
         async def ask(self, schema, prompt, payload):
@@ -139,7 +139,7 @@ def test_query_understanding_preserves_model_numbers_and_only_expands_at_search(
 
 
 def test_query_rewrite_cannot_change_explicit_model_or_quantity():
-    from support_agent.retrieval import QueryUnderstanding
+    from support_agent.knowledge.retrieval import QueryUnderstanding
 
     class LanguageAPI:
         async def ask(self, schema, prompt, payload):
@@ -153,7 +153,7 @@ def test_query_rewrite_cannot_change_explicit_model_or_quantity():
 
 
 def test_query_rewrite_retries_when_a_negated_model_is_lost():
-    from support_agent.retrieval import QueryUnderstanding
+    from support_agent.knowledge.retrieval import QueryUnderstanding
 
     class LanguageAPI:
         def __init__(self):
@@ -175,8 +175,8 @@ def test_query_rewrite_retries_when_a_negated_model_is_lost():
 
 
 def test_hybrid_never_returns_stale_pending_or_inactive_original():
-    from support_agent.retrieval import HybridRetriever
-    from support_agent.vectors import BGEReranker
+    from support_agent.knowledge.retrieval import HybridRetriever
+    from support_agent.knowledge.vectors import BGEReranker
 
     async def scenario():
         db = Database("sqlite+aiosqlite:///:memory:")

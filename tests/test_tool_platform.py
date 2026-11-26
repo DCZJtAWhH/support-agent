@@ -2,8 +2,7 @@ import asyncio
 
 import pytest
 from langchain_core.tools import tool
-
-from support_agent.tools import ToolRegistry
+from module_support import tool_registry as ToolRegistry
 
 
 @tool(
@@ -36,8 +35,9 @@ def test_registered_json_schema_tool_rejects_missing_type_and_range(arguments):
 
 def test_cancelled_call_is_audited_and_cancellation_still_propagates(tmp_path):
     async def scenario():
-        from support_agent.database import Database
-        from support_agent.repositories import ChatRepository
+        from module_support import TestServices as ChatRepository
+
+        from support_agent.platform.database import Database
 
         started = asyncio.Event()
 
@@ -144,8 +144,9 @@ def test_empty_result_is_not_retried_and_output_uses_local_projection():
 
 def test_timeout_audit_has_retries_elapsed_and_write_denial(tmp_path):
     async def scenario():
-        from support_agent.database import Database
-        from support_agent.repositories import ChatRepository
+        from module_support import TestServices as ChatRepository
+
+        from support_agent.platform.database import Database
 
         @tool
         async def slow_read() -> dict:
@@ -191,14 +192,14 @@ def test_timeout_audit_has_retries_elapsed_and_write_denial(tmp_path):
 
 def test_catalog_registration_is_visible_to_next_agent_without_rebuild():
     async def scenario():
-        from support_agent.agent import agent_tools
-        from support_agent.tool_catalog import ToolCatalog
+        from support_agent.dialogue.agent import agent_tools
+        from support_agent.tooling.catalog import ToolCatalog
 
         catalog = ToolCatalog()
-        first = catalog.bind(None, "c", "r", "查询商品")
+        first = catalog.bind("c", "r", "查询商品")
         assert "registered_later" not in first.tools
         catalog.register(registered_later)
-        second = catalog.bind(None, "c", "r2", "查询商品")
+        second = catalog.bind("c", "r2", "查询商品")
         assert "registered_later" in {t.name for t in agent_tools(second)}
         assert (await second.execute("registered_later", {"count": 1}))["ok"]
 
@@ -226,8 +227,9 @@ def test_mcp_permissions_come_from_local_policy_and_cannot_impersonate_ticket():
 
 def test_every_terminal_outcome_is_audited_even_when_audit_storage_fails(tmp_path):
     async def scenario():
-        from support_agent.database import Database
-        from support_agent.repositories import ChatRepository
+        from module_support import TestServices as ChatRepository
+
+        from support_agent.platform.database import Database
 
         db = Database(f"sqlite+aiosqlite:///{tmp_path / 'audit.db'}")
         await db.initialize()
@@ -245,7 +247,7 @@ def test_every_terminal_outcome_is_audited_even_when_audit_storage_fails(tmp_pat
             assert rows[1]["retry_count"] == 0
             assert rows[1]["duration_ms"] >= 0 and rows[1]["created_at"]
             assert "注册后立即可用" in rows[1]["result_summary"]
-            from support_agent.models import ToolAuditLog
+            from support_agent.tooling.models import ToolAuditLog
 
             assert not ToolAuditLog.__table__.foreign_keys
             async with db.engine.begin() as connection:

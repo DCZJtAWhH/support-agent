@@ -11,15 +11,11 @@ import httpx
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from support_agent.config import Settings  # noqa: E402
-from support_agent.database import Database  # noqa: E402
-from support_agent.knowledge_mining import MiningPipeline  # noqa: E402
-from support_agent.knowledge_store import (  # noqa: E402
-    KnowledgeStore,
-    SimulatedInterruption,
-    synchronize,
-)
-from support_agent.vectors import BGEEmbeddings, KnowledgeRetriever, MilvusVectors  # noqa: E402
+from support_agent.knowledge.mining import MiningPipeline  # noqa: E402
+from support_agent.knowledge.store import KnowledgeStore, SimulatedInterruption, synchronize  # noqa: E402
+from support_agent.knowledge.vectors import BGEEmbeddings, KnowledgeRetriever, MilvusVectors  # noqa: E402
+from support_agent.platform.config import Settings  # noqa: E402
+from support_agent.platform.database import Database  # noqa: E402
 
 
 async def evaluate_mining(store, embeddings):

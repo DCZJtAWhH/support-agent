@@ -116,7 +116,7 @@ def harness():
     @asynccontextmanager
     async def open_app(handler=None, **overrides):
         from support_agent.app import create_app
-        from support_agent.config import Settings
+        from support_agent.platform.config import Settings
 
         calls = []
 
@@ -152,6 +152,9 @@ def harness():
         async with httpx.AsyncClient(transport=httpx.MockTransport(handle)) as upstream:
             app = create_app(settings=settings, upstream_client=upstream)
             async with app.router.lifespan_context(app):
+                from module_support import TestServices
+
+                app.state.repository = TestServices.from_app(app)
                 async with httpx.AsyncClient(
                     transport=httpx.ASGITransport(app), base_url="http://app.test"
                 ) as client:

@@ -68,9 +68,9 @@ def test_evaluation_command_reports_known_ranks_claim_faithfulness_and_type_buck
 
 
 def test_faithfulness_preserves_ten_originals_without_duplicate_retrieval_metadata():
-    from support_agent.config import Settings
-    from support_agent.evaluation import assess_faithfulness
-    from support_agent.knowledge_mining import KnowledgeLLM
+    from support_agent.evaluation.metrics import assess_faithfulness
+    from support_agent.knowledge.mining import KnowledgeLLM
+    from support_agent.platform.config import Settings
 
     async def scenario():
         contexts = [

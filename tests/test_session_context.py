@@ -1,13 +1,9 @@
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
-from support_agent.config import Settings
-from support_agent.context import (
-    ContextBudget,
-    assemble_context,
-    estimate_tokens,
-    limit_tool_results,
-    project_history,
-)
+from support_agent.conversation import ContextBudget, project_history
+from support_agent.dialogue.context import assemble_context, limit_tool_results
+from support_agent.platform.config import Settings
+from support_agent.platform.context import estimate_tokens
 
 
 def config(**overrides):

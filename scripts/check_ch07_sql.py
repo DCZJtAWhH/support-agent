@@ -11,8 +11,8 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from sqlalchemy import text  # noqa: E402
 
-from support_agent.config import Settings  # noqa: E402
-from support_agent.database import Database  # noqa: E402
+from support_agent.platform.config import Settings  # noqa: E402
+from support_agent.platform.database import Database  # noqa: E402
 
 
 async def main():

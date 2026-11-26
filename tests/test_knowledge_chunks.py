@@ -1,6 +1,6 @@
 import pytest
 
-from support_agent.knowledge_chunks import split_markdown
+from support_agent.knowledge.chunks import split_markdown
 
 
 def test_overlap_uses_whole_sentence_when_target_falls_inside_it():

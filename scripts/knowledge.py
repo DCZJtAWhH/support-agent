@@ -11,22 +11,13 @@ import httpx
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from support_agent.config import Settings  # noqa: E402
-from support_agent.database import Database  # noqa: E402
-from support_agent.knowledge_jobs import (  # noqa: E402
-    import_documents,
-    import_faq,
-    mine_directory,
-    schedule,
-)
-from support_agent.knowledge_mining import KnowledgeLLM, MiningPipeline  # noqa: E402
-from support_agent.knowledge_store import (  # noqa: E402
-    KnowledgeStore,
-    SimulatedInterruption,
-    synchronize,
-)
-from support_agent.retrieval import HybridRetriever, QueryUnderstanding  # noqa: E402
-from support_agent.vectors import BGEEmbeddings, BGEReranker, MilvusVectors  # noqa: E402
+from support_agent.knowledge.jobs import import_documents, import_faq, mine_directory, schedule  # noqa: E402
+from support_agent.knowledge.mining import KnowledgeLLM, MiningPipeline  # noqa: E402
+from support_agent.knowledge.retrieval import HybridRetriever, QueryUnderstanding  # noqa: E402
+from support_agent.knowledge.store import KnowledgeStore, SimulatedInterruption, synchronize  # noqa: E402
+from support_agent.knowledge.vectors import BGEEmbeddings, BGEReranker, MilvusVectors  # noqa: E402
+from support_agent.platform.config import Settings  # noqa: E402
+from support_agent.platform.database import Database  # noqa: E402
 
 
 async def main(args):
@@ -79,9 +70,9 @@ async def main(args):
         elif args.command == "stats":
             result = await store.stats()
         elif args.command == "low-confidence":
-            from support_agent.repositories import ChatRepository
+            from support_agent.improvement import ImprovementStore
 
-            result = await ChatRepository(database).low_confidence_questions()
+            result = await ImprovementStore(database).low_confidence_questions()
         else:
             with httpx.Client() as sync_client:
                 async with httpx.AsyncClient() as client:

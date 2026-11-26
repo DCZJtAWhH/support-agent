@@ -7,8 +7,8 @@ from uuid import uuid4
 
 import httpx
 
-from support_agent.app import create_app
-from support_agent.config import Settings
+from support_agent.app import create_app  # noqa: E402
+from support_agent.platform.config import Settings  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 

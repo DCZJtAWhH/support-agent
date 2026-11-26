@@ -19,7 +19,7 @@ def main():
     environment = {**os.environ, "PYTHONPATH": "src", "PYTHONIOENCODING": "utf-8"}
     if not args.offline:
         sys.path.insert(0, str(root / "src"))
-        from support_agent.config import Settings
+        from support_agent.platform.config import Settings
 
         settings = Settings()
         if (

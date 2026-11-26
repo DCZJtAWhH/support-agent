@@ -4,11 +4,11 @@ import json
 import httpx
 from test_knowledge_store import DemoEmbedding
 
-from support_agent.config import Settings
-from support_agent.database import Database
-from support_agent.knowledge_chunks import KnowledgeDraft
-from support_agent.knowledge_mining import KnowledgeLLM, MiningPipeline
-from support_agent.knowledge_store import KnowledgeStore
+from support_agent.knowledge.chunks import KnowledgeDraft
+from support_agent.knowledge.mining import KnowledgeLLM, MiningPipeline
+from support_agent.knowledge.store import KnowledgeStore
+from support_agent.platform.config import Settings
+from support_agent.platform.database import Database
 
 
 def test_reviewed_history_is_staged_then_globally_deduplicated_with_conflicts_retained(tmp_path):

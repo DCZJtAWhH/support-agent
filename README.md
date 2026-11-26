@@ -1,5 +1,7 @@
 # 电商智能客服 · 正式分流器与 Workflow
 
+源码按七个功能模块组织，公开能力、数据归属与恢复契约见 [模块说明](docs/modules.md)。
+
 FastAPI + SQLAlchemy + MySQL + LangChain + LangGraph。同一会话的问题理解同时处理指代与口语改写，完整问题原样透传；八选一意图（七类业务/社交意图加其他）以严格 JSON 返回 intent/confidence。退款退货与售后统一走确定性订单→政策子流程，主力 Agent 负责依据订单和政策判断及澄清。继续复用原有混合检索、置信闸和持久化检查点。
 
 ## 第八章演示

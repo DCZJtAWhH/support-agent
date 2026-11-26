@@ -1,4 +1,4 @@
-from support_agent.confidence import EvidencePolicy, calibrate
+from support_agent.knowledge.confidence import EvidencePolicy, calibrate
 
 
 def test_calibrated_gate_rejects_irrelevant_fragments_and_keeps_answerable_evidence():
@@ -57,11 +57,11 @@ def test_workflow_gate_keeps_rejected_fragments_for_review_before_agent():
     from uuid import uuid4
 
     from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+    from module_support import TestServices as ChatRepository
+    from module_support import workflow as SupportWorkflow
     from test_workflow import IntentModel, settings
 
-    from support_agent.database import Database
-    from support_agent.repositories import ChatRepository
-    from support_agent.workflow import SupportWorkflow
+    from support_agent.platform.database import Database
 
     class Search:
         async def search(self, question, **kwargs):

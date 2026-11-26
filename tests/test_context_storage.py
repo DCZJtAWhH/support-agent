@@ -1,15 +1,16 @@
 import asyncio
 from uuid import uuid4
 
-from support_agent.database import Database
-from support_agent.repositories import ChatRepository
+from module_support import TestServices as ChatRepository
+
+from support_agent.platform.database import Database
 
 
 def test_background_summary_does_not_block_and_failure_keeps_the_boundary(caplog):
     from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
     from test_session_context import config
 
-    from support_agent.summaries import SummaryManager
+    from support_agent.conversation.summaries import SummaryManager
 
     class HeldModel:
         def bind(self, **kwargs):

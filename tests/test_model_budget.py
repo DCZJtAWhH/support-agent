@@ -12,11 +12,11 @@ def fixed_pricing_clock(monkeypatch):
         def now(cls, tz=None):
             return cls(2026, 11, 24, 10, tzinfo=tz)
 
-    monkeypatch.setattr("support_agent.model_budget.datetime", FixedDatetime)
+    monkeypatch.setattr("support_agent.platform.model_budget.datetime", FixedDatetime)
 
 
 def test_budget_is_reserved_before_spending_and_persists_across_runs(tmp_path):
-    from support_agent.model_budget import BudgetExceeded, BudgetLedger
+    from support_agent.platform.model_budget import BudgetExceeded, BudgetLedger
 
     path = tmp_path / "budget.sqlite"
     first = BudgetLedger(path)
@@ -39,7 +39,7 @@ def test_http_budget_stops_unknown_usage_and_blocks_later_calls(tmp_path):
 
     import httpx
 
-    from support_agent.model_budget import BudgetExceeded, BudgetLedger, BudgetTransport
+    from support_agent.platform.model_budget import BudgetExceeded, BudgetLedger, BudgetTransport
 
     async def scenario():
         sent = []
@@ -75,9 +75,9 @@ def test_streaming_sdk_records_usage_before_closing_after_done(tmp_path, data_pr
     import httpx
     from conftest import stream_response
 
-    from support_agent.config import Settings
-    from support_agent.model_budget import BudgetLedger, BudgetTransport
-    from support_agent.model_gateway import create_chat_model
+    from support_agent.platform.config import Settings
+    from support_agent.platform.model_budget import BudgetLedger, BudgetTransport
+    from support_agent.platform.model_gateway import create_chat_model
 
     async def scenario():
         response = stream_response(("您好",))
@@ -115,9 +115,9 @@ def test_model_sdk_uses_budgeted_client_and_cannot_bypass_the_gate(tmp_path):
 
     import httpx
 
-    from support_agent.config import Settings
-    from support_agent.model_budget import BudgetExceeded, BudgetLedger, BudgetTransport
-    from support_agent.model_gateway import create_chat_model
+    from support_agent.platform.config import Settings
+    from support_agent.platform.model_budget import BudgetExceeded, BudgetLedger, BudgetTransport
+    from support_agent.platform.model_gateway import create_chat_model
 
     async def scenario():
         sent = []
@@ -153,7 +153,7 @@ def test_http_over_budget_is_rejected_before_network_and_stale_prices_are_reject
 
     import httpx
 
-    from support_agent.model_budget import BudgetExceeded, BudgetLedger, BudgetTransport
+    from support_agent.platform.model_budget import BudgetExceeded, BudgetLedger, BudgetTransport
 
     async def scenario():
         sent = []
@@ -194,7 +194,7 @@ def test_streaming_usage_is_charged_once_and_incomplete_stream_keeps_reservation
 
     import httpx
 
-    from support_agent.model_budget import BudgetExceeded, BudgetLedger, BudgetTransport
+    from support_agent.platform.model_budget import BudgetExceeded, BudgetLedger, BudgetTransport
 
     async def scenario():
         usage = {

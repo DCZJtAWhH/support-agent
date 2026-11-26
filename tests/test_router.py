@@ -6,12 +6,12 @@ import pytest
 from conftest import sse_events, stream_response
 from langchain_core.messages import AIMessageChunk
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+from module_support import TestServices as ChatRepository
+from module_support import workflow as SupportWorkflow
 
-from support_agent.config import Settings
-from support_agent.database import Database
-from support_agent.errors import ModelResponseError
-from support_agent.repositories import ChatRepository
-from support_agent.workflow import SupportWorkflow
+from support_agent.platform.config import Settings
+from support_agent.platform.database import Database
+from support_agent.platform.errors import ModelResponseError
 
 
 class RouterModel:

@@ -12,9 +12,12 @@ from langchain_core.tools import tool
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from support_agent.database import Database  # noqa: E402
-from support_agent.repositories import ChatRepository  # noqa: E402
-from support_agent.tools import ToolRegistry  # noqa: E402
+from support_agent.bootstrap import ticket_write_policy  # noqa: E402
+from support_agent.commerce import CommerceService  # noqa: E402
+from support_agent.conversation import ConversationService  # noqa: E402
+from support_agent.platform.database import Database  # noqa: E402
+from support_agent.tooling import ToolAuditStore  # noqa: E402
+from support_agent.tooling.execution import ToolRegistry  # noqa: E402
 
 
 async def main():
@@ -22,7 +25,9 @@ async def main():
     with TemporaryDirectory(prefix="support-agent-ch08-") as directory:
         db = Database(f"sqlite+aiosqlite:///{Path(directory) / 'demo.db'}")
         await db.initialize()
-        repo = ChatRepository(db)
+        repo = ConversationService(db)
+        commerce = CommerceService(db)
+        audit_store = ToolAuditStore(db)
         cid, rid = str(uuid4()), str(uuid4())
         await repo.begin_request(cid, rid, "演示写超时")
 
@@ -35,13 +40,16 @@ async def main():
         @tool
         async def create_ticket(description: str, ticket_type: str) -> dict:
             """先在临时库写入，再模拟响应丢失，证明超时并不代表写入失败。"""
-            result = await repo.create_ticket(cid, rid, description, ticket_type)
+            result = await commerce.create_ticket(
+                cid, rid, description, ticket_type, confirmed=True
+            )
             await asyncio.sleep(5)
             return result
 
         registry = ToolRegistry(
             [slow_read, create_ticket],
-            repo=repo,
+            repo=audit_store,
+            write_policy=ticket_write_policy(),
             conversation_id=cid,
             timeout=0.05,
             retries=1,
@@ -55,8 +63,8 @@ async def main():
                 tool_call_id="write-timeout",
                 confirmed=True,
             )
-            audit = await repo.read_conversation(cid)
-            rows = audit["tool_audit_logs"]
+            audit = await commerce.read_operations(cid)
+            rows = await audit_store.tool_audit_logs(cid)
             assert [r["status"] for r in rows] == ["超时", "超时"]
             assert [r["retry_count"] for r in rows] == [1, 0]
             assert len(audit["tickets"]) == 1

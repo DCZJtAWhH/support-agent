@@ -14,9 +14,9 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from eval_tools import parse_events  # noqa: E402
 
-from support_agent.config import Settings  # noqa: E402
-from support_agent.database import Database  # noqa: E402
-from support_agent.repositories import ChatRepository  # noqa: E402
+from support_agent.improvement import ImprovementStore  # noqa: E402
+from support_agent.platform.config import Settings  # noqa: E402
+from support_agent.platform.database import Database  # noqa: E402
 
 
 async def main(args):
@@ -25,7 +25,7 @@ async def main(args):
     database = Database(config.database_url.get_secret_value())
     report = []
     try:
-        repo = ChatRepository(database)
+        repo = ImprovementStore(database)
         async with httpx.AsyncClient(
             base_url=args.base_url, timeout=180, trust_env=False
         ) as client:

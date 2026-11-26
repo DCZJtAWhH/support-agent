@@ -4,7 +4,7 @@ import json
 import httpx
 import pytest
 
-from support_agent.vectors import BGEEmbeddings
+from support_agent.knowledge.vectors import BGEEmbeddings
 
 
 def test_embedding_uses_bge_dense_batch_and_restores_response_order():

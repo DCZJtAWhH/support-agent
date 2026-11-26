@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from support_agent.config import Settings
+from support_agent.platform.config import Settings
 
 
 def test_database_url_is_required_without_environment_or_dotenv(monkeypatch):

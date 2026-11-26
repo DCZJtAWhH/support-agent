@@ -13,18 +13,14 @@ import httpx
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from support_agent.config import Settings  # noqa: E402
-from support_agent.database import Database  # noqa: E402
-from support_agent.evaluation import (  # noqa: E402
-    assess_faithfulness,
-    build_report,
-    markdown_report,
-)
-from support_agent.grounding import GroundedAnswerer  # noqa: E402
-from support_agent.knowledge_mining import KnowledgeLLM  # noqa: E402
-from support_agent.knowledge_store import KnowledgeStore, digest  # noqa: E402
-from support_agent.retrieval import STRATEGIES, HybridRetriever, QueryUnderstanding  # noqa: E402
-from support_agent.vectors import BGEEmbeddings, BGEReranker, MilvusVectors  # noqa: E402
+from support_agent.evaluation.metrics import assess_faithfulness, build_report, markdown_report  # noqa: E402
+from support_agent.knowledge.grounding import GroundedAnswerer  # noqa: E402
+from support_agent.knowledge.mining import KnowledgeLLM  # noqa: E402
+from support_agent.knowledge.retrieval import STRATEGIES, HybridRetriever, QueryUnderstanding  # noqa: E402
+from support_agent.knowledge.store import KnowledgeStore, digest  # noqa: E402
+from support_agent.knowledge.vectors import BGEEmbeddings, BGEReranker, MilvusVectors  # noqa: E402
+from support_agent.platform.config import Settings  # noqa: E402
+from support_agent.platform.database import Database  # noqa: E402
 
 
 def load_jsonl(path):

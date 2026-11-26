@@ -3,7 +3,7 @@ import asyncio
 
 def test_completed_evaluations_persist_two_distinct_runs_and_api_shows_trend(harness):
     async def scenario():
-        from support_agent.eval_runs import EvaluationRuns
+        from support_agent.evaluation.runs import EvaluationRuns
 
         async with harness() as (client, _, app):
             runs = EvaluationRuns(app.state.repository.database)
@@ -40,14 +40,15 @@ def test_completed_evaluations_persist_two_distinct_runs_and_api_shows_trend(har
 def test_periodic_evaluation_runs_existing_pipeline_and_persists_trigger(harness, tmp_path):
     from test_evaluation_dashboard import make_runner
 
-    from support_agent.evaluation_dashboard import EvaluationDashboard
+    from support_agent.evaluation.dashboard import EvaluationDashboard
 
     async def scenario():
         dataset = tmp_path / "cases.jsonl"
         dataset.write_text('{"id":"unknown","relevant":[]}\n', encoding="utf-8")
         async with harness() as (client, _, app):
             app.state.evaluations = EvaluationDashboard(
-                app.state.knowledge_store,
+                app.state.knowledge_store.corpus,
+                runs=app.state.evaluation_runs,
                 dataset_path=dataset,
                 runs_directory=tmp_path / "runs",
                 script_path=make_runner(tmp_path),

@@ -10,9 +10,14 @@ import httpx
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from support_agent.config import Settings  # noqa: E402
-from support_agent.flywheel import DEDUP_PROMPT, NORMALIZE_PROMPT, GapMatch, NormalizedGap  # noqa: E402
-from support_agent.knowledge_mining import KnowledgeLLM  # noqa: E402
+from support_agent.improvement.service import (  # noqa: E402
+    DEDUP_PROMPT,
+    NORMALIZE_PROMPT,
+    GapMatch,
+    NormalizedGap,
+)
+from support_agent.knowledge.mining import KnowledgeLLM  # noqa: E402
+from support_agent.platform.config import Settings  # noqa: E402
 
 
 async def main():

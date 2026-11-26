@@ -1,7 +1,7 @@
 import asyncio
 import json
 
-from support_agent.evaluation import build_report
+from support_agent.evaluation.metrics import build_report
 
 
 def saved_report():
@@ -59,7 +59,7 @@ def saved_report():
 def test_report_api_uses_saved_numbers_combines_filters_and_identifies_old_snapshot(
     harness, tmp_path
 ):
-    from support_agent.evaluation_dashboard import EvaluationDashboard
+    from support_agent.evaluation.dashboard import EvaluationDashboard
 
     async def scenario():
         baseline = tmp_path / "baseline.json"
@@ -68,7 +68,8 @@ def test_report_api_uses_saved_numbers_combines_filters_and_identifies_old_snaps
         dataset.write_text('{"id":"unknown","relevant":[]}\n', encoding="utf-8")
         async with harness() as (client, _, app):
             app.state.evaluations = EvaluationDashboard(
-                app.state.knowledge_store,
+                app.state.knowledge_store.corpus,
+                runs=app.state.evaluation_runs,
                 baseline_path=baseline,
                 dataset_path=dataset,
                 runs_directory=tmp_path / "runs",
@@ -127,7 +128,7 @@ async def wait_for_job(client):
 def test_rerun_exposes_progress_blocks_duplicates_and_publishes_only_completed_report(
     harness, tmp_path
 ):
-    from support_agent.evaluation_dashboard import EvaluationDashboard
+    from support_agent.evaluation.dashboard import EvaluationDashboard
 
     async def scenario():
         dataset = tmp_path / "cases.jsonl"
@@ -137,7 +138,8 @@ def test_rerun_exposes_progress_blocks_duplicates_and_publishes_only_completed_r
         original = baseline.read_bytes()
         async with harness() as (client, _, app):
             app.state.evaluations = EvaluationDashboard(
-                app.state.knowledge_store,
+                app.state.knowledge_store.corpus,
+                runs=app.state.evaluation_runs,
                 baseline_path=baseline,
                 dataset_path=dataset,
                 runs_directory=tmp_path / "runs",
@@ -161,7 +163,7 @@ def test_rerun_exposes_progress_blocks_duplicates_and_publishes_only_completed_r
 
 
 def test_failed_run_keeps_previous_report_and_never_exposes_provider_error(harness, tmp_path):
-    from support_agent.evaluation_dashboard import EvaluationDashboard
+    from support_agent.evaluation.dashboard import EvaluationDashboard
 
     async def scenario():
         dataset = tmp_path / "cases.jsonl"
@@ -170,7 +172,8 @@ def test_failed_run_keeps_previous_report_and_never_exposes_provider_error(harne
         baseline.write_text(json.dumps(saved_report()), encoding="utf-8")
         async with harness() as (client, _, app):
             app.state.evaluations = EvaluationDashboard(
-                app.state.knowledge_store,
+                app.state.knowledge_store.corpus,
+                runs=app.state.evaluation_runs,
                 baseline_path=baseline,
                 dataset_path=dataset,
                 runs_directory=tmp_path / "runs",
@@ -186,8 +189,8 @@ def test_failed_run_keeps_previous_report_and_never_exposes_provider_error(harne
 
 
 def test_knowledge_change_during_run_does_not_publish_mixed_snapshot(harness, tmp_path):
-    from support_agent.evaluation_dashboard import EvaluationDashboard
-    from support_agent.knowledge_chunks import KnowledgeDraft
+    from support_agent.evaluation.dashboard import EvaluationDashboard
+    from support_agent.knowledge.chunks import KnowledgeDraft
 
     async def scenario():
         dataset = tmp_path / "cases.jsonl"
@@ -196,7 +199,8 @@ def test_knowledge_change_during_run_does_not_publish_mixed_snapshot(harness, tm
         baseline.write_text(json.dumps(saved_report()), encoding="utf-8")
         async with harness() as (client, _, app):
             app.state.evaluations = EvaluationDashboard(
-                app.state.knowledge_store,
+                app.state.knowledge_store.corpus,
+                runs=app.state.evaluation_runs,
                 baseline_path=baseline,
                 dataset_path=dataset,
                 runs_directory=tmp_path / "runs",
@@ -218,7 +222,7 @@ def test_knowledge_change_during_run_does_not_publish_mixed_snapshot(harness, tm
 
 
 def test_restart_marks_orphaned_running_job_interrupted(harness, tmp_path):
-    from support_agent.evaluation_dashboard import EvaluationDashboard
+    from support_agent.evaluation.dashboard import EvaluationDashboard
 
     async def scenario():
         runs = tmp_path / "runs"
@@ -236,7 +240,9 @@ def test_restart_marks_orphaned_running_job_interrupted(harness, tmp_path):
         )
         async with harness() as (client, _, app):
             app.state.evaluations = EvaluationDashboard(
-                app.state.knowledge_store, runs_directory=runs
+                app.state.knowledge_store.corpus,
+                runs=app.state.evaluation_runs,
+                runs_directory=runs,
             )
             job = (await client.get("/api/evaluations/status")).json()["job"]
             assert job["status"] == "interrupted"
@@ -247,7 +253,7 @@ def test_restart_marks_orphaned_running_job_interrupted(harness, tmp_path):
 
 
 def test_shutdown_interrupts_active_evaluation_and_preserves_previous_report(harness, tmp_path):
-    from support_agent.evaluation_dashboard import EvaluationDashboard
+    from support_agent.evaluation.dashboard import EvaluationDashboard
 
     async def scenario():
         dataset = tmp_path / "cases.jsonl"
@@ -256,7 +262,8 @@ def test_shutdown_interrupts_active_evaluation_and_preserves_previous_report(har
         baseline.write_text(json.dumps(saved_report()), encoding="utf-8")
         async with harness() as (client, _, app):
             app.state.evaluations = EvaluationDashboard(
-                app.state.knowledge_store,
+                app.state.knowledge_store.corpus,
+                runs=app.state.evaluation_runs,
                 baseline_path=baseline,
                 dataset_path=dataset,
                 runs_directory=tmp_path / "runs",
@@ -278,14 +285,15 @@ def test_shutdown_interrupts_active_evaluation_and_preserves_previous_report(har
 
 
 def test_context_budget_failure_has_actionable_reason_without_leaking_document(harness, tmp_path):
-    from support_agent.evaluation_dashboard import EvaluationDashboard
+    from support_agent.evaluation.dashboard import EvaluationDashboard
 
     async def scenario():
         dataset = tmp_path / "cases.jsonl"
         dataset.write_text('{"id":"unknown","relevant":[]}\n', encoding="utf-8")
         async with harness() as (client, _, app):
             app.state.evaluations = EvaluationDashboard(
-                app.state.knowledge_store,
+                app.state.knowledge_store.corpus,
+                runs=app.state.evaluation_runs,
                 dataset_path=dataset,
                 runs_directory=tmp_path / "runs",
                 script_path=make_runner(

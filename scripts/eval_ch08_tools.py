@@ -13,12 +13,12 @@ from langchain_core.tools import tool
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from support_agent.agent import model_step  # noqa: E402
-from support_agent.config import Settings  # noqa: E402
-from support_agent.knowledge_mining import KnowledgeLLM  # noqa: E402
-from support_agent.model_budget import BudgetLedger, BudgetTransport  # noqa: E402
-from support_agent.tool_catalog import ToolCatalog  # noqa: E402
-from support_agent.workflow import AGENT_PROMPT  # noqa: E402
+from support_agent.bootstrap import create_catalog  # noqa: E402
+from support_agent.dialogue.agent import model_step  # noqa: E402
+from support_agent.dialogue.workflow import AGENT_PROMPT  # noqa: E402
+from support_agent.knowledge.mining import KnowledgeLLM  # noqa: E402
+from support_agent.platform.config import Settings  # noqa: E402
+from support_agent.platform.model_budget import BudgetLedger, BudgetTransport  # noqa: E402
 
 
 @tool
@@ -35,7 +35,7 @@ async def main():
     parser.add_argument("--case", action="append", help="只执行指定样例，可重复传入")
     args = parser.parse_args()
     settings = Settings()
-    catalog = ToolCatalog(
+    catalog = create_catalog(
         servers={
             "logistics": {"transport": "streamable_http", "url": "http://127.0.0.1:8101/mcp"},
             "aftersales": {"transport": "streamable_http", "url": "http://127.0.0.1:8102/mcp"},
@@ -46,7 +46,7 @@ async def main():
     if catalog.discovery_errors:
         raise RuntimeError("请先启动两个 MCP Server，再评估真实工具定义。")
     catalog.register(echo_support_code)
-    registry = catalog.bind(None, "eval", "eval", "")
+    registry = catalog.bind("eval", "eval", "")
     cases = [
         json.loads(line)
         for line in (ROOT / args.dataset).read_text(encoding="utf-8").splitlines()

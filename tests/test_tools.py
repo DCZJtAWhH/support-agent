@@ -2,10 +2,11 @@ import asyncio
 from uuid import uuid4
 
 from langchain_core.tools import tool
+from module_support import TestServices as ChatRepository
+from module_support import build_tools
+from module_support import tool_registry as ToolRegistry
 
-from support_agent.database import Database
-from support_agent.repositories import ChatRepository
-from support_agent.tools import ToolRegistry, build_tools
+from support_agent.platform.database import Database
 
 
 class ReturnPolicyRetriever:

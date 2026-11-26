@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from support_agent.schemas import AfterSalesRequest  # noqa: E402
+from support_agent.commerce.schemas import AfterSalesRequest  # noqa: E402
 
 
 def main():

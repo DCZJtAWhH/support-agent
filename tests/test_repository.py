@@ -1,13 +1,13 @@
 import asyncio
 from uuid import uuid4
 
+from module_support import TestServices as ChatRepository
 from test_knowledge_store import DemoEmbedding, DemoVectors
 
-from support_agent.database import Database
-from support_agent.knowledge_chunks import KnowledgeDraft
-from support_agent.knowledge_store import KnowledgeStore, synchronize
-from support_agent.repositories import ChatRepository
-from support_agent.vectors import KnowledgeRetriever
+from support_agent.knowledge.chunks import KnowledgeDraft
+from support_agent.knowledge.store import KnowledgeStore, synchronize
+from support_agent.knowledge.vectors import KnowledgeRetriever
+from support_agent.platform.database import Database
 
 
 def test_faq_semantic_results_use_mysql_text_and_preserve_contract(tmp_path):

@@ -2,9 +2,9 @@ import asyncio
 
 import pytest
 
-from support_agent.database import Database
-from support_agent.knowledge_chunks import KnowledgeDraft
-from support_agent.knowledge_store import KnowledgeStore, synchronize
+from support_agent.knowledge.chunks import KnowledgeDraft
+from support_agent.knowledge.store import KnowledgeStore, synchronize
+from support_agent.platform.database import Database
 
 
 class DemoEmbedding:
