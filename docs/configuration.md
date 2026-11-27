@@ -38,7 +38,7 @@
 | `HISTORY_TARGET_ROUNDS` / `STEADY_ROUND_TOKENS` | 40 / 1000，历史窗口目标与稳态估算。 |
 | `LAYER2_ASSISTANT_CHARS` | 60，历史第二层客服回复投影长度。 |
 | `INTENT_MIN_CONFIDENCE` | 0.65，意图分流阈值。 |
-| `RERANK_MIN_SCORE` | 0.05，只作用于精排相关分，不能套用于 RRF 分数。 |
+| `RERANK_MIN_SCORE` | 0.05，CLI 精排查询的相关分下限。聊天工作流保留阈值前结果，由证据校准参数统一门控；不能套用于 RRF 分数。 |
 | `EVIDENCE_CALIBRATION_PATH` | 默认 `config/evidence-confidence.json`，证据门控校准产物。 |
 
 历史预算取目标轮数估算与模型剩余空间中的较小值，再按约 70% / 30% 分配两层。每次模型调用仍会核对实际投影输入；配置不能保证所有长输入均可装入窗口。完整原文不会被压缩覆盖，机制见[模块说明](modules.md)。
@@ -72,11 +72,3 @@ TOOL_MAX_RETRIES=1
 | `LANGFUSE_ENABLED` | 默认 `true`；同时提供公钥、私钥时才创建链路客户端。 |
 | `LANGFUSE_BASE_URL` | 默认 `http://127.0.0.1:3000`，指向自行部署的 Langfuse。仓库 Compose 不包含它。 |
 | `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` | 自托管项目密钥。无需链路观测时可设 `LANGFUSE_ENABLED=false`。 |
-
-## 真实模型测试费用保护
-
-`MODEL_TEST_BUDGET_PATH` 是可选的测试专用配置；费用闸仅接受已核价的 DeepSeek 官方纯文本接口，累计上限为人民币 1 元。它不是其他提供方的通用预算控制。
-
-请求在 HTTP 出口预留保守费用，正常完成后按可信 usage 结算；未知费用、断流和不完整用量会停止后续调用。价格快照必须当天有效，源码内固定快照跨日会拒绝测试。
-
-本机已有账本 `data/ch08-real-budget.sqlite` 记录未确认扣费，费用快照现保存于 `data/reports/tool-cost-report.json`，需先核账。这些是本地运行记录，不随 Git 分发。不要删除账本、换路径或清空记录绕过停止状态。普通业务运行可以不设置此测试选项，但不因此视为历史扣费已确认。

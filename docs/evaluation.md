@@ -15,7 +15,7 @@ uv run --locked ruff format --check src scripts tests
 
 pytest 使用独立数据库与外部协议替身，覆盖会话幂等、工单确认、流中断、预算、检索、MCP、审核发布、模块边界及持久数据兼容恢复。前端协议测试需要 Node.js 22+。
 
-pytest 中的浏览器用例使用 Playwright；尚未安装浏览器时运行 `uv run --locked playwright install chromium`。独立的阶段验收脚本已移除。
+pytest 中的浏览器用例使用 Playwright；尚未安装浏览器时运行 `uv run --locked playwright install chromium`。
 
 ## 完整检索评估
 
@@ -67,11 +67,11 @@ data/
 └── reports/                    CLI 评估报告及本地验证产物
 ```
 
-直接执行 `eval_retrieval.py` 默认输出 `data/reports/retrieval-report.*`，不更新网页发布指针，必要时自行创建目录。未被指针引用的历史报告不会自动展示。
+直接执行 `eval_retrieval.py` 默认输出 `data/reports/retrieval-report.*`，自动创建输出目录，不更新网页发布指针。未被指针引用的历史报告不会自动展示。
 
 这些生成结果不随仓库分发，新克隆的项目没有报告。删除本地评估报告后页面为空，但不会自动删除 MySQL 中的指标历史。需要保留逐题证据和任务恢复状态时自行备份。
 
-校准脚本必须通过 `--report` 显式指定真实报告。`config/evidence-confidence.json` 继续由 Git 管理，保存参数、来源路径和摘要；来源报告保留在本地或备份中，应用使用参数时不需要读取该来源文件。
+校准脚本必须通过 `--report` 显式指定真实报告。`config/evidence-confidence.json` 由 Git 管理，当前仅保存运行所需的 `weights`、`relevance_floor` 和 `threshold`。校准脚本仍输出包含来源和评估指标的完整结果；重新生成后，如需保持配置精简，仅保留这三个字段。来源报告按追溯需要保留在本地或备份中，应用不读取它。
 
 ## 人工语义复核
 
