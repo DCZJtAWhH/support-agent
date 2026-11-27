@@ -5,9 +5,13 @@ import sys
 from pathlib import Path
 
 import httpx
+import pytest
 
 
-def test_evaluation_command_reports_known_ranks_claim_faithfulness_and_type_buckets(tmp_path):
+@pytest.mark.parametrize("default_output", [False, True])
+def test_evaluation_command_reports_known_ranks_claim_faithfulness_and_type_buckets(
+    tmp_path, default_output
+):
     rows = []
     for strategy in ("dense", "bm25", "hybrid", "hybrid_rerank"):
         rows.extend(
@@ -38,20 +42,25 @@ def test_evaluation_command_reports_known_ranks_claim_faithfulness_and_type_buck
         )
     replay = tmp_path / "replay.jsonl"
     replay.write_text("\n".join(json.dumps(r) for r in rows), encoding="utf-8")
-    output = tmp_path / "report.json"
+    output = (
+        tmp_path / "data/reports/retrieval-report.json"
+        if default_output
+        else tmp_path / "report.json"
+    )
+    command = [
+        sys.executable,
+        str(Path(__file__).resolve().parents[1] / "scripts/eval_retrieval.py"),
+        "--replay",
+        str(replay),
+    ]
+    if not default_output:
+        command.extend(["--output", str(output)])
     result = subprocess.run(
-        [
-            sys.executable,
-            "scripts/eval_retrieval.py",
-            "--replay",
-            str(replay),
-            "--output",
-            str(output),
-        ],
+        command,
         capture_output=True,
         text=True,
         encoding="utf-8",
-        cwd=Path(__file__).resolve().parents[1],
+        cwd=tmp_path,
     )
     assert result.returncode == 0, result.stderr
     report = json.loads(output.read_text(encoding="utf-8"))

@@ -1,5 +1,8 @@
 import asyncio
 import json
+from uuid import uuid4
+
+import pytest
 
 from support_agent.evaluation.metrics import build_report
 
@@ -56,23 +59,73 @@ def saved_report():
     )
 
 
-def test_report_api_uses_saved_numbers_combines_filters_and_identifies_old_snapshot(
-    harness, tmp_path
+def publish_report(tmp_path, *, runs_directory=None):
+    runs = runs_directory or tmp_path / "runs"
+    run_id = str(uuid4())
+    report = runs / run_id / "report.json"
+    report.parent.mkdir(parents=True)
+    report.write_text(json.dumps(saved_report(), ensure_ascii=False), encoding="utf-8")
+    (runs / "latest.json").write_text(json.dumps({"id": run_id}), encoding="utf-8")
+    return report, run_id
+
+
+@pytest.mark.parametrize("missing", ["pointer", "report"])
+def test_missing_published_report_shows_empty_even_with_legacy_or_unpublished_report(
+    harness, tmp_path, monkeypatch, missing
 ):
+    import support_agent.evaluation.dashboard as dashboard
+
+    async def scenario():
+        legacy = tmp_path / "dev-notes/ch04-eval-final-results.json"
+        legacy.parent.mkdir()
+        legacy.write_text(json.dumps(saved_report()), encoding="utf-8")
+        report, _ = publish_report(tmp_path)
+        if missing == "pointer":
+            (tmp_path / "runs/latest.json").unlink()
+        else:
+            report.unlink()
+        dataset = tmp_path / "cases.jsonl"
+        dataset.write_text('{"id":"unknown","relevant":[]}\n', encoding="utf-8")
+        monkeypatch.setattr(dashboard, "PROJECT_ROOT", tmp_path)
+        async with harness() as (client, _, app):
+            app.state.evaluations = dashboard.EvaluationDashboard(
+                app.state.knowledge_store.corpus,
+                runs=app.state.evaluation_runs,
+                dataset_path=dataset,
+                runs_directory=tmp_path / "runs",
+            )
+            for query in ("", "?query_type=model&difficulty=easy"):
+                response = await client.get("/api/evaluations" + query)
+                assert response.status_code == 200, response.text
+                result = response.json()
+                assert result["report"] is None and result["rows"] == []
+                assert result["case_count"] == 0
+                assert result["filters"] == {"query_types": [], "difficulties": []}
+                assert result["stale"] is False and result["dataset_changed"] is False
+                for metrics in result["strategies"].values():
+                    assert metrics["count"] == 0
+                    assert metrics["mrr"] is None and metrics["faithfulness"] is None
+
+    asyncio.run(scenario())
+
+
+def test_report_api_uses_saved_numbers_combines_filters_and_identifies_old_snapshot(
+    harness, tmp_path, monkeypatch
+):
+    import support_agent.evaluation.dashboard as dashboard
     from support_agent.evaluation.dashboard import EvaluationDashboard
 
     async def scenario():
-        baseline = tmp_path / "baseline.json"
-        baseline.write_text(json.dumps(saved_report(), ensure_ascii=False), encoding="utf-8")
+        _, run_id = publish_report(tmp_path, runs_directory=tmp_path / "data/rag-evaluations")
+        publish_report(tmp_path, runs_directory=tmp_path / "dev-notes/rag-evaluations")
+        monkeypatch.setattr(dashboard, "PROJECT_ROOT", tmp_path)
         dataset = tmp_path / "cases.jsonl"
         dataset.write_text('{"id":"unknown","relevant":[]}\n', encoding="utf-8")
         async with harness() as (client, _, app):
             app.state.evaluations = EvaluationDashboard(
                 app.state.knowledge_store.corpus,
                 runs=app.state.evaluation_runs,
-                baseline_path=baseline,
                 dataset_path=dataset,
-                runs_directory=tmp_path / "runs",
             )
             response = await client.get("/api/evaluations?query_type=model&difficulty=easy")
             assert response.status_code == 200, response.text
@@ -81,6 +134,7 @@ def test_report_api_uses_saved_numbers_combines_filters_and_identifies_old_snaps
             assert result["strategies"]["dense"]["mrr"] == 0.5
             assert result["strategies"]["dense"]["faithfulness"] == 0.5
             assert result["report"]["case_count"] == 2
+            assert result["report"]["id"] == run_id
             assert result["corpus"]["size"] == 0
             assert result["stale"] is True and result["dataset_changed"] is True
             assert result["filters"]["query_types"] == ["model", "unknown"]
@@ -133,14 +187,10 @@ def test_rerun_exposes_progress_blocks_duplicates_and_publishes_only_completed_r
     async def scenario():
         dataset = tmp_path / "cases.jsonl"
         dataset.write_text('{"id":"unknown","relevant":[]}\n', encoding="utf-8")
-        baseline = tmp_path / "baseline.json"
-        baseline.write_text(json.dumps(saved_report()), encoding="utf-8")
-        original = baseline.read_bytes()
         async with harness() as (client, _, app):
             app.state.evaluations = EvaluationDashboard(
                 app.state.knowledge_store.corpus,
                 runs=app.state.evaluation_runs,
-                baseline_path=baseline,
                 dataset_path=dataset,
                 runs_directory=tmp_path / "runs",
                 script_path=make_runner(tmp_path),
@@ -149,6 +199,7 @@ def test_rerun_exposes_progress_blocks_duplicates_and_publishes_only_completed_r
             assert started.status_code == 202, started.text
             assert started.json()["job"]["total"] == 4
             assert (await client.post("/api/evaluations/run")).status_code == 409
+            assert (await client.get("/api/evaluations")).json()["report"] is None
             final, states = await wait_for_job(client)
             assert final["status"] == "completed", final
             assert final["completed"] == 4
@@ -157,7 +208,6 @@ def test_rerun_exposes_progress_blocks_duplicates_and_publishes_only_completed_r
             assert current["report"]["id"] == started.json()["job"]["id"]
             assert current["report"]["row_count"] == 4
             assert current["stale"] is False and current["dataset_changed"] is False
-            assert baseline.read_bytes() == original
 
     asyncio.run(scenario())
 
@@ -168,13 +218,11 @@ def test_failed_run_keeps_previous_report_and_never_exposes_provider_error(harne
     async def scenario():
         dataset = tmp_path / "cases.jsonl"
         dataset.write_text('{"id":"unknown","relevant":[]}\n', encoding="utf-8")
-        baseline = tmp_path / "baseline.json"
-        baseline.write_text(json.dumps(saved_report()), encoding="utf-8")
+        _, previous_id = publish_report(tmp_path)
         async with harness() as (client, _, app):
             app.state.evaluations = EvaluationDashboard(
                 app.state.knowledge_store.corpus,
                 runs=app.state.evaluation_runs,
-                baseline_path=baseline,
                 dataset_path=dataset,
                 runs_directory=tmp_path / "runs",
                 script_path=make_runner(tmp_path, fail=True),
@@ -183,7 +231,7 @@ def test_failed_run_keeps_previous_report_and_never_exposes_provider_error(harne
             final, _ = await wait_for_job(client)
             assert final["status"] == "failed"
             assert "private-provider-error" not in json.dumps(final)
-            assert (await client.get("/api/evaluations")).json()["report"]["id"] == "baseline"
+            assert (await client.get("/api/evaluations")).json()["report"]["id"] == previous_id
 
     asyncio.run(scenario())
 
@@ -195,13 +243,11 @@ def test_knowledge_change_during_run_does_not_publish_mixed_snapshot(harness, tm
     async def scenario():
         dataset = tmp_path / "cases.jsonl"
         dataset.write_text('{"id":"unknown","relevant":[]}\n', encoding="utf-8")
-        baseline = tmp_path / "baseline.json"
-        baseline.write_text(json.dumps(saved_report()), encoding="utf-8")
+        _, previous_id = publish_report(tmp_path)
         async with harness() as (client, _, app):
             app.state.evaluations = EvaluationDashboard(
                 app.state.knowledge_store.corpus,
                 runs=app.state.evaluation_runs,
-                baseline_path=baseline,
                 dataset_path=dataset,
                 runs_directory=tmp_path / "runs",
                 script_path=make_runner(tmp_path),
@@ -216,7 +262,7 @@ def test_knowledge_change_during_run_does_not_publish_mixed_snapshot(harness, tm
             final, _ = await wait_for_job(client)
             assert final["status"] == "failed"
             assert "知识库" in final["message"] and "变化" in final["message"]
-            assert (await client.get("/api/evaluations")).json()["report"]["id"] == "baseline"
+            assert (await client.get("/api/evaluations")).json()["report"]["id"] == previous_id
 
     asyncio.run(scenario())
 
@@ -258,13 +304,11 @@ def test_shutdown_interrupts_active_evaluation_and_preserves_previous_report(har
     async def scenario():
         dataset = tmp_path / "cases.jsonl"
         dataset.write_text('{"id":"unknown","relevant":[]}\n', encoding="utf-8")
-        baseline = tmp_path / "baseline.json"
-        baseline.write_text(json.dumps(saved_report()), encoding="utf-8")
+        _, previous_id = publish_report(tmp_path)
         async with harness() as (client, _, app):
             app.state.evaluations = EvaluationDashboard(
                 app.state.knowledge_store.corpus,
                 runs=app.state.evaluation_runs,
-                baseline_path=baseline,
                 dataset_path=dataset,
                 runs_directory=tmp_path / "runs",
                 script_path=make_runner(tmp_path),
@@ -279,7 +323,7 @@ def test_shutdown_interrupts_active_evaluation_and_preserves_previous_report(har
             stopped = (await client.get("/api/evaluations/status")).json()["job"]
             assert stopped["status"] == "interrupted"
             assert stopped["completed"] < stopped["total"]
-            assert (await client.get("/api/evaluations")).json()["report"]["id"] == "baseline"
+            assert (await client.get("/api/evaluations")).json()["report"]["id"] == previous_id
 
     asyncio.run(scenario())
 
@@ -307,5 +351,6 @@ def test_context_budget_failure_has_actionable_reason_without_leaking_document(h
             assert final["status"] == "failed"
             assert "输入预算" in final["message"]
             assert "private-document-data" not in json.dumps(final)
+            assert (await client.get("/api/evaluations")).json()["report"] is None
 
     asyncio.run(scenario())

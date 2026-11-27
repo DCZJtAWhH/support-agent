@@ -3,7 +3,7 @@
   "dataset_hash": "0f19532734fea9ef536bb2471cb83b2ecf9fc9bb453425ab68a609b0c5bcfec5",
   "sample_count": 20,
   "metadata": {
-    "report": "dev-notes/rag-evaluations/0177ff8d-0589-46f1-a506-77112f5bd58f/report.json",
+    "report": "data/rag-evaluations/0177ff8d-0589-46f1-a506-77112f5bd58f/report.json",
     "report_hash": "566770fa043f9b038a2d37eed3047c38e056074da4e897a17bf1262ea81cc601",
     "embedding": "BAAI/bge-m3",
     "reranker": "BAAI/bge-reranker-v2-m3",

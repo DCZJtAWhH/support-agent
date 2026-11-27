@@ -20,6 +20,7 @@ def test_sidebar_switches_reload_originals_and_silently_survives_list_failure():
             pass
 
     async def scenario(base):
+        (ROOT / "data/reports").mkdir(parents=True, exist_ok=True)
         async with async_playwright() as p:
             cached = sorted(
                 (Path(os.environ.get("LOCALAPPDATA", "")) / "ms-playwright").glob(
@@ -117,7 +118,9 @@ def test_sidebar_switches_reload_originals_and_silently_survives_list_failure():
                     )
                     assert not errors
                     assert await page.evaluate("document.documentElement.scrollWidth <= innerWidth")
-                    await page.screenshot(path=str(ROOT / f"dev-notes/ch07-sidebar-{width}.png"))
+                    await page.screenshot(
+                        path=str(ROOT / f"data/reports/context-sidebar-{width}.png")
+                    )
                     await page.unroute("**/api/conversations", listed)
                     await page.route("**/api/conversations", lambda route: route.abort())
                     await page.reload()

@@ -1,4 +1,4 @@
-"""以已保存的 ch04 真实精排结果校准证据闸，明确记录来源与误判。"""
+"""以已保存的真实精排结果校准证据闸，明确记录来源与误判。"""
 
 import argparse
 import json
@@ -15,7 +15,7 @@ from support_agent.knowledge.store import digest  # noqa: E402
 def main():
     """读取完整报告及标注集，拒绝使用样本标签不一致的报告进行校准。"""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--report", default="dev-notes/ch04-eval-final-results.json")
+    parser.add_argument("--report", required=True, help="完整真实评估报告的 JSON 路径")
     parser.add_argument("--dataset", default="evals/retrieval.jsonl")
     parser.add_argument("--output", default="config/evidence-confidence.json")
     args = parser.parse_args()
@@ -39,7 +39,7 @@ def main():
             "embedding": report["metadata"]["embedding"],
             "reranker": report["metadata"]["reranker"],
             "corpus_hash": report["metadata"]["corpus_hash"],
-            "note": "复用 ch04 真实召回；语料变更后应重新评估并校准。",
+            "note": "复用真实召回报告；语料变更后应重新评估并校准。",
         },
     )
     Path(args.output).write_text(

@@ -1,4 +1,4 @@
-"""第三章知识库 demo 命令入口；配置来自本地 .env，输出不包含凭据。"""
+"""知识维护命令入口；配置来自本地 .env，输出不包含凭据。"""
 
 import argparse
 import asyncio

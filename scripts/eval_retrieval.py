@@ -173,7 +173,7 @@ def main():
     """解析真实运行或回放参数，生成 JSON 明细和 Markdown 分桶报告。"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", default=str(ROOT / "evals/retrieval.jsonl"))
-    parser.add_argument("--output", default="dev-notes/ch04-eval-results.json")
+    parser.add_argument("--output", default="data/reports/retrieval-report.json")
     parser.add_argument("--replay", help="回放 rows JSONL；报告明确标记 replay，不当作在线效果")
     parser.add_argument("--limit", type=int, help="仅评估前N条，用于快速检查")
     parser.add_argument("--concurrency", type=int, choices=range(1, 5), default=4)

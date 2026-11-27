@@ -1,7 +1,7 @@
 # 功能模块与恢复契约
 
-Issue [#8](https://github.com/DCZJtAWhH/support-agent/issues/8) 的实现保持单应用、单工作进程部署。
-`support_agent.app:create_app` 仍为启动入口；HTTP 路径、SSE 事件和网页资源保持兼容。
+应用按单应用、单工作进程部署，以 `support_agent.app:create_app` 为启动入口。
+下表描述当前模块的职责、数据归属和允许依赖。
 
 | 模块 | 能力及数据归属 | 允许调用的功能模块 |
 | --- | --- | --- |
@@ -44,26 +44,19 @@ Issue [#8](https://github.com/DCZJtAWhH/support-agent/issues/8) 的实现保持�
 - `EvaluationDashboard` 注入知识版本查询和本模块指标仓储；不读取知识模块数据库。任务完成后
   再核对知识和标注版本，全部一致才更新报告指针，失败保留上一份报告。
 
-## 兼容与验收
+## 持久化与验证
 
-物理表、字段、主键与已有迁移保持不变；没有重建索引或清空数据。会话和业务写入使用各自
-短事务，不向其他模块传递事务，不在事务中等待模型、MCP 或向量调用。
+存储模型和兼容迁移由所属模块维护。会话和业务写入使用各自短事务，不向其他模块传递
+事务，不在事务中等待模型、MCP 或向量调用。
 
 必须同时备份业务数据库和 SQLite checkpoint。断流不会撤销已提交业务效果；未完整发送的
-回答不会进入下一轮完整上下文。已有图节点名称、状态字段和消息协议保持兼容。
+回答不会进入下一轮完整上下文。
 
 `tests/test_persisted_compatibility.py` 从改造前提交生成的持久数据恢复，分别经 HTTP 验证已完成
 请求重放、工单暂停、订单暂停、已建单后回答失败的续跑及输入冲突。夹具来源见
-[fixtures/README.md](../tests/fixtures/README.md)。现有行为断言保留；旧细粒度测试的组合装配
-集中在 `tests/module_support.py`，生产代码没有聚合业务仓储。
-
-```powershell
-uv run --locked pytest -q
-node --test tests/web/stream.test.mjs
-uv run --locked ruff check src scripts tests
-uv run --locked ruff format --check src scripts tests
-uvx ty check src
-```
+[fixtures/README.md](../tests/fixtures/README.md)。测试组合装配集中在
+`tests/module_support.py`，生产代码没有聚合业务仓储。
 
 架构回归检查允许依赖、禁止跨模块私有导入、数据表归属和源函数中文用途注释。
 自动验收使用独立数据库和外部协议替身，不读取正式密钥、不调用真实付费模型。
+运行命令见[评估与验证](evaluation.md)，数据备份要求见[运维说明](operations.md)。

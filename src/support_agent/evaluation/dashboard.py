@@ -46,20 +46,16 @@ class EvaluationDashboard:
         self,
         read_corpus: Callable[[], Awaitable[CorpusVersion]],
         *,
-        baseline_path=None,
         dataset_path=None,
         runs_directory=None,
         script_path=None,
         runs: EvaluationRuns,
     ):
-        """绑定权威原文与报告路径，构造时不读取共享文件或触发模型调用。"""
+        """绑定权威原文与本地运行报告路径，构造时不读取文件或触发模型调用。"""
         self.read_corpus = read_corpus
         self.runs = runs
-        self.baseline_path = (
-            baseline_path or PROJECT_ROOT / "dev-notes/ch04-eval-final-results.json"
-        )
         self.dataset_path = dataset_path or PROJECT_ROOT / "evals/retrieval.jsonl"
-        self.runs_directory = runs_directory or PROJECT_ROOT / "dev-notes/rag-evaluations"
+        self.runs_directory = runs_directory or PROJECT_ROOT / "data/rag-evaluations"
         self.script_path = script_path or PROJECT_ROOT / "scripts/eval_retrieval.py"
         self.lock = asyncio.Lock()
         self.job: dict[str, Any] | None = None
@@ -90,17 +86,15 @@ class EvaluationDashboard:
         return {"job": dict(self.job) if self.job else None}
 
     async def _report(self):
-        """只读取已发布的完整报告；未运行网页评估时使用原有章节报告。"""
+        """只读取最新指针发布的报告；指针或报告缺失时返回空，不使用预置报告。"""
         pointer = await asyncio.to_thread(read_json, self.runs_directory / "latest.json")
         if pointer:
             run_id = str(UUID(pointer["id"]))
             report = await asyncio.to_thread(
                 read_json, self.runs_directory / run_id / "report.json"
             )
-            if report is None:
-                raise CapabilityError("unavailable", "最新评估报告缺失，请检查运行文件或重新评估。")
-            return run_id, report
-        return "baseline", await asyncio.to_thread(read_json, self.baseline_path)
+            return (run_id, report) if report is not None else (None, None)
+        return None, None
 
     async def corpus(self):
         """获取当前有效知识的稳定身份，和CLI报告使用相同的摘要口径。"""
@@ -120,8 +114,9 @@ class EvaluationDashboard:
         all_rows = report["rows"] if report else []
         query_types = sorted({r["query_type"] for r in all_rows})
         difficulties = sorted({r["difficulty"] for r in all_rows})
-        if (query_type and query_type not in query_types) or (
-            difficulty and difficulty not in difficulties
+        if report and (
+            (query_type and query_type not in query_types)
+            or (difficulty and difficulty not in difficulties)
         ):
             raise CapabilityError("invalid_input", "评估筛选条件不存在。")
         rows = [
