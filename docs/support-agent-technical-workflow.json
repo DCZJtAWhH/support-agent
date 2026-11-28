@@ -1,0 +1,57 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "电商智能客服技术流程",
+    "locale": "zh-CN",
+    "quality_profile": "showcase"
+  },
+  "lanes": [
+    { "id": "request-runtime", "label": "请求与图编排" },
+    { "id": "knowledge-evidence", "label": "知识检索与门控" },
+    { "id": "controlled-tools", "label": "工具执行与回传" }
+  ],
+  "mainPath": ["api-intake", "history-projection", "intent-dispatch", "bounded-agent", "stream-response"],
+  "nodes": [
+    { "id": "api-intake", "lane": "request-runtime", "col": 0, "type": "backend", "label": "FastAPI 请求接入", "sublabel": "请求校验与轮次幂等", "width": 168 },
+    { "id": "history-projection", "lane": "request-runtime", "col": 1, "type": "database", "label": "会话上下文投影", "sublabel": "历史滑窗与追加摘要", "width": 168 },
+    { "id": "intent-dispatch", "lane": "request-runtime", "col": 2, "type": "backend", "label": "LangGraph 分流", "sublabel": "指代消解与意图分类", "width": 168 },
+    { "id": "bounded-agent", "lane": "request-runtime", "col": 4, "type": "backend", "label": "Agent 决策循环", "sublabel": "模型预算与充分性检查", "width": 168 },
+    { "id": "stream-response", "lane": "request-runtime", "col": 5, "type": "frontend", "label": "SSE 流式回复", "sublabel": "回复、引用与交互状态", "width": 168 },
+    { "id": "verified-order", "lane": "knowledge-evidence", "col": 1, "type": "security", "label": "核实售后订单", "sublabel": "缺失时暂停等待点选", "width": 168 },
+    { "id": "hybrid-retrieval", "lane": "knowledge-evidence", "col": 2, "type": "database", "label": "Milvus 混合检索", "sublabel": "dense + BM25 → RRF", "width": 168 },
+    { "id": "evidence-gate", "lane": "knowledge-evidence", "col": 3, "type": "security", "label": "精排与证据门控", "sublabel": "MySQL 原文校验与阈值", "width": 168 },
+    { "id": "evidence-refusal", "lane": "controlled-tools", "col": 3, "type": "frontend", "label": "SSE 拒答与兜底", "sublabel": "记录原问进入问题池", "width": 168 },
+    { "id": "tool-policy", "lane": "controlled-tools", "col": 4, "type": "security", "label": "ToolRegistry 执行", "sublabel": "Schema、权限与超时", "width": 168 },
+    { "id": "tool-observation", "lane": "controlled-tools", "col": 5, "type": "external", "label": "本地业务 / MCP", "sublabel": "整理结果并记录审计", "width": 168 }
+  ],
+  "edges": [
+    { "id": "intake-history", "from": "api-intake", "to": "history-projection" },
+    { "id": "history-dispatch", "from": "history-projection", "to": "intent-dispatch" },
+    { "id": "business-agent", "from": "intent-dispatch", "to": "bounded-agent", "label": "业务查询", "role": "main" },
+    { "id": "agent-stream", "from": "bounded-agent", "to": "stream-response" },
+    { "id": "aftersales-order", "from": "intent-dispatch", "to": "verified-order", "label": "售后政策", "role": "branch" },
+    { "id": "order-policy-search", "from": "verified-order", "to": "hybrid-retrieval" },
+    { "id": "product-search", "from": "intent-dispatch", "to": "hybrid-retrieval", "label": "商品咨询", "role": "branch" },
+    { "id": "search-rerank", "from": "hybrid-retrieval", "to": "evidence-gate" },
+    { "id": "accepted-evidence", "from": "evidence-gate", "to": "bounded-agent", "label": "证据通过", "variant": "security" },
+    { "id": "rejected-evidence", "from": "evidence-gate", "to": "evidence-refusal", "label": "证据不足", "role": "error", "variant": "dashed" },
+    { "id": "agent-tool-request", "from": "bounded-agent", "to": "tool-policy", "label": "工具申请", "role": "branch" },
+    { "id": "authorized-tool-call", "from": "tool-policy", "to": "tool-observation", "label": "授权执行", "variant": "security" },
+    { "id": "tool-result-return", "from": "tool-observation", "to": "bounded-agent", "label": "观察结果", "role": "return", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "检索与确定性出口", "items": [
+      "BGE-M3 嵌入；bge-reranker-v2-m3 精排；MySQL 校验生效状态与内容摘要。",
+      "证据不足拒答并记录问题池；投诉、闲聊和其他意图固定安抚、介绍或澄清，不进入 Agent。"
+    ] },
+    { "dot": "amber", "title": "暂停、确认与副作用", "items": [
+      "工单工具暂停展示预览，顾客明确确认后写入；外部 MCP 写入拒绝，只读瞬时故障有限重试。",
+      "退款走独立确认接口，仅登记待核实申请；订单及 MCP 查询使用演示数据。"
+    ] },
+    { "dot": "emerald", "title": "持久化与失败恢复", "items": [
+      "MySQL 保存完整会话与业务记录；SQLite checkpoint 保存图状态、工具轨迹与暂停点。",
+      "同轮重试复用 request_id；断流保留已提交效果，未完整发送的回答不进入后续完整上下文。"
+    ] }
+  ]
+}

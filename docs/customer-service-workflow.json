@@ -1,0 +1,211 @@
+{
+    "schema_version":  2,
+    "diagram_type":  "workflow",
+    "meta":  {
+                 "title":  "电商智能客服业务流程",
+                 "locale":  "zh-CN",
+                 "quality_profile":  "showcase"
+             },
+    "lanes":  [
+                  {
+                      "id":  "consultation",
+                      "label":  "客服对话"
+                  },
+                  {
+                      "id":  "followup",
+                      "label":  "顾客确认与登记"
+                  },
+                  {
+                      "id":  "improvement",
+                      "label":  "知识持续改进"
+                  }
+              ],
+    "mainPath":  [
+                     "customer-question",
+                     "intent-routing",
+                     "intent-handling",
+                     "customer-reply"
+                 ],
+    "nodes":  [
+                  {
+                      "id":  "customer-question",
+                      "lane":  "consultation",
+                      "col":  0,
+                      "type":  "frontend",
+                      "label":  "顾客提出问题",
+                      "sublabel":  "购物咨询或售后描述"
+                  },
+                  {
+                      "id":  "intent-routing",
+                      "lane":  "consultation",
+                      "col":  1,
+                      "type":  "backend",
+                      "label":  "理解与意图分流",
+                      "sublabel":  "结合同会话上下文",
+                      "width":  164
+                  },
+                  {
+                      "id":  "intent-handling",
+                      "lane":  "consultation",
+                      "col":  2,
+                      "type":  "backend",
+                      "label":  "按意图核实与处理",
+                      "sublabel":  "查询数据、知识或澄清",
+                      "width":  164
+                  },
+                  {
+                      "id":  "customer-reply",
+                      "lane":  "consultation",
+                      "col":  3,
+                      "type":  "frontend",
+                      "label":  "回复顾客",
+                      "sublabel":  "展示结果、引用与选项"
+                  },
+                  {
+                      "id":  "customer-confirmation",
+                      "lane":  "followup",
+                      "col":  3,
+                      "type":  "security",
+                      "label":  "顾客明确确认",
+                      "sublabel":  "核对预览或申请表"
+                  },
+                  {
+                      "id":  "register-request",
+                      "lane":  "followup",
+                      "col":  4,
+                      "type":  "database",
+                      "label":  "登记待跟进事项",
+                      "sublabel":  "人工工单或退款申请",
+                      "width":  164
+                  },
+                  {
+                      "id":  "registration-result",
+                      "lane":  "followup",
+                      "col":  5,
+                      "type":  "frontend",
+                      "label":  "告知登记结果",
+                      "sublabel":  "成功、取消或失败"
+                  },
+                  {
+                      "id":  "unresolved-pool",
+                      "lane":  "improvement",
+                      "col":  2,
+                      "type":  "database",
+                      "label":  "记录未解决原问",
+                      "sublabel":  "问题池保留召回证据",
+                      "width":  164
+                  },
+                  {
+                      "id":  "organize-candidates",
+                      "lane":  "improvement",
+                      "col":  3,
+                      "type":  "backend",
+                      "label":  "整理知识缺口",
+                      "sublabel":  "归并问题与待审示例"
+                  },
+                  {
+                      "id":  "human-review",
+                      "lane":  "improvement",
+                      "col":  4,
+                      "type":  "security",
+                      "label":  "人工审核",
+                      "sublabel":  "另填核准答案或驳回"
+                  },
+                  {
+                      "id":  "publish-knowledge",
+                      "lane":  "improvement",
+                      "col":  5,
+                      "type":  "database",
+                      "label":  "发布客服知识",
+                      "sublabel":  "保存原文并同步索引"
+                  }
+              ],
+    "edges":  [
+                  {
+                      "id":  "question-to-routing",
+                      "from":  "customer-question",
+                      "to":  "intent-routing"
+                  },
+                  {
+                      "id":  "routing-to-handling",
+                      "from":  "intent-routing",
+                      "to":  "intent-handling"
+                  },
+                  {
+                      "id":  "handling-to-reply",
+                      "from":  "intent-handling",
+                      "to":  "customer-reply"
+                  },
+                  {
+                      "id":  "reply-to-confirmation",
+                      "from":  "customer-reply",
+                      "to":  "customer-confirmation",
+                      "label":  "申请登记",
+                      "role":  "branch",
+                      "variant":  "security"
+                  },
+                  {
+                      "id":  "confirmed-registration",
+                      "from":  "customer-confirmation",
+                      "to":  "register-request",
+                      "label":  "确认",
+                      "variant":  "security"
+                  },
+                  {
+                      "id":  "registration-response",
+                      "from":  "register-request",
+                      "to":  "registration-result"
+                  },
+                  {
+                      "id":  "capture-unresolved",
+                      "from":  "intent-handling",
+                      "to":  "unresolved-pool",
+                      "label":  "证据不足",
+                      "role":  "async",
+                      "variant":  "dashed"
+                  },
+                  {
+                      "id":  "organize-pool",
+                      "from":  "unresolved-pool",
+                      "to":  "organize-candidates"
+                  },
+                  {
+                      "id":  "submit-for-review",
+                      "from":  "organize-candidates",
+                      "to":  "human-review"
+                  },
+                  {
+                      "id":  "approved-publication",
+                      "from":  "human-review",
+                      "to":  "publish-knowledge",
+                      "label":  "核准",
+                      "variant":  "security"
+                  }
+              ],
+    "cards":  [
+                  {
+                      "dot":  "cyan",
+                      "title":  "按意图处理",
+                      "items":  [
+                                    "商品咨询检索知识；退款退货、售后政策先核实订单，缺失时等待顾客选择。",
+                                    "订单、物流及具体业务数据按需查询；闲聊固定回复，投诉安抚并建议跟进，其他诉求澄清。"
+                                ]
+                  },
+                  {
+                      "dot":  "amber",
+                      "title":  "顾客确认与处理边界",
+                      "items":  [
+                                    "工单先补齐问题描述并预览；退款表单仅在本轮政策证据通过后提供。取消或拒绝确认不登记。",
+                                    "人工工单等待人工跟进；退款仅登记待核实申请，不执行资金操作。订单与外部查询使用演示数据。"
+                                ]
+                  },
+                  {
+                      "dot":  "emerald",
+                      "title":  "证据与知识改进",
+                      "items":  [
+                                    "检索证据门控或生成充分性检查未通过时拒答并记录原问；顾客反馈也可进入问题池。",
+                                    "示例答案不直接成为知识；人工核准后发布，索引同步完成后供后续咨询检索。"
+                                ]
+                  }
+              ]
+}
