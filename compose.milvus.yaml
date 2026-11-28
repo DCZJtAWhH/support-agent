@@ -15,7 +15,7 @@ services:
       DEPLOY_MODE: STANDALONE
     volumes:
       - knowledge_milvus:/var/lib/milvus
-      - ./deploy/embedEtcd.yaml:/milvus/configs/embedEtcd.yaml:ro
+      - ./config/embedEtcd.yaml:/milvus/configs/embedEtcd.yaml:ro
     ports:
       - '127.0.0.1:19530:19530'
       - '127.0.0.1:9091:9091'

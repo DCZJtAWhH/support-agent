@@ -13,7 +13,7 @@ class Conversation(Base):
 
     # 客服会话唯一标识，使用 UUID 字符串。
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    # 顾客标识，本章固定使用演示用户 demo-user，不代表已完成身份认证。
+    # 顾客标识，固定使用演示用户 demo-user，不代表已完成身份认证。
     user_id: Mapped[str] = mapped_column(String(64), default="demo-user")
     # 会话处理状态：active 对话中；旧版 waiting_human 值保留，新建工单不再转接会话。
     status: Mapped[str] = mapped_column(String(32), default="active")

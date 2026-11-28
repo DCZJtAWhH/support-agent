@@ -27,7 +27,7 @@ def mount_routes(app, web_directory):
 
     @app.get("/conversations/{conversation_id}")
     async def conversation_history(conversation_id: UUID):
-        """读取演示会话的持久消息和工单审计；本章未接入用户身份认证。"""
+        """读取演示会话的持久消息和工单审计；尚未接入用户身份认证。"""
         result = await app.state.read_audit(str(conversation_id))
         if result is None:
             raise HTTPException(404, detail="会话不存在。")

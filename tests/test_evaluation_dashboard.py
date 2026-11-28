@@ -76,8 +76,8 @@ def test_missing_published_report_shows_empty_even_with_legacy_or_unpublished_re
     import support_agent.evaluation.dashboard as dashboard
 
     async def scenario():
-        legacy = tmp_path / "dev-notes/ch04-eval-final-results.json"
-        legacy.parent.mkdir()
+        legacy = tmp_path / "data/reports/retrieval-evaluation-results.json"
+        legacy.parent.mkdir(parents=True)
         legacy.write_text(json.dumps(saved_report()), encoding="utf-8")
         report, _ = publish_report(tmp_path)
         if missing == "pointer":
@@ -117,7 +117,7 @@ def test_report_api_uses_saved_numbers_combines_filters_and_identifies_old_snaps
 
     async def scenario():
         _, run_id = publish_report(tmp_path, runs_directory=tmp_path / "data/rag-evaluations")
-        publish_report(tmp_path, runs_directory=tmp_path / "dev-notes/rag-evaluations")
+        publish_report(tmp_path, runs_directory=tmp_path / "data/reports/rag-evaluations")
         monkeypatch.setattr(dashboard, "PROJECT_ROOT", tmp_path)
         dataset = tmp_path / "cases.jsonl"
         dataset.write_text('{"id":"unknown","relevant":[]}\n', encoding="utf-8")

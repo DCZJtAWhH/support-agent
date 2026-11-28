@@ -211,7 +211,7 @@ class ChatService:
             self.repo.release_action(cid)
 
     async def confirm_ticket(self, body):
-        """仅显式点击才能调用第二章建单工具，校验原轮次的归属、完成和建议权限。"""
+        """仅显式点击才能调用建单工具，校验原轮次的归属、完成和建议权限。"""
         cid, rid = str(body.conversation_id), str(body.request_id)
         original = await self.repo.resolve_request(rid)
         if original is None or original[0] != cid:

@@ -61,7 +61,7 @@ class Settings(BaseSettings):
     eval_max_output_tokens: int = Field(default=4096, ge=1024)
     knowledge_top_k: int = Field(default=3, ge=1, le=20)
     knowledge_min_score: float = Field(default=0.4, ge=-1, le=1)
-    checkpoint_path: str = "data/ch05-checkpoints.sqlite"
+    checkpoint_path: str = "data/checkpoints.sqlite"
     intent_min_confidence: float = Field(default=0.65, ge=0, le=1)
     router_model: str | None = Field(default=None, min_length=1)
     agent_max_steps: int = Field(

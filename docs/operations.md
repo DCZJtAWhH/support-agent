@@ -7,12 +7,12 @@
 | 组件 | 本地默认位置 |
 | --- | --- |
 | 客服应用 | 推荐监听 `127.0.0.1:8010` |
-| MySQL | `compose.yaml`，本机 3307，命名卷 `support-agent` |
+| MySQL | `compose.yaml`，本机 3306，容器 `support-agent-mysql`，命名卷键 `mysql`（默认实际卷名 `support-agent_mysql`） |
 | Milvus | `compose.milvus.yaml`，19530 数据端口、9091 健康检查端口，命名卷 `knowledge_milvus` |
 | 物流／售后 MCP | 独立进程，8101 / 8102 |
 | Langfuse | 可选的现有自托管服务，默认 3000；仓库不提供其部署栈 |
 
-MySQL Compose 使用演示凭据；业务数据库在应用启动时创建所需表并执行兼容迁移和种子回调。
+MySQL Compose 使用演示凭据，数据库、用户名和密码均为 `support_agent`；业务数据库在应用启动时创建所需表并执行兼容迁移和种子回调。实际卷名前缀随 Compose 项目名变化，可通过 `docker compose -f compose.yaml config` 核对。
 
 当前使用固定演示用户，没有身份鉴权，订单与售后 MCP 不是实际业务系统，退款不执行资金操作。应按这些边界配置访问，不把演示状态解释为真实处理结果。
 
@@ -34,7 +34,7 @@ MySQL Compose 使用演示凭据；业务数据库在应用启动时创建所需
 
 ## 日志与观测
 
-业务日志自动以 UTF-8 写入 `log/app.log`，控制台格式由 `deploy/logging.json` 配置。
+业务日志自动以 UTF-8 写入 `log/app.log`，控制台格式由 `config/logging.json` 配置。
 
 ```powershell
 Get-Content -LiteralPath log/app.log -Encoding UTF8 -Wait
@@ -49,7 +49,7 @@ Langfuse 配置有效公钥、私钥后向指定自托管地址发送链路。`G
 
 | 现象 | 处理方式 |
 | --- | --- |
-| 数据库连接失败 | 核对 `.env` 和 Compose 健康状态，尤其是模板 3306 与仓库 Compose 3307 的差异。使用已有 MySQL 时，先配置项目库及账号，再手动填写 `DATABASE_URL`。 |
+| 数据库连接失败 | 核对 `.env` 的 `DATABASE_URL` 与 Compose 健康状态；仓库默认使用 `127.0.0.1:3306`，数据库、用户名和密码均为 `support_agent`。使用已有 MySQL 时，先配置项目库及账号，再手动填写 `DATABASE_URL`。 |
 | 模型名或 JSON 协议报错 | 核对当前提供方支持的 `OPENAI_MODEL`、`ROUTER_MODEL`、结构化方式和输出 token 参数；不依赖自动协议降级。 |
 | 知识原文保存成功但上传返回 503 | 原文件重试导入或执行 `knowledge.py sync`，不要清库重来。 |
 | 检索无结果 | 检查分类、原文生效状态、pending、集合名称与索引版本；变更集合需显式重建。 |

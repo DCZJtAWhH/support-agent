@@ -31,9 +31,25 @@ dependencies = [
 dev = [
     "aiosqlite>=0.21,<1",
     "playwright>=1.58,<2",
+    "poethepoet>=0.49.0",
     "pytest>=8,<10",
     "ruff>=0.11,<1",
 ]
+
+[tool.poe.tasks.dev]
+help = "启动客服应用（127.0.0.1:8010）"
+cmd = "uvicorn support_agent.app:create_app --factory --app-dir src --host 127.0.0.1 --port 8010 --workers 1 --log-config config/logging.json"
+env = { MODEL_THINKING = "disabled" }
+
+[tool.poe.tasks.mcp-logistics]
+help = "启动物流 MCP（127.0.0.1:8101）"
+cmd = "python -m support_agent.mcp_servers.logistics --port 8101"
+env = { PYTHONPATH = "src" }
+
+[tool.poe.tasks.mcp-aftersales]
+help = "启动售后 MCP（127.0.0.1:8102）"
+cmd = "python -m support_agent.mcp_servers.aftersales --port 8102"
+env = { PYTHONPATH = "src" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

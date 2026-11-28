@@ -32,10 +32,10 @@ docker compose -f compose.milvus.yaml up -d
 编辑 `.env`，填写模型与硅基流动密钥。使用仓库自带 MySQL Compose 时，数据库连接应为：
 
 ```dotenv
-DATABASE_URL=mysql+aiomysql://support_agent_ch02:support_agent_demo@127.0.0.1:3307/support_agent_ch02?charset=utf8mb4
+DATABASE_URL=mysql+aiomysql://support_agent:support_agent@127.0.0.1:3306/support_agent?charset=utf8mb4
 ```
 
-`.env.example` 的数据库示例使用 3306，需按实际服务端口调整。`ROUTER_MODEL` 应为当前提供方支持的模型；不单独指定时删除该配置项，代码会沿用 `OPENAI_MODEL`。DeepSeek 官方接口应使用 `STRUCTURED_OUTPUT_METHOD=json_mode`。完整配置见[配置说明](docs/configuration.md)。
+仓库 Compose 与 `.env.example` 统一使用本机 3306 端口，数据库、用户名和密码均为 `support_agent`；复用其他 MySQL 时按实际连接信息调整。`ROUTER_MODEL` 应为当前提供方支持的模型；不单独指定时删除该配置项，代码会沿用 `OPENAI_MODEL`。DeepSeek 官方接口应使用 `STRUCTURED_OUTPUT_METHOD=json_mode`。完整配置见[配置说明](docs/configuration.md)。
 
 等待数据库和 Milvus 就绪后，首次导入演示知识；已有知识索引无需重复重建：
 
@@ -50,21 +50,20 @@ uv run --locked python scripts/knowledge.py sync --rebuild
 
 ```powershell
 # 终端一：物流 MCP
-$env:PYTHONPATH='src'
-uv run --locked python -m support_agent.mcp_servers.logistics --port 8101
+uv run poe mcp-logistics
 ```
 
 ```powershell
 # 终端二：售后 MCP
-$env:PYTHONPATH='src'
-uv run --locked python -m support_agent.mcp_servers.aftersales --port 8102
+uv run poe mcp-aftersales
 ```
 
 ```powershell
-# 终端三：客服应用。该设置覆盖模型默认的思考模式。
-$env:MODEL_THINKING='disabled'
-uv run --locked uvicorn support_agent.app:create_app --factory --app-dir src --host 127.0.0.1 --port 8010 --workers 1 --log-config deploy/logging.json
+# 终端三：客服应用
+uv run poe dev
 ```
+
+开发任务由 Poe the Poet 管理，定义在 `pyproject.toml`。两个 MCP 任务自动设置 `PYTHONPATH=src`，分别监听 `127.0.0.1:8101` 和 `127.0.0.1:8102`。`dev` 任务固定使用单工作进程、监听 `127.0.0.1:8010`，并设置 `MODEL_THINKING=disabled` 覆盖模型默认的思考模式。执行 `uv run poe` 可查看任务列表；MySQL、Milvus 和三个应用进程仍需按上述步骤单独启动。
 
 | 页面 | 地址与用途 |
 | --- | --- |

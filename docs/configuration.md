@@ -13,12 +13,12 @@
 | `OUTPUT_TOKEN_PARAMETER` | 默认 `max_completion_tokens`；上游要求旧字段时显式设为 `max_tokens`。 |
 | `ROUTER_MODEL` | 未设置时沿用主力模型；模板显式填了 DeepSeek 模型名，其他提供方需替换或移除。 |
 | `MODEL_TIMEOUT_SECONDS` | 默认 60 秒。 |
-| `DATABASE_URL` | 必填，正常使用 `mysql+aiomysql://...`；仓库 Compose 暴露本机 3307，模板示例为 3306。 |
+| `DATABASE_URL` | 必填，正常使用 `mysql+aiomysql://...`；仓库 Compose 与模板统一使用 `127.0.0.1:3306`，数据库、用户名和密码均为 `support_agent`。 |
 | `SILICONFLOW_API_KEY` | BGE-M3 嵌入与 `BAAI/bge-reranker-v2-m3` 精排服务使用的密钥。 |
 | `MILVUS_URI` | 默认 `http://127.0.0.1:19530`。 |
 | `MILVUS_HYBRID_COLLECTION` | 在线混合集合，默认 `knowledge_hybrid_v1`。 |
 | `MILVUS_COLLECTION` | 旧集合配置，不能代替在线混合集合配置。 |
-| `CHECKPOINT_PATH` | 默认 `data/ch05-checkpoints.sqlite`；需持久保存。 |
+| `CHECKPOINT_PATH` | 默认 `data/checkpoints.sqlite`；需持久保存。 |
 
 模型必须支持本项目使用的流式工具调用及配置的 JSON 输出协议。网关地址不会只凭模型名称自动选择 DeepSeek 协议。
 

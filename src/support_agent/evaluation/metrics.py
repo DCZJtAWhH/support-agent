@@ -95,7 +95,7 @@ def build_report(rows: list[dict], *, mode: str, metadata=None) -> dict:
 def markdown_report(report: dict) -> str:
     """输出便于比较的指标表，空分母显示 N/A，并标明评估范围及统计口径。"""
     lines = [
-        "# 第四章检索与生成评估",
+        "# 检索与生成评估",
         "",
         f"模式：{report['mode']}",
         "",

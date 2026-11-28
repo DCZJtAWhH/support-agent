@@ -21,7 +21,7 @@ class Ticket(Base):
     description: Mapped[str] = mapped_column(Text)
     # 工单诉求类型：退款、退货退款、换货、维修、其他或未知。
     ticket_type: Mapped[str] = mapped_column(String(32))
-    # 工单处理状态：pending 待处理；本章未提供后续处理流转。
+    # 工单处理状态：pending 待处理；尚未提供后续处理流转。
     status: Mapped[str] = mapped_column(String(32), default="pending")
     # 工单创建时间，按 UTC 存储。
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)

@@ -1,20 +1,20 @@
 services:
   mysql:
     image: mysql:8.4.9
-    container_name: support-agent-ch02-mysql
+    container_name: support-agent-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: support_agent_root_demo
-      MYSQL_DATABASE: support_agent_ch02
-      MYSQL_USER: support_agent_ch02
-      MYSQL_PASSWORD: support_agent_demo
+      MYSQL_ROOT_PASSWORD: support_agent
+      MYSQL_DATABASE: support_agent
+      MYSQL_USER: support_agent
+      MYSQL_PASSWORD: support_agent
     ports:
-      - "127.0.0.1:3307:3306"
+      - "127.0.0.1:3306:3306"
     volumes:
-      - ch02_mysql:/var/lib/mysql
+      - mysql:/var/lib/mysql
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 5s
       timeout: 3s
       retries: 20
 volumes:
-  ch02_mysql:
+  mysql:
